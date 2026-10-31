@@ -11,6 +11,8 @@ export function launchGame(
   game: Game,
   system: SystemDef,
   settings: Settings,
+  /** Testo del file di configurazione aggiuntivo di RetroArch (generato dai profili) */
+  configText: string,
   onStart: () => void,
   onExit: () => void
 ): LaunchResult {
@@ -36,15 +38,11 @@ export function launchGame(
     }
   }
 
-  const args = ['-L', corePath, game.path]
-  if (settings.biosDir) {
-    // file di configurazione aggiuntivo: dice a RetroArch dove cercare i BIOS
-    const cfg = join(app.getPath('userData'), 'retroarch-mr.cfg')
-    mkdirSync(dirname(cfg), { recursive: true })
-    writeFileSync(cfg, `system_directory = "${settings.biosDir}"\n`, 'utf-8')
-    args.push('--appendconfig', cfg)
-  }
-  if (settings.fullscreen) args.push('-f')
+  // configurazione su misura per questo PC, questo schermo e questo sistema
+  const cfg = join(app.getPath('userData'), 'retroarch-mr.cfg')
+  mkdirSync(dirname(cfg), { recursive: true })
+  writeFileSync(cfg, configText, 'utf-8')
+  const args = ['-L', corePath, game.path, '--appendconfig', cfg]
 
   try {
     const child = spawn(settings.retroarchPath, args, { cwd: dirname(settings.retroarchPath), stdio: 'ignore' })

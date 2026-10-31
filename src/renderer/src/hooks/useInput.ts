@@ -17,12 +17,21 @@ const DEADZONE = 0.55
  * Input unico per tutto il programma: tastiera, gamepad (qualunque pad HID/XInput)
  * ed encoder arcade (che si presentano come tastiera o joystick).
  */
-export function useInput(handlers: InputHandlers): void {
+let modalOpen = false
+/** Mentre una finestra modale è aperta, solo i suoi comandi funzionano */
+export function setModalOpen(open: boolean): void {
+  modalOpen = open
+}
+
+export function useInput(handlers: InputHandlers, opts: { modal?: boolean } = {}): void {
   const ref = useRef(handlers)
   ref.current = handlers
+  const modal = useRef(!!opts.modal)
+  modal.current = !!opts.modal
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent): void => {
+      if (modalOpen && !modal.current) return
       const t = e.target as HTMLElement
       if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA')) return
       const h = ref.current
@@ -66,6 +75,10 @@ export function useInput(handlers: InputHandlers): void {
 
     const tick = (now: number): void => {
       const h = ref.current
+      if (modalOpen && !modal.current) {
+        raf = requestAnimationFrame(tick)
+        return
+      }
       for (const pad of navigator.getGamepads()) {
         if (!pad) continue
         const b = pad.buttons

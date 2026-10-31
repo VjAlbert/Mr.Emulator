@@ -1,11 +1,13 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import type { Game, SystemInfo } from '@shared/types'
+import type { Feedback, Game, GameEnded, SystemInfo } from '@shared/types'
 import SystemSelect from './components/SystemSelect'
 import GameList from './components/GameList'
 import SettingsScreen from './components/Settings'
+import SystemReport from './components/SystemReport'
+import FeedbackPrompt from './components/FeedbackPrompt'
 import { clearArtCache } from './hooks/useArt'
 
-type Screen = { name: 'systems' } | { name: 'games'; system: SystemInfo } | { name: 'settings' }
+type Screen = { name: 'systems' } | { name: 'games'; system: SystemInfo } | { name: 'settings' } | { name: 'pc' }
 
 export default function App(): React.JSX.Element {
   const [screen, setScreen] = useState<Screen>({ name: 'systems' })
@@ -15,6 +17,10 @@ export default function App(): React.JSX.Element {
   const timer = useRef<number | undefined>(undefined)
 
   const [wipe, setWipe] = useState(0)
+  const [ended, setEnded] = useState<GameEnded | null>(null)
+
+  // quando un gioco si chiude, il programma chiede com'è andata
+  useEffect(() => window.mr.onGameEnded(setEnded), [])
 
   const applyFx = useCallback(() => {
     window.mr.getSettings().then((st) => document.documentElement.classList.toggle('light-fx', !!st.lightEffects))
@@ -52,9 +58,12 @@ export default function App(): React.JSX.Element {
   }
 
   let view: React.JSX.Element
-  if (screen.name === 'settings') {
+  if (screen.name === 'pc') {
+    view = <SystemReport onBack={() => go({ name: 'systems' })} />
+  } else if (screen.name === 'settings') {
     view = (
       <SettingsScreen
+        onPc={() => go({ name: 'pc' })}
         onClose={() => go({ name: 'systems' })}
         onSaved={() => {
           clearArtCache()
@@ -68,7 +77,7 @@ export default function App(): React.JSX.Element {
       <GameList system={screen.system} games={games} message={message} onLaunch={launch} onBack={() => go({ name: 'systems' })} />
     )
   } else {
-    view = <SystemSelect systems={systems} onOpen={openSystem} onSettings={() => go({ name: 'settings' })} />
+    view = <SystemSelect systems={systems} onOpen={openSystem} onSettings={() => go({ name: 'settings' })} onPc={() => go({ name: 'pc' })} />
   }
 
   const wipeColor = screen.name === 'games' ? screen.system.color : '#ffd400'
@@ -76,6 +85,13 @@ export default function App(): React.JSX.Element {
     <>
       {view}
       {wipe > 0 && <div key={wipe} className="wipe" style={{ ['--w' as string]: wipeColor }} />}
+      {ended && (
+        <FeedbackPrompt
+          ended={ended}
+          onAnswer={(a: Feedback) => void window.mr.sendFeedback(ended.systemId, a)}
+          onSkip={() => setEnded(null)}
+        />
+      )}
       <div className="fx-scan" />
     </>
   )

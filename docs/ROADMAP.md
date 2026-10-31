@@ -28,7 +28,10 @@ Sistemi: Arcade (MAME, FBNeo), Neo Geo, Master System, Mega Drive, NES, SNES, Ga
 - [ ] Procedura guidata completa al primo avvio
 - [ ] Scaricamento di RetroArch e dei core dalle fonti ufficiali
 - [ ] Verifica dei BIOS tramite hash (senza scaricarli)
-- [ ] Profili prestazioni: Leggero, Bilanciato, Massimo
+- [x] Autoguida: rilevamento di PC e schermi, profili Leggero/Bilanciato/Massimo per sistema, file di configurazione generato per RetroArch
+- [x] Scheda video potente per i giochi sui portatili con due GPU (Windows)
+- [x] Domanda "com'è andata?" dopo ogni partita: il livello di ogni sistema si adatta
+- [ ] Verifica delle impostazioni con RetroArch e schermi reali (portatile, PC desktop, TV/proiettore)
 - [ ] Mappatura di tastiera, controller ed encoder arcade
 - [ ] Nintendo 64, Nintendo DS, Mega CD, Famicom Disk System
 - [ ] GameCube e Wii (da verificare sulle prestazioni)

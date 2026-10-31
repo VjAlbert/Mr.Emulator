@@ -1,14 +1,18 @@
 import { app, BrowserWindow, dialog, ipcMain, net, protocol, shell } from 'electron'
 import { pathToFileURL } from 'url'
-import { cpus, tmpdir } from 'os'
+import { tmpdir } from 'os'
 import { join } from 'path'
-import type { ArtKind, Game, PickKind, Settings, SystemInfo } from '@shared/types'
+import type { ArtKind, Feedback, Game, GameEnded, OptimizationReport, PickKind, Settings, SystemInfo } from '@shared/types'
 import { SYSTEMS } from './systems'
 import { loadSettings, saveSettings } from './settings'
 import { demoGames, scanSystem } from './scanner'
 import { launchGame } from './launcher'
 import { platform } from './platform'
 import { ensureFolders } from './folders'
+import { detectHardware } from './hardware'
+import { buildReport, profileFor } from './optimize'
+import { toConfigText } from './profiles'
+import { setHighPerformanceGpu } from './gpuPref'
 import { ART_SCHEME, getArt, resolveArtUrl, withFullTitles } from './artwork'
 
 protocol.registerSchemesAsPrivileged([
@@ -21,6 +25,17 @@ app.commandLine.appendSwitch('disk-cache-dir', join(tmpdir(), 'mr-emulator-cache
 app.commandLine.appendSwitch('disable-gpu-shader-disk-cache')
 
 let win: BrowserWindow | null = null
+let gpuPref: OptimizationReport['gpuPreference'] = 'off'
+
+/** Sui portatili con due schede video, fa usare quella potente a RetroArch */
+async function applyGpuPreference(s: Settings): Promise<void> {
+  const hw = await detectHardware(false)
+  if (!s.dedicatedGpu) gpuPref = 'off'
+  else if (process.platform !== 'win32') gpuPref = 'unsupported'
+  else if (!hw.hybridGpu) gpuPref = 'not-needed'
+  else if (!s.retroarchPath) gpuPref = 'off'
+  else gpuPref = (await setHighPerformanceGpu(s.retroarchPath)) ? 'applied' : 'failed'
+}
 
 function createWindow(): void {
   win = new BrowserWindow({
@@ -50,7 +65,7 @@ function gamesFor(systemId: string, settings: Settings): Game[] {
   return scanSystem(settings.romsDir, system)
 }
 
-app.whenReady().then(() => {
+app.whenReady().then(async () => {
   protocol.handle(ART_SCHEME, (req) => {
     const file = resolveArtUrl(req.url)
     return file ? net.fetch(pathToFileURL(file).toString()) : new Response('Not found', { status: 404 })
@@ -75,14 +90,17 @@ app.whenReady().then(() => {
   {
     const current = loadSettings()
     if (!current.romsDir || !current.biosDir) {
-      // primo avvio: su PC con pochi core si parte con gli effetti ridotti
-      saveSettings(ensureFolders({ ...current, lightEffects: cpus().length <= 4 }))
+      // primo avvio: se il PC è debole si parte con gli effetti dell'interfaccia ridotti
+      const hw = await detectHardware(false)
+      saveSettings(ensureFolders({ ...current, lightEffects: hw.level === 'light' }))
     }
+    await applyGpuPreference(loadSettings())
   }
 
   ipcMain.handle('settings:get', () => loadSettings())
   ipcMain.handle('settings:save', (_e, s: Settings) => {
     const saved = saveSettings(s)
+    void applyGpuPreference(saved)
     try {
       ensureFolders(saved) // se la cartella indicata non ha le sottocartelle, le crea
     } catch {
@@ -106,19 +124,45 @@ app.whenReady().then(() => {
     return res.canceled ? null : res.filePaths[0]
   })
 
-  ipcMain.handle('game:launch', (_e, game: Game) => {
+  ipcMain.handle('game:launch', async (_e, game: Game) => {
     const system = SYSTEMS.find((s) => s.id === game.systemId)
     if (!system) return { ok: false, error: 'Sistema sconosciuto.' }
+    const settings = loadSettings()
+    const hw = await detectHardware(true)
+    await applyGpuPreference(settings)
+    const { profile } = profileFor(system, settings, hw, win)
+    let startedAt = 0
     return launchGame(
       game,
       system,
-      loadSettings(),
-      () => win?.hide(),
+      settings,
+      toConfigText(profile.config),
+      () => {
+        startedAt = Date.now()
+        win?.hide()
+      },
       () => {
         win?.show()
         win?.focus()
+        const seconds = startedAt ? Math.round((Date.now() - startedAt) / 1000) : 0
+        startedAt = 0
+        // il parere dell'utente si chiede solo dopo una partita vera
+        if (seconds >= 45 && settings.autoTune) {
+          const ended: GameEnded = { gameId: game.id, gameName: game.name, systemId: system.id, systemName: system.name, seconds }
+          win?.webContents.send('game:ended', ended)
+        }
       }
     )
+  })
+
+  ipcMain.handle('report:get', async () => buildReport(loadSettings(), await detectHardware(true), win, gpuPref))
+
+  // risposte dell'utente: correggono il livello di quel sistema (-2 .. +1)
+  ipcMain.handle('feedback:send', (_e, systemId: string, answer: Feedback) => {
+    const s = loadSettings()
+    const cur = s.tuning[systemId] ?? 0
+    const next = answer === 'slow' ? cur - 1 : answer === 'better' ? cur + 1 : cur
+    saveSettings({ ...s, tuning: { ...s.tuning, [systemId]: Math.min(1, Math.max(-2, next)) } })
   })
 
   createWindow()

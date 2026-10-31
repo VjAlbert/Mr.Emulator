@@ -5,9 +5,10 @@ import { useInput } from '../hooks/useInput'
 interface Props {
   onClose: () => void
   onSaved: () => void
+  onPc: () => void
 }
 
-export default function SettingsScreen({ onClose, onSaved }: Props): React.JSX.Element {
+export default function SettingsScreen({ onClose, onSaved, onPc }: Props): React.JSX.Element {
   const [s, setS] = useState<Settings | null>(null)
   const [saved, setSaved] = useState(false)
 
@@ -73,6 +74,9 @@ export default function SettingsScreen({ onClose, onSaved }: Props): React.JSX.E
           <input type="checkbox" checked={s.lightEffects} onChange={(e) => setS({ ...s, lightEffects: e.target.checked })} />
           Effetti ridotti (consigliato per PC lenti: meno animazioni e luci)
         </label>
+        <button className="chip" onClick={onPc}>
+          ⚡ OTTIMIZZAZIONE AUTOMATICA DEL PC
+        </button>
         <button className="big" onClick={save}>
           {saved ? '✔ SALVATO' : 'SALVA'}
         </button>

@@ -10,7 +10,13 @@ const DEFAULTS: Settings = {
   coresDir: '',
   fullscreen: true,
   downloadArt: true,
-  lightEffects: false
+  lightEffects: false,
+  perfMode: 'auto',
+  imageStyle: 'fit',
+  autoTune: true,
+  tuning: {},
+  gameMonitor: 0,
+  dedicatedGpu: true
 }
 
 const file = (): string => join(app.getPath('userData'), 'settings.json')
