@@ -1,0 +1,51 @@
+# Dipendenze e build
+node_modules/
+dist/
+out/
+build/
+release/
+*.log
+npm-debug.log*
+
+# Variabili d'ambiente e segreti
+.env
+.env.*
+
+# Editor / sistema operativo
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# ROM, BIOS e dati dell'utente: NON vanno mai nel repository
+roms/
+bios/
+saves/
+states/
+screenshots/
+*.zip
+*.7z
+*.rar
+*.iso
+*.bin
+*.cue
+*.chd
+*.rom
+*.nes
+*.sfc
+*.smc
+*.gb
+*.gbc
+*.gba
+*.gen
+*.sms
+*.n64
+*.z64
+*.v64
+*.nds
+*.gcm
+*.cso
+
+# Emulatori scaricati dal programma
+emulators/
+cores/
