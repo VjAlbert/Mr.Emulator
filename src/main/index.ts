@@ -8,7 +8,7 @@ import { demoGames, scanSystem } from './scanner'
 import { launchGame } from './launcher'
 import { platform } from './platform'
 import { ensureFolders } from './folders'
-import { ART_SCHEME, getArt, resolveArtUrl } from './artwork'
+import { ART_SCHEME, getArt, resolveArtUrl, withFullTitles } from './artwork'
 
 protocol.registerSchemesAsPrivileged([
   { scheme: ART_SCHEME, privileges: { standard: true, secure: true, supportFetchAPI: true } }
@@ -60,7 +60,10 @@ app.whenReady().then(() => {
     return SYSTEMS.map((s) => ({ ...s, gameCount: gamesFor(s.id, settings).length }))
   })
 
-  ipcMain.handle('games:get', (_e, systemId: string) => gamesFor(systemId, loadSettings()))
+  ipcMain.handle('games:get', async (_e, systemId: string) => {
+    const games = gamesFor(systemId, loadSettings())
+    return SYSTEMS.find((s) => s.id === systemId)?.titleDat ? withFullTitles(games) : games
+  })
 
   // Primo avvio: prepara Documenti\MrEmulator con ROM e BIOS
   {

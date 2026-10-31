@@ -66,7 +66,8 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   border-left: 5px solid transparent; clip-path: polygon(0 0, 100% 0, calc(100% - 14px) 100%, 0 100%); transition: .1s;
 }
 .row-num { font-family: var(--font); color: var(--muted); letter-spacing: 1px; }
-.row-name { font-size: 20px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.row-name { font-size: 20px; font-weight: 600; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.row-name small { margin-left: 10px; font-size: 13px; font-weight: 500; opacity: .6; }
 .row.active { background: linear-gradient(90deg, var(--accent), color-mix(in srgb, var(--accent) 20%, transparent)); border-left-color: #fff; transform: translateX(12px); color: #000; }
 .row.active .row-num { color: #000; }
 .empty { color: var(--muted); line-height: 1.7; padding: 30px; }
@@ -105,3 +106,6 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   box-shadow: 0 0 34px color-mix(in srgb, var(--accent) 55%, transparent), 0 14px 30px rgba(0,0,0,.6);
   image-rendering: auto;
 }
+
+.preview-name { line-height: 1.15; }
+.preview-tag { margin-top: 4px; font-size: 13px; color: var(--muted); }

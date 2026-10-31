@@ -27,6 +27,9 @@ function walk(dir: string, depth: number, exts: Set<string>, out: string[]): voi
   }
 }
 
+/** Set di sistema (BIOS) di FBNeo: non sono giochi e non vanno mostrati nella lista */
+const BIOS_SETS = new Set(['neogeo', 'pgm', 'decocass', 'cchip', 'ym2608', 'midssio', 'nmk004', 'isgsm', 'konamigx', 'skns'])
+
 export function scanSystem(romsDir: string, system: SystemDef): Game[] {
   if (!romsDir) return []
   const dir = join(romsDir, system.folder)
@@ -34,6 +37,7 @@ export function scanSystem(romsDir: string, system: SystemDef): Game[] {
   const files: string[] = []
   walk(dir, 0, new Set(system.extensions), files)
   return files
+    .filter((path) => !(system.titleDat && BIOS_SETS.has(parse(path).name.toLowerCase())))
     .map((path) => {
       const fileName = parse(path).base
       return { id: `${system.id}:${path}`, name: prettyName(fileName), fileName, path, systemId: system.id }

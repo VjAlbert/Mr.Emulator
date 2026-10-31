@@ -26,6 +26,16 @@ export function launchGame(
   }
   if (!existsSync(game.path)) return { ok: false, error: 'File del gioco non trovato.' }
 
+  if (system.id === 'neogeo') {
+    const dirs = [dirname(game.path), join(settings.romsDir, system.folder), settings.biosDir, join(settings.biosDir, 'fbneo')]
+    if (!dirs.some((d) => d && existsSync(join(d, 'neogeo.zip')))) {
+      return {
+        ok: false,
+        error: `Manca neogeo.zip (il BIOS Neo Geo). Copialo nella cartella roms\\${system.folder} insieme ai giochi, oppure in bios\\fbneo.`
+      }
+    }
+  }
+
   const args = ['-L', corePath, game.path]
   if (settings.biosDir) {
     // file di configurazione aggiuntivo: dice a RetroArch dove cercare i BIOS

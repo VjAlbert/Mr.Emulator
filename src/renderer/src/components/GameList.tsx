@@ -2,6 +2,12 @@ import { useEffect, useRef, useState } from 'react'
 import type { Game, SystemInfo } from '@shared/types'
 import { useInput } from '../hooks/useInput'
 
+/** "Titolo (dettagli)" -> parte principale + dettagli tecnici mostrati più piccoli */
+function splitTitle(name: string): { main: string; tag: string } {
+  const i = name.indexOf(' (')
+  return i > 0 ? { main: name.slice(0, i), tag: name.slice(i + 1) } : { main: name, tag: '' }
+}
+
 interface Props {
   system: SystemInfo
   games: Game[]
@@ -79,7 +85,10 @@ export default function GameList({ system, games, message, onLaunch, onBack }: P
               onClick={() => onLaunch(g)}
             >
               <span className="row-num">{String(i + 1).padStart(3, '0')}</span>
-              <span className="row-name">{g.name}</span>
+              <span className="row-name">
+                {splitTitle(g.name).main}
+                {splitTitle(g.name).tag && <small>{splitTitle(g.name).tag}</small>}
+              </span>
             </button>
           ))}
         </div>
@@ -94,7 +103,8 @@ export default function GameList({ system, games, message, onLaunch, onBack }: P
               ) : (
                 <div className="preview-art">{game.name.slice(0, 1)}</div>
               )}
-              <div className="preview-name">{game.name}</div>
+              <div className="preview-name">{splitTitle(game.name).main}</div>
+              {splitTitle(game.name).tag && <div className="preview-tag">{splitTitle(game.name).tag}</div>}
               <div className="preview-meta">
                 {system.name}
                 {game.demo ? ' · DEMO' : ''}

@@ -12,7 +12,7 @@ export function ensureFolders(s: Settings): Settings {
   const next = { ...s }
   if (!next.romsDir) next.romsDir = join(defaultRoot(), 'roms')
   if (!next.biosDir) next.biosDir = join(defaultRoot(), 'bios')
-  mkdirSync(next.biosDir, { recursive: true })
+  mkdirSync(join(next.biosDir, 'fbneo'), { recursive: true }) // dove FBNeo cerca neogeo.zip e simili
   for (const sys of SYSTEMS) mkdirSync(join(next.romsDir, sys.folder), { recursive: true })
   return next
 }
