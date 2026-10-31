@@ -1,6 +1,6 @@
 import { app, BrowserWindow, dialog, ipcMain, net, protocol, shell } from 'electron'
 import { pathToFileURL } from 'url'
-import { cpus } from 'os'
+import { cpus, tmpdir } from 'os'
 import { join } from 'path'
 import type { Game, PickKind, Settings, SystemInfo } from '@shared/types'
 import { SYSTEMS } from './systems'
@@ -14,6 +14,11 @@ import { ART_SCHEME, getArt, resolveArtUrl, withFullTitles } from './artwork'
 protocol.registerSchemesAsPrivileged([
   { scheme: ART_SCHEME, privileges: { standard: true, secure: true, supportFetchAPI: true } }
 ])
+
+// Cache di Chromium in una cartella temporanea e senza cache degli shader su disco:
+// evita gli avvisi "Unable to move the cache" quando un'altra copia ha la cartella bloccata.
+app.commandLine.appendSwitch('disk-cache-dir', join(tmpdir(), 'mr-emulator-cache'))
+app.commandLine.appendSwitch('disable-gpu-shader-disk-cache')
 
 let win: BrowserWindow | null = null
 
