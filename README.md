@@ -63,7 +63,7 @@ npm install
 npm run dev
 ```
 
-Poi, dalle **Impostazioni** del programma, indica la cartella delle ROM (con una sottocartella per sistema: `snes`, `megadrive`, `nes`…) e il percorso di `retroarch.exe`. Senza ROM configurate vedrai giochi di esempio, utili per provare l'interfaccia.
+Al primo avvio il programma crea da solo la cartella `Documenti\MrEmulator` con `roms\` (una sottocartella per sistema: `snes`, `megadrive`, `nes`…) e `bios\`. Copia lì le tue ROM e i tuoi BIOS, poi indica in **Impostazioni** il percorso di `retroarch.exe`. Il pulsante *Apri cartella* ti porta direttamente nel posto giusto. La cartella `bios` viene passata automaticamente a RetroArch.
 
 Comandi utili: `npm run typecheck` (controllo del codice) e `npm run build`.
 

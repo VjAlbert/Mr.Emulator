@@ -8,6 +8,8 @@ const api: MrApi = {
   saveSettings: (s) => ipcRenderer.invoke('settings:save', s),
   launch: (game) => ipcRenderer.invoke('game:launch', game),
   pickPath: (kind) => ipcRenderer.invoke('dialog:pick', kind),
+  openFolder: (target) => ipcRenderer.invoke('folder:open', target),
+  setupFolders: () => ipcRenderer.invoke('folder:setup'),
   getArt: (game) => ipcRenderer.invoke('art:get', game)
 }
 

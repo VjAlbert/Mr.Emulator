@@ -19,7 +19,7 @@ export default function SettingsScreen({ onClose, onSaved }: Props): React.JSX.E
 
   if (!s) return <div className="loading">Caricamento…</div>
 
-  const pick = async (key: 'romsDir' | 'retroarchPath' | 'coresDir', kind: PickKind): Promise<void> => {
+  const pick = async (key: 'romsDir' | 'biosDir' | 'retroarchPath' | 'coresDir', kind: PickKind): Promise<void> => {
     const p = await window.mr.pickPath(kind)
     if (p) setS({ ...s, [key]: p })
   }
@@ -31,7 +31,7 @@ export default function SettingsScreen({ onClose, onSaved }: Props): React.JSX.E
     setTimeout(() => setSaved(false), 1800)
   }
 
-  const field = (label: string, hint: string, key: 'romsDir' | 'retroarchPath' | 'coresDir', kind: PickKind): React.JSX.Element => (
+  const field = (label: string, hint: string, key: 'romsDir' | 'biosDir' | 'retroarchPath' | 'coresDir', kind: PickKind): React.JSX.Element => (
     <div className="field">
       <label>{label}</label>
       <div className="field-row">
@@ -53,6 +53,12 @@ export default function SettingsScreen({ onClose, onSaved }: Props): React.JSX.E
       </header>
       <div className="settings-body">
         {field('Cartella ROM', 'Es. D:\\Giochi\\roms (con sottocartelle: snes, megadrive, arcade…)', 'romsDir', 'dir')}
+        {field('Cartella BIOS', 'I tuoi file BIOS vanno qui (viene passata a RetroArch)', 'biosDir', 'dir')}
+        <div className="field-row">
+          <button className="chip" onClick={() => window.mr.openFolder('roms')}>APRI CARTELLA ROM</button>
+          <button className="chip" onClick={() => window.mr.openFolder('bios')}>APRI CARTELLA BIOS</button>
+          <button className="chip" onClick={() => window.mr.setupFolders().then(setS)}>CREA CARTELLE MANCANTI</button>
+        </div>
         {field('RetroArch (retroarch.exe)', 'Es. C:\\RetroArch-Win64\\retroarch.exe', 'retroarchPath', 'file')}
         {field('Cartella dei core (facoltativa)', 'Se vuota si usa la cartella "cores" accanto a RetroArch', 'coresDir', 'dir')}
         <label className="check">

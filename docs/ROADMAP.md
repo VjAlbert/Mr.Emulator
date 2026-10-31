@@ -22,7 +22,8 @@ Sistemi: Arcade (MAME, FBNeo), Neo Geo, Master System, Mega Drive, NES, SNES, Ga
 - [x] Navigazione con tastiera, mouse e gamepad (da verificare con pad reali ed encoder arcade)
 
 ## Fase 2 — Configurazione guidata e sistemi più pesanti
-- [ ] Procedura guidata al primo avvio
+- [x] Cartelle ROM e BIOS create automaticamente al primo avvio (Documenti\MrEmulator)
+- [ ] Procedura guidata completa al primo avvio
 - [ ] Scaricamento di RetroArch e dei core dalle fonti ufficiali
 - [ ] Verifica dei BIOS tramite hash (senza scaricarli)
 - [ ] Profili prestazioni: Leggero, Bilanciato, Massimo

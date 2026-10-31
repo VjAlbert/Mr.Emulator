@@ -1,6 +1,8 @@
 import { spawn } from 'child_process'
 import { existsSync } from 'fs'
 import { join, dirname } from 'path'
+import { app } from 'electron'
+import { mkdirSync, writeFileSync } from 'fs'
 import type { Game, LaunchResult, Settings, SystemDef } from '@shared/types'
 import { platform } from './platform'
 
@@ -25,6 +27,13 @@ export function launchGame(
   if (!existsSync(game.path)) return { ok: false, error: 'File del gioco non trovato.' }
 
   const args = ['-L', corePath, game.path]
+  if (settings.biosDir) {
+    // file di configurazione aggiuntivo: dice a RetroArch dove cercare i BIOS
+    const cfg = join(app.getPath('userData'), 'retroarch-mr.cfg')
+    mkdirSync(dirname(cfg), { recursive: true })
+    writeFileSync(cfg, `system_directory = "${settings.biosDir}"\n`, 'utf-8')
+    args.push('--appendconfig', cfg)
+  }
   if (settings.fullscreen) args.push('-f')
 
   try {

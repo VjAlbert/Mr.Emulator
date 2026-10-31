@@ -64,7 +64,11 @@ export default function GameList({ system, games, message, onLaunch, onBack }: P
             <div className="empty">
               Nessun gioco trovato in <b>{system.folder}</b>.
               <br />
-              Controlla la cartella ROM nelle impostazioni.
+              Copia qui le tue ROM e riapri questo sistema.
+              <br />
+              <button className="chip" onClick={() => window.mr.openFolder(system.id)}>
+                APRI LA CARTELLA
+              </button>
             </div>
           )}
           {games.map((g, i) => (

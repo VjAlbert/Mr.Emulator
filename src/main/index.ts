@@ -1,4 +1,4 @@
-import { app, BrowserWindow, dialog, ipcMain, net, protocol } from 'electron'
+import { app, BrowserWindow, dialog, ipcMain, net, protocol, shell } from 'electron'
 import { pathToFileURL } from 'url'
 import { join } from 'path'
 import type { Game, PickKind, Settings, SystemInfo } from '@shared/types'
@@ -7,6 +7,7 @@ import { loadSettings, saveSettings } from './settings'
 import { demoGames, scanSystem } from './scanner'
 import { launchGame } from './launcher'
 import { platform } from './platform'
+import { ensureFolders } from './folders'
 import { ART_SCHEME, getArt, resolveArtUrl } from './artwork'
 
 protocol.registerSchemesAsPrivileged([
@@ -61,8 +62,29 @@ app.whenReady().then(() => {
 
   ipcMain.handle('games:get', (_e, systemId: string) => gamesFor(systemId, loadSettings()))
 
+  // Primo avvio: prepara Documenti\MrEmulator con ROM e BIOS
+  {
+    const current = loadSettings()
+    if (!current.romsDir || !current.biosDir) saveSettings(ensureFolders(current))
+  }
+
   ipcMain.handle('settings:get', () => loadSettings())
-  ipcMain.handle('settings:save', (_e, s: Settings) => saveSettings(s))
+  ipcMain.handle('settings:save', (_e, s: Settings) => {
+    const saved = saveSettings(s)
+    try {
+      ensureFolders(saved) // se la cartella indicata non ha le sottocartelle, le crea
+    } catch {
+      // cartella non scrivibile: nessun problema, resta quella scelta dall'utente
+    }
+    return saved
+  })
+  ipcMain.handle('folder:setup', () => saveSettings(ensureFolders(loadSettings())))
+  ipcMain.handle('folder:open', async (_e, target: string) => {
+    const s = ensureFolders(loadSettings())
+    const sys = SYSTEMS.find((x) => x.id === target)
+    const dir = target === 'bios' ? s.biosDir : sys ? join(s.romsDir, sys.folder) : s.romsDir
+    await shell.openPath(dir)
+  })
 
   ipcMain.handle('dialog:pick', async (_e, kind: PickKind) => {
     const res = await dialog.showOpenDialog(win!, {

@@ -5,6 +5,7 @@ import type { Settings } from '@shared/types'
 
 const DEFAULTS: Settings = {
   romsDir: '',
+  biosDir: '',
   retroarchPath: '',
   coresDir: '',
   fullscreen: true,
