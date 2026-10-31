@@ -60,6 +60,27 @@ export interface Settings {
   gameMonitor: number
   /** Sui portatili con due schede video, fa usare quella potente a RetroArch */
   dedicatedGpu: boolean
+  inputScheme: InputScheme
+  arcadeLayout: ArcadeLayout
+}
+
+/** laptop = tastiera del portatile (WASD + J/K/L); cabinet = pannello arcade con encoder tipo I-PAC */
+export type InputScheme = 'laptop' | 'cabinet'
+/** standard = pulsanti 1..6 in ordine; capcom = pugni in alto e calci in basso (solo sistema Arcade) */
+export type ArcadeLayout = 'standard' | 'capcom'
+
+export interface ControlRow {
+  action: string
+  /** Nome del tasto come lo conosce RetroArch (serve a evidenziarlo nella schermata di prova) */
+  key: string
+  shown: string
+}
+
+export interface InputMapReport {
+  scheme: InputScheme
+  players: Array<{ player: number; title: string; rows: ControlRow[] }>
+  hotkeys: ControlRow[]
+  layouts: Array<{ title: string; rows: string[] }>
 }
 
 export type Vendor = 'nvidia' | 'amd' | 'intel' | 'other'
@@ -143,6 +164,7 @@ export type ArtKind = 'boxart' | 'snap' | 'title'
 export type PickKind = 'dir' | 'file'
 
 export interface MrApi {
+  getInputMap(): Promise<InputMapReport>
   getReport(): Promise<OptimizationReport>
   sendFeedback(systemId: string, answer: Feedback): Promise<void>
   /** Si attiva quando un gioco si chiude; restituisce la funzione per smettere di ascoltare */

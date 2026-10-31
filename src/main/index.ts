@@ -1,4 +1,4 @@
-import { app, BrowserWindow, dialog, ipcMain, net, protocol, shell } from 'electron'
+import { app, BrowserWindow, dialog, ipcMain, Menu, net, protocol, shell } from 'electron'
 import { pathToFileURL } from 'url'
 import { tmpdir } from 'os'
 import { join } from 'path'
@@ -13,6 +13,7 @@ import { detectHardware } from './hardware'
 import { buildReport, profileFor } from './optimize'
 import { toConfigText } from './profiles'
 import { setHighPerformanceGpu } from './gpuPref'
+import { buildInputConfig, buildInputMap } from './inputs'
 import { ART_SCHEME, getArt, resolveArtUrl, withFullTitles } from './artwork'
 
 protocol.registerSchemesAsPrivileged([
@@ -53,6 +54,9 @@ function createWindow(): void {
       sandbox: true
     }
   })
+  // nessun menu: il tasto Alt (pulsante 2 sul pannello arcade) non deve far comparire barre
+  Menu.setApplicationMenu(null)
+  win.removeMenu()
   win.setMenuBarVisibility(false)
   if (process.env['ELECTRON_RENDERER_URL']) win.loadURL(process.env['ELECTRON_RENDERER_URL'])
   else win.loadFile(join(__dirname, '../renderer/index.html'))
@@ -131,12 +135,13 @@ app.whenReady().then(async () => {
     const hw = await detectHardware(true)
     await applyGpuPreference(settings)
     const { profile } = profileFor(system, settings, hw, win)
+    const input = buildInputConfig(settings.inputScheme, settings.arcadeLayout, system.id === 'arcade')
     let startedAt = 0
     return launchGame(
       game,
       system,
       settings,
-      toConfigText(profile.config),
+      toConfigText({ ...profile.config, ...input }),
       () => {
         startedAt = Date.now()
         win?.hide()
@@ -153,6 +158,11 @@ app.whenReady().then(async () => {
         }
       }
     )
+  })
+
+  ipcMain.handle('input:map', () => {
+    const s = loadSettings()
+    return buildInputMap(s.inputScheme, s.arcadeLayout)
   })
 
   ipcMain.handle('report:get', async () => buildReport(loadSettings(), await detectHardware(true), win, gpuPref))

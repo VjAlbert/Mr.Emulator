@@ -23,18 +23,32 @@ export function setModalOpen(open: boolean): void {
   modalOpen = open
 }
 
-export function useInput(handlers: InputHandlers, opts: { modal?: boolean } = {}): void {
+export function useInput(handlers: InputHandlers, opts: { modal?: boolean; keyboard?: boolean } = {}): void {
   const ref = useRef(handlers)
   ref.current = handlers
   const modal = useRef(!!opts.modal)
   modal.current = !!opts.modal
+  const kbd = useRef(opts.keyboard !== false)
+  kbd.current = opts.keyboard !== false
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent): void => {
-      if (modalOpen && !modal.current) return
+      if (!kbd.current || (modalOpen && !modal.current)) return
       const t = e.target as HTMLElement
       if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA')) return
       const h = ref.current
+      // pannello arcade (I-PAC): pulsante 1 = conferma, pulsante 2 = indietro, Start 1 = conferma, Moneta 1 = menu
+      const byCode: Record<string, () => void> = {
+        ControlLeft: () => h.onConfirm?.(),
+        AltLeft: () => h.onBack?.(),
+        Digit1: () => h.onConfirm?.(),
+        Digit5: () => h.onMenu?.()
+      }
+      if (byCode[e.code]) {
+        e.preventDefault()
+        byCode[e.code]()
+        return
+      }
       const map: Record<string, () => void> = {
         ArrowUp: () => h.onMove?.('up'),
         ArrowDown: () => h.onMove?.('down'),

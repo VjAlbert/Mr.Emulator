@@ -32,7 +32,10 @@ Sistemi: Arcade (MAME, FBNeo), Neo Geo, Master System, Mega Drive, NES, SNES, Ga
 - [x] Scheda video potente per i giochi sui portatili con due GPU (Windows)
 - [x] Domanda "com'è andata?" dopo ogni partita: il livello di ogni sistema si adatta
 - [ ] Verifica delle impostazioni con RetroArch e schermi reali (portatile, PC desktop, TV/proiettore)
-- [ ] Mappatura di tastiera, controller ed encoder arcade
+- [x] Comandi da tastiera (WASD + J/K/L) e preset pannello arcade I-PAC a 2 giocatori e 6 pulsanti, con uscita da gioco tramite combinazione sul pannello
+- [x] Schermata "Comandi" per provare in tempo reale tastiera, encoder e pad
+- [ ] Procedura guidata per pad sconosciuti (es. encoder Zero Delay): da fare e provare con l'hardware reale
+- [ ] Verifica dei comandi con un pannello arcade e un pad reali
 - [ ] Nintendo 64, Nintendo DS, Mega CD, Famicom Disk System
 - [ ] GameCube e Wii (da verificare sulle prestazioni)
 

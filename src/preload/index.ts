@@ -2,6 +2,7 @@ import { contextBridge, ipcRenderer } from 'electron'
 import type { GameEnded, MrApi } from '@shared/types'
 
 const api: MrApi = {
+  getInputMap: () => ipcRenderer.invoke('input:map'),
   getReport: () => ipcRenderer.invoke('report:get'),
   sendFeedback: (systemId, answer) => ipcRenderer.invoke('feedback:send', systemId, answer),
   onGameEnded: (cb) => {

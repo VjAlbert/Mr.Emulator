@@ -18,9 +18,11 @@ interface Props {
   message: string
   onLaunch: (g: Game) => void
   onBack: () => void
+  /** Con un pannello arcade i tasti lettera sono pulsanti di gioco: il salto va spento */
+  letterJump: boolean
 }
 
-export default function GameList({ system, games, message, onLaunch, onBack }: Props): React.JSX.Element {
+export default function GameList({ system, games, message, onLaunch, onBack, letterJump }: Props): React.JSX.Element {
   const [index, setIndex] = useState(0)
   const [, setTick] = useState(0)
   const game = games[index]
@@ -41,8 +43,9 @@ export default function GameList({ system, games, message, onLaunch, onBack }: P
 
   // tastiera: premendo una lettera si salta al prossimo titolo che inizia così
   useEffect(() => {
+    if (!letterJump) return
     const onKey = (e: KeyboardEvent): void => {
-      if (e.ctrlKey || e.altKey || e.metaKey || e.key.length !== 1 || !/[a-z0-9]/i.test(e.key)) return
+      if (e.ctrlKey || e.altKey || e.metaKey || e.key.length !== 1 || !/[a-z]/i.test(e.key)) return
       const ch = e.key.toLowerCase()
       setIndex((i) => {
         const n = games.length
@@ -55,7 +58,7 @@ export default function GameList({ system, games, message, onLaunch, onBack }: P
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [games])
+  }, [games, letterJump])
 
   // la riga selezionata resta sempre visibile
   const scrollTo = (el: HTMLButtonElement | null): void => el?.scrollIntoView({ block: 'nearest' })

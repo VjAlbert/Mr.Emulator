@@ -16,7 +16,9 @@ const DEFAULTS: Settings = {
   autoTune: true,
   tuning: {},
   gameMonitor: 0,
-  dedicatedGpu: true
+  dedicatedGpu: true,
+  inputScheme: 'laptop',
+  arcadeLayout: 'standard'
 }
 
 const file = (): string => join(app.getPath('userData'), 'settings.json')

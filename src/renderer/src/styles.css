@@ -237,3 +237,16 @@ select { background: var(--panel); color: var(--text); border: 2px solid rgba(25
 .choice-icon { font-size: 34px; } .choice-label { font-family: var(--font); letter-spacing: 2px; } .choice-hint { font-size: 12px; opacity: .75; }
 .modal-note { margin-top: 18px; color: var(--muted); font-size: 12px; }
 .modal-done { font-family: var(--font); letter-spacing: 2px; font-size: 20px; padding: 24px 0; }
+
+/* ---- schermata comandi ---- */
+.hint { color: var(--muted); font-size: 13px; line-height: 1.6; margin-top: 10px; }
+.keys { display: flex; flex-direction: column; }
+.keyrow { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 6px 10px; border-bottom: 1px solid rgba(255,255,255,.06); font-size: 14px; transition: background .08s; }
+.keyrow span { color: var(--muted); }
+kbd { font-family: var(--font); letter-spacing: 1px; min-width: 38px; text-align: center; padding: 3px 12px; background: #0b0b12; border: 2px solid rgba(255,255,255,.2); color: var(--text); }
+.keyrow.on { background: var(--accent); } .keyrow.on span { color: #000; } .keyrow.on kbd { background: #fff; color: #000; border-color: #fff; }
+.layout { margin-bottom: 12px; } .layout ul { padding-left: 18px; line-height: 1.7; color: var(--muted); font-size: 14px; } .layout li::marker { color: var(--accent); }
+.padbox { padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,.06); } .padname { font-weight: 600; margin-bottom: 8px; font-size: 14px; }
+.padbtns { display: flex; flex-wrap: wrap; gap: 6px; }
+.padbtns i { font-style: normal; font-family: var(--font); min-width: 34px; text-align: center; padding: 6px 4px; background: #0b0b12; border: 2px solid rgba(255,255,255,.16); }
+.padbtns i.on { background: var(--accent); color: #000; border-color: #fff; }

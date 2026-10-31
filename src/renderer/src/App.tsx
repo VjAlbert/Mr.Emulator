@@ -4,10 +4,11 @@ import SystemSelect from './components/SystemSelect'
 import GameList from './components/GameList'
 import SettingsScreen from './components/Settings'
 import SystemReport from './components/SystemReport'
+import InputTest from './components/InputTest'
 import FeedbackPrompt from './components/FeedbackPrompt'
 import { clearArtCache } from './hooks/useArt'
 
-type Screen = { name: 'systems' } | { name: 'games'; system: SystemInfo } | { name: 'settings' } | { name: 'pc' }
+type Screen = { name: 'systems' } | { name: 'games'; system: SystemInfo } | { name: 'settings' } | { name: 'pc' } | { name: 'input' }
 
 export default function App(): React.JSX.Element {
   const [screen, setScreen] = useState<Screen>({ name: 'systems' })
@@ -17,13 +18,17 @@ export default function App(): React.JSX.Element {
   const timer = useRef<number | undefined>(undefined)
 
   const [wipe, setWipe] = useState(0)
+  const [scheme, setScheme] = useState<'laptop' | 'cabinet'>('laptop')
   const [ended, setEnded] = useState<GameEnded | null>(null)
 
   // quando un gioco si chiude, il programma chiede com'è andata
   useEffect(() => window.mr.onGameEnded(setEnded), [])
 
   const applyFx = useCallback(() => {
-    window.mr.getSettings().then((st) => document.documentElement.classList.toggle('light-fx', !!st.lightEffects))
+    window.mr.getSettings().then((st) => {
+      document.documentElement.classList.toggle('light-fx', !!st.lightEffects)
+      setScheme(st.inputScheme)
+    })
   }, [])
 
   const refresh = useCallback(() => {
@@ -58,7 +63,9 @@ export default function App(): React.JSX.Element {
   }
 
   let view: React.JSX.Element
-  if (screen.name === 'pc') {
+  if (screen.name === 'input') {
+    view = <InputTest onBack={() => go({ name: 'systems' })} onChanged={(st) => setScheme(st.inputScheme)} />
+  } else if (screen.name === 'pc') {
     view = <SystemReport onBack={() => go({ name: 'systems' })} />
   } else if (screen.name === 'settings') {
     view = (
@@ -74,10 +81,10 @@ export default function App(): React.JSX.Element {
     )
   } else if (screen.name === 'games') {
     view = (
-      <GameList system={screen.system} games={games} message={message} onLaunch={launch} onBack={() => go({ name: 'systems' })} />
+      <GameList system={screen.system} games={games} message={message} onLaunch={launch} onBack={() => go({ name: 'systems' })} letterJump={scheme !== 'cabinet'} />
     )
   } else {
-    view = <SystemSelect systems={systems} onOpen={openSystem} onSettings={() => go({ name: 'settings' })} onPc={() => go({ name: 'pc' })} />
+    view = <SystemSelect systems={systems} onOpen={openSystem} onSettings={() => go({ name: 'settings' })} onPc={() => go({ name: 'pc' })} onInput={() => go({ name: 'input' })} />
   }
 
   const wipeColor = screen.name === 'games' ? screen.system.color : '#ffd400'

@@ -11,9 +11,10 @@ interface Props {
   onOpen: (s: SystemInfo) => void
   onSettings: () => void
   onPc: () => void
+  onInput: () => void
 }
 
-export default function SystemSelect({ systems, onOpen, onSettings, onPc }: Props): React.JSX.Element {
+export default function SystemSelect({ systems, onOpen, onSettings, onPc, onInput }: Props): React.JSX.Element {
   const [index, setIndex] = useState(0)
   const sel = systems[index]
 
@@ -45,6 +46,9 @@ export default function SystemSelect({ systems, onOpen, onSettings, onPc }: Prop
           MR. <span>EMULATOR</span>
         </h1>
         <div className="top-actions">
+          <button className="chip" onClick={onInput}>
+            🎮 COMANDI
+          </button>
           <button className="chip" onClick={onPc}>
             ⚡ IL TUO PC
           </button>
