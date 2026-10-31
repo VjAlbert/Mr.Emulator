@@ -1,28 +1,81 @@
-import type { Game } from '@shared/types'
+import type { ArtKind, Game } from '@shared/types'
 
-/** Cache delle copertine già richieste in questa sessione (undefined = mai chiesta, null = non esiste) */
+const KINDS: ArtKind[] = ['boxart', 'snap', 'title']
+
+/** Immagini già richieste in questa sessione (undefined = mai chiesta, null = non esiste) */
 const done = new Map<string, string | null>()
 const pending = new Map<string, Promise<string | null>>()
+/** Proporzioni (larghezza / altezza) di ogni immagine scaricata */
+const ratios = new Map<string, number>()
 
-export const cachedArt = (id: string): string | null | undefined => done.get(id)
+const key = (id: string, kind: ArtKind): string => `${id}:${kind}`
 
-export const clearArtCache = (): void => done.clear()
+export const clearArtCache = (): void => {
+  done.clear()
+  ratios.clear()
+}
 
-export function loadArt(game: Game): Promise<string | null> {
+function measure(url: string): Promise<void> {
+  return new Promise((resolve) => {
+    const im = new Image()
+    im.onload = () => {
+      ratios.set(url, im.naturalWidth / im.naturalHeight)
+      resolve()
+    }
+    im.onerror = () => resolve()
+    im.src = url
+  })
+}
+
+export function loadKind(game: Game, kind: ArtKind): Promise<string | null> {
   if (game.demo) return Promise.resolve(null)
-  const hit = done.get(game.id)
+  const k = key(game.id, kind)
+  const hit = done.get(k)
   if (hit !== undefined) return Promise.resolve(hit)
-  let p = pending.get(game.id)
+  let p = pending.get(k)
   if (!p) {
     p = window.mr
-      .getArt(game)
+      .getArt(game, kind)
       .catch(() => null)
-      .then((u) => {
-        done.set(game.id, u)
-        pending.delete(game.id)
-        return u
+      .then(async (url) => {
+        if (url) await measure(url)
+        done.set(k, url)
+        pending.delete(k)
+        return url
       })
-    pending.set(game.id, p)
+    pending.set(k, p)
   }
   return p
+}
+
+/** Carica tutte le immagini disponibili di un gioco (copertina, schermata, titolo) */
+export async function loadAll(game: Game): Promise<void> {
+  await Promise.all(KINDS.map((k) => loadKind(game, k)))
+}
+
+/** Carica solo ciò che serve per la copertina: la scatola, e se manca una schermata */
+export async function loadCover(game: Game): Promise<void> {
+  if (!(await loadKind(game, 'boxart'))) await loadKind(game, 'snap')
+}
+
+export interface PickedArt {
+  /** Immagine per il carosello: preferibilmente verticale (copertina) */
+  cover: string | null
+  /** Immagine per lo sfondo: preferibilmente orizzontale (schermata di gioco) */
+  back: string | null
+}
+
+/** Sceglie dalle immagini già scaricate quale usare come copertina e quale come sfondo */
+export function pickArt(id: string): PickedArt {
+  const items = KINDS.map((kind) => {
+    const url = done.get(key(id, kind)) ?? null
+    return { kind, url, r: url ? (ratios.get(url) ?? 1) : 0 }
+  }).filter((x): x is { kind: ArtKind; url: string; r: number } => !!x.url)
+
+  const portrait = items.filter((x) => x.r <= 0.95)
+  const cover = (portrait.find((x) => x.kind === 'boxart') ?? portrait[0] ?? items[0])?.url ?? null
+
+  const landscape = items.filter((x) => x.r >= 1.15 && x.url !== cover)
+  const back = (landscape.find((x) => x.kind === 'snap') ?? landscape.find((x) => x.kind === 'title') ?? landscape[0])?.url ?? null
+  return { cover, back }
 }

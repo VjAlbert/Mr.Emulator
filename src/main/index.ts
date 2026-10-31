@@ -2,7 +2,7 @@ import { app, BrowserWindow, dialog, ipcMain, net, protocol, shell } from 'elect
 import { pathToFileURL } from 'url'
 import { cpus, tmpdir } from 'os'
 import { join } from 'path'
-import type { Game, PickKind, Settings, SystemInfo } from '@shared/types'
+import type { ArtKind, Game, PickKind, Settings, SystemInfo } from '@shared/types'
 import { SYSTEMS } from './systems'
 import { loadSettings, saveSettings } from './settings'
 import { demoGames, scanSystem } from './scanner'
@@ -56,9 +56,9 @@ app.whenReady().then(() => {
     return file ? net.fetch(pathToFileURL(file).toString()) : new Response('Not found', { status: 404 })
   })
 
-  ipcMain.handle('art:get', (_e, game: Game) => {
+  ipcMain.handle('art:get', (_e, game: Game, kind: ArtKind) => {
     const system = SYSTEMS.find((s) => s.id === game.systemId)
-    return system ? getArt(game, system, loadSettings().downloadArt) : null
+    return system ? getArt(game, system, loadSettings().downloadArt, kind) : null
   })
 
   ipcMain.handle('systems:get', (): SystemInfo[] => {

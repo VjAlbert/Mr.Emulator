@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { loadArt } from '../hooks/useArt'
+import { loadCover, pickArt } from '../hooks/useArt'
 
 const cache = new Map<string, string[]>()
 
@@ -23,7 +23,8 @@ export default function ArtShowcase({ systemId }: { systemId: string }): React.J
       const out: string[] = []
       for (const g of pickRandom(games, 6)) {
         if (off) return
-        const u = await loadArt(g)
+        await loadCover(g)
+        const u = pickArt(g.id).cover
         if (u) {
           out.push(u)
           if (!off) setUrls([...out])

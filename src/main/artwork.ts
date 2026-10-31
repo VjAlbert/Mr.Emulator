@@ -1,7 +1,7 @@
 import { app } from 'electron'
 import { join, resolve, parse, sep } from 'path'
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs'
-import type { Game, SystemDef } from '@shared/types'
+import type { ArtKind, Game, SystemDef } from '@shared/types'
 import { prettyName } from './scanner'
 
 /**
@@ -16,8 +16,8 @@ const SOURCES = [
     `https://raw.githubusercontent.com/libretro-thumbnails/${encodeURIComponent(sys.replace(/ /g, '_'))}/master/${kind}/${encodeURIComponent(file)}.png`
 ]
 
-/** In ordine di preferenza: copertina, schermata di gioco, schermata del titolo */
-const KINDS = ['Named_Boxarts', 'Named_Snaps', 'Named_Titles'] as const
+/** Cartelle dell'archivio libretro-thumbnails per ogni tipo di immagine */
+const KIND_DIR: Record<ArtKind, string> = { boxart: 'Named_Boxarts', snap: 'Named_Snaps', title: 'Named_Titles' }
 
 export const ART_SCHEME = 'mrart'
 export const artRoot = (): string => join(app.getPath('userData'), 'artwork')
@@ -66,7 +66,7 @@ function candidates(fileName: string): string[] {
 const localPath = (systemId: string, kind: string, name: string): string =>
   join(artRoot(), systemId, kind, `${name}.png`)
 
-const missPath = (systemId: string, stem: string): string => join(artRoot(), systemId, `${stem}.miss`)
+const missPath = (systemId: string, stem: string, kind: ArtKind): string => join(artRoot(), systemId, `${stem}.${kind}.miss`)
 
 const toUrl = (systemId: string, kind: string, name: string): string =>
   `${ART_SCHEME}://art/${encodeURIComponent(systemId)}/${kind}/${encodeURIComponent(name)}.png`
@@ -123,18 +123,18 @@ export async function withFullTitles(games: Game[]): Promise<Game[]> {
 
 const inflight = new Map<string, Promise<string | null>>()
 
-export function getArt(game: Game, system: SystemDef, enabled: boolean): Promise<string | null> {
+export function getArt(game: Game, system: SystemDef, enabled: boolean, kind: ArtKind): Promise<string | null> {
   if (game.demo || !system.thumbs) return Promise.resolve(null)
   const stem = clean(parse(game.fileName).name)
-  const key = `${system.id}:${stem}`
+  const key = `${system.id}:${stem}:${kind}`
   const running = inflight.get(key)
   if (running) return running
-  const job = resolveArt(game, system, enabled, stem).finally(() => inflight.delete(key))
+  const job = resolveArt(game, system, enabled, stem, kind).finally(() => inflight.delete(key))
   inflight.set(key, job)
   return job
 }
 
-async function resolveArt(game: Game, system: SystemDef, enabled: boolean, stem: string): Promise<string | null> {
+async function resolveArt(game: Game, system: SystemDef, enabled: boolean, stem: string, kind: ArtKind): Promise<string | null> {
   let names: string[]
   if (system.titleDat) {
     // Arcade / Neo Geo: dal nome breve del file si ricava il titolo completo
@@ -146,31 +146,28 @@ async function resolveArt(game: Game, system: SystemDef, enabled: boolean, stem:
     names = candidates(game.fileName)
   }
 
+  const dir = KIND_DIR[kind]
   // 1) già in cache?
-  for (const kind of KINDS) {
-    for (const n of names) if (existsSync(localPath(system.id, kind, n))) return toUrl(system.id, kind, n)
-  }
-  if (!enabled || existsSync(missPath(system.id, stem))) return null
+  for (const n of names) if (existsSync(localPath(system.id, dir, n))) return toUrl(system.id, dir, n)
+  if (!enabled || existsSync(missPath(system.id, stem, kind))) return null
 
   // 2) da scaricare
   return slot(async () => {
     let networkProblem = false
-    for (const kind of KINDS) {
-      for (const n of names) {
-        const res = await download(system.thumbs!, kind, n)
-        if (res === 'error') networkProblem = true
-        else if (res !== 'notfound') {
-          const file = localPath(system.id, kind, n)
-          mkdirSync(join(file, '..'), { recursive: true })
-          writeFileSync(file, res.data)
-          return toUrl(system.id, kind, n)
-        }
+    for (const n of names) {
+      const res = await download(system.thumbs!, dir, n)
+      if (res === 'error') networkProblem = true
+      else if (res !== 'notfound') {
+        const file = localPath(system.id, dir, n)
+        mkdirSync(join(file, '..'), { recursive: true })
+        writeFileSync(file, res.data)
+        return toUrl(system.id, dir, n)
       }
     }
-    // il segno "nessuna copertina" si scrive solo se la rete funzionava: da offline si riprova al prossimo avvio
+    // "nessuna immagine" si segna solo se la rete funzionava: da offline (o con un errore) si riprova più tardi
     if (!networkProblem) {
       mkdirSync(join(artRoot(), system.id), { recursive: true })
-      writeFileSync(missPath(system.id, stem), '')
+      writeFileSync(missPath(system.id, stem, kind), '')
     }
     return null
   })

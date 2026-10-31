@@ -3,6 +3,8 @@ import type { Game, SystemInfo } from '@shared/types'
 import { useInput } from '../hooks/useInput'
 import CoverCarousel from './CoverCarousel'
 import Orbs from './Orbs'
+import FadeBackdrop from './FadeBackdrop'
+import { pickArt } from '../hooks/useArt'
 
 /** "Titolo (dettagli)" -> parte principale + dettagli tecnici mostrati più piccoli */
 function splitTitle(name: string): { main: string; tag: string } {
@@ -20,8 +22,11 @@ interface Props {
 
 export default function GameList({ system, games, message, onLaunch, onBack }: Props): React.JSX.Element {
   const [index, setIndex] = useState(0)
+  const [, setTick] = useState(0)
   const game = games[index]
   const title = game ? splitTitle(game.name) : null
+  // schermata di gioco (orizzontale) mostrata in dissolvenza dietro l'interfaccia
+  const back = game ? pickArt(game.id).back : null
 
   useInput({
     onMove: (dir) =>
@@ -57,6 +62,7 @@ export default function GameList({ system, games, message, onLaunch, onBack }: P
 
   return (
     <div className="screen games" style={{ ['--accent' as string]: system.color }}>
+      <FadeBackdrop url={back} />
       <Orbs />
       <header className="topbar">
         <button className="chip" onClick={onBack}>
@@ -104,7 +110,7 @@ export default function GameList({ system, games, message, onLaunch, onBack }: P
         <aside className="preview">
           {game && title ? (
             <>
-              <CoverCarousel games={games} index={index} onSelect={setIndex} onActivate={() => onLaunch(game)} />
+              <CoverCarousel games={games} index={index} onSelect={setIndex} onActivate={() => onLaunch(game)} onLoaded={() => setTick((n) => n + 1)} />
               <div key={game.id} className="preview-card">
                 <div className="preview-name">{title.main}</div>
                 {title.tag && <div className="preview-tag">{title.tag}</div>}

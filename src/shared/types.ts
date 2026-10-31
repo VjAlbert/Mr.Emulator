@@ -51,6 +51,8 @@ export interface LaunchResult {
   error?: string
 }
 
+export type ArtKind = 'boxart' | 'snap' | 'title'
+
 export type PickKind = 'dir' | 'file'
 
 export interface MrApi {
@@ -65,5 +67,5 @@ export interface MrApi {
   openFolder(target: 'roms' | 'bios' | string): Promise<void>
   /** Crea le cartelle ROM/BIOS mancanti e le imposta come predefinite */
   setupFolders(): Promise<Settings>
-  getArt(game: Game): Promise<string | null>
+  getArt(game: Game, kind: ArtKind): Promise<string | null>
 }

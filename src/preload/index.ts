@@ -10,7 +10,7 @@ const api: MrApi = {
   pickPath: (kind) => ipcRenderer.invoke('dialog:pick', kind),
   openFolder: (target) => ipcRenderer.invoke('folder:open', target),
   setupFolders: () => ipcRenderer.invoke('folder:setup'),
-  getArt: (game) => ipcRenderer.invoke('art:get', game)
+  getArt: (game, kind) => ipcRenderer.invoke('art:get', game, kind)
 }
 
 contextBridge.exposeInMainWorld('mr', api)

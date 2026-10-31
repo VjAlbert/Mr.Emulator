@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import type { CSSProperties } from 'react'
 import type { Game } from '@shared/types'
-import { cachedArt, loadArt } from '../hooks/useArt'
+import { loadAll, loadCover, pickArt } from '../hooks/useArt'
 
 const RANGE = 3
 // ordine in cui si scaricano le copertine: prima quella scelta, poi le vicine
@@ -12,10 +12,12 @@ interface Props {
   index: number
   onSelect: (i: number) => void
   onActivate: () => void
+  /** Chiamata quando arriva una nuova immagine, per aggiornare anche lo sfondo */
+  onLoaded: () => void
 }
 
 /** Carosello 3D: le copertine ruotano attorno a quella selezionata */
-export default function CoverCarousel({ games, index, onSelect, onActivate }: Props): React.JSX.Element {
+export default function CoverCarousel({ games, index, onSelect, onActivate, onLoaded }: Props): React.JSX.Element {
   const [, bump] = useState(0)
 
   useEffect(() => {
@@ -24,17 +26,19 @@ export default function CoverCarousel({ games, index, onSelect, onActivate }: Pr
     const t = window.setTimeout(async () => {
       for (const o of ORDER) {
         const g = games[index + o]
-        if (!g || g.demo || cachedArt(g.id) !== undefined) continue
-        await loadArt(g)
+        if (!g || g.demo) continue
+        // il gioco scelto: tutte le immagini (copertina + sfondo); i vicini: solo la copertina
+        await (o === 0 ? loadAll(g) : loadCover(g))
         if (cancelled) return
         bump((n) => n + 1)
+        onLoaded()
       }
     }, 160)
     return () => {
       cancelled = true
       window.clearTimeout(t)
     }
-  }, [games, index])
+  }, [games, index]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const items: React.JSX.Element[] = []
   for (let o = -RANGE; o <= RANGE; o++) {
@@ -48,7 +52,7 @@ export default function CoverCarousel({ games, index, onSelect, onActivate }: Pr
       opacity: abs === 0 ? 1 : Math.max(0.15, 0.85 - abs * 0.25),
       zIndex: 10 - abs
     }
-    const url = cachedArt(g.id)
+    const url = pickArt(g.id).cover
     items.push(
       <div
         key={g.id}

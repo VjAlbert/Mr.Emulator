@@ -180,3 +180,13 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 .light-fx .hero-short, .light-fx .tile.active, .light-fx .logo span, .light-fx .cv.center .cv-inner, .light-fx .preview-start { animation: none; }
 .light-fx .cv img { -webkit-box-reflect: unset; }
 .light-fx .logo span { -webkit-text-fill-color: var(--accent); background: none; }
+
+/* sfondo a dissolvenza con la schermata di gioco del titolo selezionato */
+.backdrop { position: absolute; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; }
+.backdrop img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; filter: blur(2px) saturate(1.2);
+  -webkit-mask-image: linear-gradient(90deg, transparent 18%, #000 70%); mask-image: linear-gradient(90deg, transparent 18%, #000 70%); }
+.backdrop img.in { animation: bdIn 1s ease forwards; }
+.backdrop img.out { animation: bdOut 1s ease forwards; }
+@keyframes bdIn { from { opacity: 0; transform: scale(1.04); } to { opacity: .34; transform: scale(1.1); } }
+@keyframes bdOut { from { opacity: .34; } to { opacity: 0; } }
+.light-fx .backdrop img { filter: none; }
