@@ -58,7 +58,7 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 .hints { display: flex; gap: 30px; justify-content: center; margin-top: 14px; font-family: var(--font); letter-spacing: 2px; font-size: 13px; color: var(--muted); }
 
 /* ---- lista giochi ---- */
-.games-body { flex: 1; display: grid; grid-template-columns: 1.2fr 1fr; gap: 36px; min-height: 0; }
+.games-body { flex: 1; display: grid; grid-template-columns: 1fr 1.25fr; gap: 36px; min-height: 0; }
 .list { overflow-y: auto; padding-right: 10px; display: flex; flex-direction: column; gap: 6px; }
 .list::-webkit-scrollbar { width: 8px; } .list::-webkit-scrollbar-thumb { background: rgba(255,255,255,.18); }
 .row {
@@ -109,3 +109,74 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 
 .preview-name { line-height: 1.15; }
 .preview-tag { margin-top: 4px; font-size: 13px; color: var(--muted); }
+
+/* ============ EFFETTI ============ */
+.topbar, .select-body, .games-body, .hints, .settings-body { position: relative; z-index: 1; }
+.counter { font-family: var(--font); letter-spacing: 2px; color: var(--muted); }
+
+/* luci che fluttuano dietro l'interfaccia */
+.orbs { position: absolute; inset: 0; overflow: hidden; pointer-events: none; z-index: 0; }
+.orbs i { position: absolute; width: 70vmax; height: 70vmax; border-radius: 50%; will-change: transform;
+  background: radial-gradient(circle, color-mix(in srgb, var(--accent) 36%, transparent), transparent 62%); }
+.orbs i:nth-child(1) { left: -22vmax; top: -34vmax; animation: orbA 16s ease-in-out infinite alternate; }
+.orbs i:nth-child(2) { right: -28vmax; bottom: -40vmax; opacity: .7; animation: orbB 21s ease-in-out infinite alternate; }
+@keyframes orbA { to { transform: translate(32vmax, 20vmax) scale(1.2); } }
+@keyframes orbB { to { transform: translate(-28vmax, -16vmax) scale(1.15); } }
+
+/* copertine a rotazione sullo sfondo della selezione sistema */
+.bg-art { position: absolute; inset: 0; z-index: 0; overflow: hidden; pointer-events: none;
+  -webkit-mask-image: linear-gradient(90deg, transparent 8%, #000 65%); mask-image: linear-gradient(90deg, transparent 8%, #000 65%); }
+.bg-art img { position: absolute; right: -3%; top: 50%; height: 118%; opacity: 0; transform: translateY(-50%);
+  animation: bgArt 4.2s ease-in-out forwards; will-change: transform, opacity; }
+@keyframes bgArt {
+  0% { opacity: 0; transform: translateY(-50%) scale(1.02) rotate(-1.5deg); }
+  16% { opacity: .30; }
+  84% { opacity: .30; }
+  100% { opacity: 0; transform: translateY(-50%) scale(1.14) rotate(1.5deg); }
+}
+
+/* riflesso di luce sul riquadro selezionato */
+.tile.active::after { content: ''; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(105deg, transparent 38%, rgba(255,255,255,.38) 50%, transparent 62%);
+  transform: translateX(-130%); animation: shine 1.8s ease-in-out infinite; }
+@keyframes shine { 55%, 100% { transform: translateX(130%); } }
+
+.hero-short { animation: floaty 4s ease-in-out infinite alternate; }
+@keyframes floaty { from { transform: translateY(-6px); } to { transform: translateY(8px); } }
+.logo span { background: linear-gradient(100deg, var(--accent) 40%, #fff 50%, var(--accent) 60%); background-size: 250% 100%;
+  -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; animation: logoShine 3.6s linear infinite; }
+@keyframes logoShine { from { background-position: 150% 0; } to { background-position: -50% 0; } }
+
+/* tendina diagonale tra le schermate */
+.wipe { position: fixed; inset: 0; z-index: 40; pointer-events: none; transform: translateX(-130%) skewX(-18deg);
+  background: linear-gradient(90deg, transparent 0%, var(--w) 38%, #fff 50%, var(--w) 62%, transparent 100%);
+  animation: wipe .55s cubic-bezier(.7, 0, .3, 1) forwards; }
+@keyframes wipe { to { transform: translateX(130%) skewX(-18deg); } }
+
+/* effetto monitor CRT molto leggero */
+.fx-scan { position: fixed; inset: 0; z-index: 50; pointer-events: none;
+  background: repeating-linear-gradient(0deg, rgba(0,0,0,.13) 0 1px, transparent 1px 3px),
+    radial-gradient(ellipse at center, transparent 62%, rgba(0,0,0,.45) 100%); }
+
+/* ---- carosello 3D di copertine ---- */
+.preview { display: flex; flex-direction: column; justify-content: center; gap: 6px; min-width: 0; }
+.carousel { position: relative; height: min(46vh, 340px); perspective: 1200px; perspective-origin: 50% 40%; --cw: 200px; --ch: min(34vh, 262px); }
+.cv { position: absolute; left: 50%; top: 50%; width: var(--cw); height: var(--ch); transform-style: preserve-3d; cursor: pointer;
+  transition: transform .5s cubic-bezier(.2, .9, .2, 1), opacity .4s; will-change: transform; }
+.cv-inner { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; transform-style: preserve-3d; }
+.cv img { max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 3px; user-select: none;
+  -webkit-box-reflect: below 3px linear-gradient(transparent 66%, rgba(255,255,255,.2)); }
+.cv.center img { filter: drop-shadow(0 0 22px var(--accent)); }
+.cv.center .cv-inner { animation: sway 4.5s ease-in-out infinite alternate; }
+@keyframes sway { from { transform: rotateY(-10deg); } to { transform: rotateY(10deg); } }
+.cv-ph { width: 90%; height: 94%; display: grid; place-items: center; font-family: var(--font); font-size: 84px; color: var(--accent);
+  background: repeating-linear-gradient(135deg, rgba(255,255,255,.05) 0 10px, transparent 10px 20px), var(--panel);
+  border: 2px solid color-mix(in srgb, var(--accent) 70%, transparent); }
+.preview-card { margin-top: 2px; }
+.preview-name { font-size: clamp(22px, 2.4vw, 32px); }
+
+/* ---- effetti ridotti (PC lenti) ---- */
+.light-fx .fx-scan, .light-fx .orbs, .light-fx .bg-art, .light-fx .tile.active::after, .light-fx .wipe { display: none; }
+.light-fx .hero-short, .light-fx .tile.active, .light-fx .logo span, .light-fx .cv.center .cv-inner, .light-fx .preview-start { animation: none; }
+.light-fx .cv img { -webkit-box-reflect: unset; }
+.light-fx .logo span { -webkit-text-fill-color: var(--accent); background: none; }

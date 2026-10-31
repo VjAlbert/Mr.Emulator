@@ -1,5 +1,6 @@
 import { app, BrowserWindow, dialog, ipcMain, net, protocol, shell } from 'electron'
 import { pathToFileURL } from 'url'
+import { cpus } from 'os'
 import { join } from 'path'
 import type { Game, PickKind, Settings, SystemInfo } from '@shared/types'
 import { SYSTEMS } from './systems'
@@ -68,7 +69,10 @@ app.whenReady().then(() => {
   // Primo avvio: prepara Documenti\MrEmulator con ROM e BIOS
   {
     const current = loadSettings()
-    if (!current.romsDir || !current.biosDir) saveSettings(ensureFolders(current))
+    if (!current.romsDir || !current.biosDir) {
+      // primo avvio: su PC con pochi core si parte con gli effetti ridotti
+      saveSettings(ensureFolders({ ...current, lightEffects: cpus().length <= 4 }))
+    }
   }
 
   ipcMain.handle('settings:get', () => loadSettings())

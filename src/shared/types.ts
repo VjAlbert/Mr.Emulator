@@ -37,6 +37,8 @@ export interface Settings {
   fullscreen: boolean
   /** Scarica automaticamente copertine e immagini (gratuito, senza account) */
   downloadArt: boolean
+  /** Meno animazioni e niente effetti pesanti (consigliato su PC lenti) */
+  lightEffects: boolean
 }
 
 export interface FolderInfo {

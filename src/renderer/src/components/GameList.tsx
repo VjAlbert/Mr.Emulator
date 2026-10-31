@@ -1,6 +1,8 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { Game, SystemInfo } from '@shared/types'
 import { useInput } from '../hooks/useInput'
+import CoverCarousel from './CoverCarousel'
+import Orbs from './Orbs'
 
 /** "Titolo (dettagli)" -> parte principale + dettagli tecnici mostrati più piccoli */
 function splitTitle(name: string): { main: string; tag: string } {
@@ -18,54 +20,56 @@ interface Props {
 
 export default function GameList({ system, games, message, onLaunch, onBack }: Props): React.JSX.Element {
   const [index, setIndex] = useState(0)
-  const listRef = useRef<HTMLDivElement>(null)
-  const [art, setArt] = useState<{ id: string; url: string } | null>(null)
   const game = games[index]
-
-  useEffect(() => {
-    listRef.current?.querySelector('.row.active')?.scrollIntoView({ block: 'nearest' })
-  }, [index])
-
-  useEffect(() => {
-    if (!game || game.demo) return
-    let cancelled = false
-    // piccola attesa: scorrendo velocemente la lista non si scarica ogni gioco
-    const t = window.setTimeout(() => {
-      window.mr.getArt(game).then((url) => {
-        if (!cancelled && url) setArt({ id: game.id, url })
-      })
-    }, 180)
-    return () => {
-      cancelled = true
-      window.clearTimeout(t)
-    }
-  }, [game])
+  const title = game ? splitTitle(game.name) : null
 
   useInput({
     onMove: (dir) =>
       setIndex((i) => {
         const n = games.length
         if (!n) return 0
-        if (dir === 'up') return Math.max(0, i - 1)
-        if (dir === 'down') return Math.min(n - 1, i + 1)
-        if (dir === 'left') return Math.max(0, i - 10)
-        return Math.min(n - 1, i + 10)
+        return dir === 'up' || dir === 'left' ? Math.max(0, i - 1) : Math.min(n - 1, i + 1)
       }),
     onConfirm: () => game && onLaunch(game),
     onBack
   })
 
+  // tastiera: premendo una lettera si salta al prossimo titolo che inizia così
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent): void => {
+      if (e.ctrlKey || e.altKey || e.metaKey || e.key.length !== 1 || !/[a-z0-9]/i.test(e.key)) return
+      const ch = e.key.toLowerCase()
+      setIndex((i) => {
+        const n = games.length
+        for (let k = 1; k <= n; k++) {
+          const j = (i + k) % n
+          if (games[j].name.toLowerCase().replace(/^[^a-z0-9]+/, '').startsWith(ch)) return j
+        }
+        return i
+      })
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [games])
+
+  // la riga selezionata resta sempre visibile
+  const scrollTo = (el: HTMLButtonElement | null): void => el?.scrollIntoView({ block: 'nearest' })
+
   return (
     <div className="screen games" style={{ ['--accent' as string]: system.color }}>
+      <Orbs />
       <header className="topbar">
         <button className="chip" onClick={onBack}>
           ◀ INDIETRO
         </button>
         <h2 className="sys-title">{system.name}</h2>
+        <span className="counter">
+          {games.length ? `${index + 1} / ${games.length}` : ''}
+        </span>
       </header>
 
       <div className="games-body">
-        <div className="list" ref={listRef}>
+        <div className="list">
           {games.length === 0 && (
             <div className="empty">
               Nessun gioco trovato in <b>{system.folder}</b>.
@@ -77,41 +81,40 @@ export default function GameList({ system, games, message, onLaunch, onBack }: P
               </button>
             </div>
           )}
-          {games.map((g, i) => (
-            <button
-              key={g.id}
-              className={`row ${i === index ? 'active' : ''}`}
-              onMouseEnter={() => setIndex(i)}
-              onClick={() => onLaunch(g)}
-            >
-              <span className="row-num">{String(i + 1).padStart(3, '0')}</span>
-              <span className="row-name">
-                {splitTitle(g.name).main}
-                {splitTitle(g.name).tag && <small>{splitTitle(g.name).tag}</small>}
-              </span>
-            </button>
-          ))}
+          {games.map((g, i) => {
+            const t = splitTitle(g.name)
+            return (
+              <button
+                key={g.id}
+                ref={i === index ? scrollTo : undefined}
+                className={`row ${i === index ? 'active' : ''}`}
+                onMouseEnter={() => setIndex(i)}
+                onClick={() => onLaunch(g)}
+              >
+                <span className="row-num">{String(i + 1).padStart(3, '0')}</span>
+                <span className="row-name">
+                  {t.main}
+                  {t.tag && <small>{t.tag}</small>}
+                </span>
+              </button>
+            )
+          })}
         </div>
 
         <aside className="preview">
-          {game ? (
-            <div key={game.id} className="preview-card">
-              {art && art.id === game.id ? (
-                <div className="preview-img">
-                  <img src={art.url} alt={game.name} />
+          {game && title ? (
+            <>
+              <CoverCarousel games={games} index={index} onSelect={setIndex} onActivate={() => onLaunch(game)} />
+              <div key={game.id} className="preview-card">
+                <div className="preview-name">{title.main}</div>
+                {title.tag && <div className="preview-tag">{title.tag}</div>}
+                <div className="preview-meta">
+                  {system.name}
+                  {game.demo ? ' · DEMO' : ''}
                 </div>
-              ) : (
-                <div className="preview-art">{game.name.slice(0, 1)}</div>
-              )}
-              <div className="preview-name">{splitTitle(game.name).main}</div>
-              {splitTitle(game.name).tag && <div className="preview-tag">{splitTitle(game.name).tag}</div>}
-              <div className="preview-meta">
-                {system.name}
-                {game.demo ? ' · DEMO' : ''}
+                <div className="preview-start">▶ PREMI INVIO PER GIOCARE</div>
               </div>
-              <div className="preview-file">{game.fileName}</div>
-              <div className="preview-start">▶ PREMI INVIO PER GIOCARE</div>
-            </div>
+            </>
           ) : null}
         </aside>
       </div>

@@ -9,7 +9,8 @@ const DEFAULTS: Settings = {
   retroarchPath: '',
   coresDir: '',
   fullscreen: true,
-  downloadArt: true
+  downloadArt: true,
+  lightEffects: false
 }
 
 const file = (): string => join(app.getPath('userData'), 'settings.json')

@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
 import type { SystemInfo } from '@shared/types'
 import { useInput } from '../hooks/useInput'
+import ArtShowcase from './ArtShowcase'
+import Orbs from './Orbs'
 
 const COLS = 4
 
@@ -35,6 +37,8 @@ export default function SystemSelect({ systems, onOpen, onSettings }: Props): Re
 
   return (
     <div className="screen select" style={{ ['--accent' as string]: sel.color }}>
+      <Orbs />
+      {sel.phase === 1 && <ArtShowcase systemId={sel.id} />}
       <header className="topbar">
         <h1 className="logo">
           MR. <span>EMULATOR</span>

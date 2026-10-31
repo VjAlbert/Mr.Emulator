@@ -69,6 +69,10 @@ export default function SettingsScreen({ onClose, onSaved }: Props): React.JSX.E
           <input type="checkbox" checked={s.downloadArt} onChange={(e) => setS({ ...s, downloadArt: e.target.checked })} />
           Scarica automaticamente copertine e immagini (gratuito, senza account)
         </label>
+        <label className="check">
+          <input type="checkbox" checked={s.lightEffects} onChange={(e) => setS({ ...s, lightEffects: e.target.checked })} />
+          Effetti ridotti (consigliato per PC lenti: meno animazioni e luci)
+        </label>
         <button className="big" onClick={save}>
           {saved ? '✔ SALVATO' : 'SALVA'}
         </button>

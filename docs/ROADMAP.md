@@ -16,7 +16,8 @@ Sistemi: Arcade (MAME, FBNeo), Neo Geo, Master System, Mega Drive, NES, SNES, Ga
 - [x] Libreria di giochi con anteprima
 - [x] Copertine e immagini scaricate in automatico (libretro-thumbnails, con cache locale)
 - [x] Copertine per Arcade e Neo Geo (titolo ricavato dal DAT di FBNeo, 7718 giochi)
-- [ ] Nascondere dalla lista i file BIOS (es. neogeo.zip)
+- [x] File BIOS (es. neogeo.zip) nascosti dalla lista
+- [x] Carosello 3D di copertine, sfondo a rotazione, tendine ed effetti luce (con modalità "effetti ridotti")
 - [ ] Download in blocco delle copertine di un intero sistema
 - [x] Schermata di selezione sistema in stile "character select"
 - [x] Avvio dei giochi tramite RetroArch e ritorno al launcher (da verificare con RetroArch reale)
