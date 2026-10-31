@@ -3,6 +3,7 @@ import { join, resolve, parse, sep } from 'path'
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs'
 import type { ArtKind, Game, SystemDef } from '@shared/types'
 import { prettyName } from './scanner'
+import { buildTitleIndex, parentCandidates, type TitleIndex } from './titles'
 
 /**
  * Copertine e immagini dal progetto libretro-thumbnails: pubblico, gratuito,
@@ -29,6 +30,7 @@ const DAT_URL =
   'https://raw.githubusercontent.com/libretro/libretro-database/master/metadat/fbneo-split/FBNeo%20-%20Arcade%20Games.dat'
 
 let datMap: Map<string, string> | null = null
+let titleIndex: TitleIndex = new Map()
 
 /** Scarica (una volta) l'elenco "nome file -> titolo" dei giochi arcade FBNeo. */
 export async function arcadeTitles(): Promise<Map<string, string> | null> {
@@ -53,6 +55,7 @@ export async function arcadeTitles(): Promise<Map<string, string> | null> {
   const re = /game \(\s*name "([^"]*)"[\s\S]*?rom \( name "?([^"\s]+?)\.zip/g
   for (let m = re.exec(text); m; m = re.exec(text)) map.set(m[2].toLowerCase(), m[1])
   datMap = map
+  titleIndex = buildTitleIndex(map.values())
   return map
 }
 
@@ -66,7 +69,7 @@ function candidates(fileName: string): string[] {
 const localPath = (systemId: string, kind: string, name: string): string =>
   join(artRoot(), systemId, kind, `${name}.png`)
 
-const missPath = (systemId: string, stem: string, kind: ArtKind): string => join(artRoot(), systemId, `${stem}.${kind}.miss`)
+const missPath = (systemId: string, stem: string, kind: ArtKind): string => join(artRoot(), systemId, `${stem}.${kind}.v2.miss`)
 
 const toUrl = (systemId: string, kind: string, name: string): string =>
   `${ART_SCHEME}://art/${encodeURIComponent(systemId)}/${kind}/${encodeURIComponent(name)}.png`
@@ -136,12 +139,15 @@ export function getArt(game: Game, system: SystemDef, enabled: boolean, kind: Ar
 
 async function resolveArt(game: Game, system: SystemDef, enabled: boolean, stem: string, kind: ArtKind): Promise<string | null> {
   let names: string[]
+  let fallbacks: string[] = []
   if (system.titleDat) {
     // Arcade / Neo Geo: dal nome breve del file si ricava il titolo completo
     const titles = await arcadeTitles()
     if (!titles) return null // DAT non disponibile (offline): nessun segno di "mancante"
     const title = titles.get(stem.toLowerCase())
     names = title ? [clean(title)] : []
+    // hack e bootleg spesso non hanno la copertina verticale: si ripiega su quella del gioco originale
+    if (title && kind === 'boxart') fallbacks = parentCandidates(titleIndex, title).map(clean)
   } else {
     names = candidates(game.fileName)
   }
@@ -151,17 +157,18 @@ async function resolveArt(game: Game, system: SystemDef, enabled: boolean, stem:
   for (const n of names) if (existsSync(localPath(system.id, dir, n))) return toUrl(system.id, dir, n)
   if (!enabled || existsSync(missPath(system.id, stem, kind))) return null
 
-  // 2) da scaricare
+  // 2) da scaricare (prima il titolo esatto, poi i giochi originali); il file si salva col nome del gioco richiesto
   return slot(async () => {
     let networkProblem = false
-    for (const n of names) {
+    for (const n of [...names, ...fallbacks]) {
       const res = await download(system.thumbs!, dir, n)
       if (res === 'error') networkProblem = true
       else if (res !== 'notfound') {
-        const file = localPath(system.id, dir, n)
+        const saveAs = names[0] ?? n
+        const file = localPath(system.id, dir, saveAs)
         mkdirSync(join(file, '..'), { recursive: true })
         writeFileSync(file, res.data)
-        return toUrl(system.id, dir, n)
+        return toUrl(system.id, dir, saveAs)
       }
     }
     // "nessuna immagine" si segna solo se la rete funzionava: da offline (o con un errore) si riprova più tardi
