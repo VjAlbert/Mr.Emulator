@@ -6,17 +6,20 @@ Hardware minimo di riferimento: portatile con **Intel Core i7 di settima generaz
 
 ## Fase 0 — Fondamenta
 - [x] Definizione dell'idea e dell'architettura (frontend + RetroArch come motore)
-- [ ] Struttura del progetto Electron + TypeScript + React
-- [ ] Modulo di astrazione per percorsi e avvio dei processi
+- [x] Struttura del progetto Electron + TypeScript + React
+- [x] Modulo di astrazione per percorsi e avvio dei processi
 
 ## Fase 1 — Arcade e console 8/16 bit
 Sistemi: Arcade (MAME, FBNeo), Neo Geo, Master System, Mega Drive, NES, SNES, Game Boy / Color / Advance.
 
-- [ ] Scansione della cartella ROM e riconoscimento dei sistemi
-- [ ] Libreria di giochi con copertine e anteprime
-- [ ] Schermata di selezione sistema in stile "character select"
-- [ ] Avvio dei giochi tramite RetroArch e ritorno al launcher
-- [ ] Navigazione completa con tastiera, mouse e gamepad
+- [x] Scansione della cartella ROM (una sottocartella per sistema)
+- [x] Libreria di giochi con anteprima
+- [x] Copertine e immagini scaricate in automatico (libretro-thumbnails, con cache locale)
+- [ ] Copertine per Arcade e Neo Geo (i nomi dei file ZIP non coincidono con i titoli: serve il DAT di MAME/FBNeo)
+- [ ] Download in blocco delle copertine di un intero sistema
+- [x] Schermata di selezione sistema in stile "character select"
+- [x] Avvio dei giochi tramite RetroArch e ritorno al launcher (da verificare con RetroArch reale)
+- [x] Navigazione con tastiera, mouse e gamepad (da verificare con pad reali ed encoder arcade)
 
 ## Fase 2 — Configurazione guidata e sistemi più pesanti
 - [ ] Procedura guidata al primo avvio

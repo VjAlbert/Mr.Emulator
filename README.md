@@ -19,14 +19,14 @@
 
 Un'interfaccia veloce, spettacolare e interamente navigabile con **tastiera, mouse, gamepad o pannello arcade**, ispirata alle schermate di selezione dei grandi picchiaduro a incontri. Dietro le quinte usa motori di emulazione open source consolidati; davanti a te c'è solo la scelta più importante: **a cosa giochiamo stasera?**
 
-> 🚧 **Il progetto è all'inizio.** Questo README descrive l'obiettivo e la roadmap: le funzioni elencate come "in arrivo" non sono ancora disponibili.
+> 🚧 **Il progetto è all'inizio.** Esiste già un primo prototipo funzionante dell'interfaccia (selezione sistema, lista giochi, impostazioni, avvio tramite RetroArch). Il resto è nella roadmap.
 
 ---
 
 ## ✨ Cosa vuole essere
 
 - 🎮 **Selezione sistema stile "character select"**: griglia animata, cursore dinamico, anteprima grande.
-- 🖼️ **Libreria visiva**: copertine, schermate e video in anteprima per ogni gioco.
+- 🖼️ **Libreria visiva**: copertine e schermate scaricate in automatico da [libretro-thumbnails](https://github.com/libretro-thumbnails) (gratuito, senza account né chiavi API) e salvate in locale.
 - ⚡ **Transizioni rapide** con tagli diagonali, effetti e suoni da arcade.
 - 🧭 **Input universale**: tastiera, mouse, gamepad, encoder per pannelli arcade (I-PAC, Zero Delay e simili).
 - 🪄 **Configurazione guidata** al primo avvio, pensata per chi non è esperto.
@@ -50,7 +50,22 @@ L'elenco può cambiare strada facendo. Il motore principale sarà [RetroArch](ht
 
 ## 🚀 Installazione
 
-> In arrivo: il pacchetto di installazione per **Windows** sarà disponibile nella sezione *Releases* quando il primo prototipo sarà pronto.
+> In arrivo: l'installer per **Windows** nella sezione *Releases*.
+
+### Provarlo adesso (sviluppo)
+
+Servono [Node.js](https://nodejs.org/) e [RetroArch](https://www.retroarch.com/) già installato.
+
+```bash
+git clone https://github.com/VjAlbert/Mr.Emulator.git
+cd Mr.Emulator
+npm install
+npm run dev
+```
+
+Poi, dalle **Impostazioni** del programma, indica la cartella delle ROM (con una sottocartella per sistema: `snes`, `megadrive`, `nes`…) e il percorso di `retroarch.exe`. Senza ROM configurate vedrai giochi di esempio, utili per provare l'interfaccia.
+
+Comandi utili: `npm run typecheck` (controllo del codice) e `npm run build`.
 
 L'idea è semplice:
 
@@ -73,8 +88,9 @@ Il programma lavora con i file che possiedi e che hai ottenuto legalmente, per e
 La roadmap completa è in [`docs/ROADMAP.md`](docs/ROADMAP.md).
 
 - [x] Idea e definizione dell'architettura
-- [ ] Prototipo dell'interfaccia (selezione sistema e libreria)
-- [ ] Avvio dei giochi tramite RetroArch
+- [x] Prototipo dell'interfaccia (selezione sistema, lista giochi, impostazioni)
+- [x] Avvio dei giochi tramite RetroArch (da provare sul campo)
+- [x] Copertine scaricate automaticamente e conservate in locale
 - [ ] Configurazione guidata e controllo dei BIOS
 - [ ] Mappatura di tastiera e controller
 - [ ] Installer per Windows
