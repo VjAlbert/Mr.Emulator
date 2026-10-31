@@ -5,8 +5,8 @@ import type { SystemDef } from '@shared/types'
  * il resto del programma (scansione, interfaccia, avvio) lo gestisce da solo.
  */
 export const SYSTEMS: SystemDef[] = [
-  { id: 'arcade', name: 'Arcade', short: 'ARC', folder: 'arcade', extensions: ['.zip', '.7z'], core: 'fbneo_libretro', color: '#ff2d55', phase: 1 },
-  { id: 'neogeo', name: 'Neo Geo', short: 'NEO', folder: 'neogeo', extensions: ['.zip', '.7z'], core: 'fbneo_libretro', color: '#ffb800', phase: 1 },
+  { id: 'arcade', name: 'Arcade', short: 'ARC', folder: 'arcade', extensions: ['.zip', '.7z'], core: 'fbneo_libretro', color: '#ff2d55', phase: 1, thumbs: 'FBNeo - Arcade Games', titleDat: true },
+  { id: 'neogeo', name: 'Neo Geo', short: 'NEO', folder: 'neogeo', extensions: ['.zip', '.7z'], core: 'fbneo_libretro', color: '#ffb800', phase: 1, thumbs: 'FBNeo - Arcade Games', titleDat: true },
   { id: 'mastersystem', name: 'Master System', short: 'SMS', folder: 'mastersystem', extensions: ['.sms', '.zip'], core: 'genesis_plus_gx_libretro', color: '#2d7dff', phase: 1, thumbs: 'Sega - Master System - Mark III' },
   { id: 'megadrive', name: 'Mega Drive', short: 'MD', folder: 'megadrive', extensions: ['.md', '.gen', '.smd', '.bin', '.zip'], core: 'genesis_plus_gx_libretro', color: '#7b3dff', phase: 1, thumbs: 'Sega - Mega Drive - Genesis' },
   { id: 'nes', name: 'NES', short: 'NES', folder: 'nes', extensions: ['.nes', '.zip'], core: 'nestopia_libretro', color: '#e8e8e8', phase: 1, thumbs: 'Nintendo - Nintendo Entertainment System' },

@@ -1,6 +1,6 @@
 import { app } from 'electron'
 import { join, resolve, parse, sep } from 'path'
-import { existsSync, mkdirSync, writeFileSync } from 'fs'
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs'
 import type { Game, SystemDef } from '@shared/types'
 import { prettyName } from './scanner'
 
@@ -24,6 +24,37 @@ export const artRoot = (): string => join(app.getPath('userData'), 'artwork')
 
 /** Libretro sostituisce questi caratteri con "_" nei nomi dei file */
 const clean = (s: string): string => s.replace(/[&*/:`<>?\\|"]/g, '_')
+
+const DAT_URL =
+  'https://raw.githubusercontent.com/libretro/libretro-database/master/metadat/fbneo-split/FBNeo%20-%20Arcade%20Games.dat'
+
+let datMap: Map<string, string> | null = null
+
+/** Scarica (una volta) l'elenco "nome file -> titolo" dei giochi arcade FBNeo. */
+async function arcadeTitles(): Promise<Map<string, string> | null> {
+  if (datMap) return datMap
+  const file = join(artRoot(), '_dat', 'fbneo-arcade.dat')
+  let text: string | null = null
+  if (existsSync(file)) text = readFileSync(file, 'utf-8')
+  else {
+    try {
+      const res = await fetch(DAT_URL, { signal: AbortSignal.timeout(20000) })
+      if (res.ok) {
+        text = await res.text()
+        mkdirSync(join(file, '..'), { recursive: true })
+        writeFileSync(file, text, 'utf-8')
+      }
+    } catch {
+      // offline: si riproverà più tardi
+    }
+  }
+  if (!text) return null
+  const map = new Map<string, string>()
+  const re = /game \(\s*name "([^"]*)"[\s\S]*?rom \( name "?([^"\s]+?)\.zip/g
+  for (let m = re.exec(text); m; m = re.exec(text)) map.set(m[2].toLowerCase(), m[1])
+  datMap = map
+  return map
+}
 
 function candidates(fileName: string): string[] {
   const stem = parse(fileName).name
@@ -85,19 +116,35 @@ const inflight = new Map<string, Promise<string | null>>()
 
 export function getArt(game: Game, system: SystemDef, enabled: boolean): Promise<string | null> {
   if (game.demo || !system.thumbs) return Promise.resolve(null)
-  const names = candidates(game.fileName)
-  const key = `${system.id}:${names[0]}`
+  const stem = clean(parse(game.fileName).name)
+  const key = `${system.id}:${stem}`
+  const running = inflight.get(key)
+  if (running) return running
+  const job = resolveArt(game, system, enabled, stem).finally(() => inflight.delete(key))
+  inflight.set(key, job)
+  return job
+}
+
+async function resolveArt(game: Game, system: SystemDef, enabled: boolean, stem: string): Promise<string | null> {
+  let names: string[]
+  if (system.titleDat) {
+    // Arcade / Neo Geo: dal nome breve del file si ricava il titolo completo
+    const titles = await arcadeTitles()
+    if (!titles) return null // DAT non disponibile (offline): nessun segno di "mancante"
+    const title = titles.get(stem.toLowerCase())
+    names = title ? [clean(title)] : []
+  } else {
+    names = candidates(game.fileName)
+  }
 
   // 1) già in cache?
   for (const kind of KINDS) {
-    for (const n of names) if (existsSync(localPath(system.id, kind, n))) return Promise.resolve(toUrl(system.id, kind, n))
+    for (const n of names) if (existsSync(localPath(system.id, kind, n))) return toUrl(system.id, kind, n)
   }
-  if (!enabled || existsSync(missPath(system.id, names[0]))) return Promise.resolve(null)
+  if (!enabled || existsSync(missPath(system.id, stem))) return null
 
-  // 2) da scaricare (una sola richiesta per gioco, anche se chiesta più volte)
-  const running = inflight.get(key)
-  if (running) return running
-  const job = slot(async () => {
+  // 2) da scaricare
+  return slot(async () => {
     let networkProblem = false
     for (const kind of KINDS) {
       for (const n of names) {
@@ -114,10 +161,8 @@ export function getArt(game: Game, system: SystemDef, enabled: boolean): Promise
     // il segno "nessuna copertina" si scrive solo se la rete funzionava: da offline si riprova al prossimo avvio
     if (!networkProblem) {
       mkdirSync(join(artRoot(), system.id), { recursive: true })
-      writeFileSync(missPath(system.id, names[0]), '')
+      writeFileSync(missPath(system.id, stem), '')
     }
     return null
-  }).finally(() => inflight.delete(key))
-  inflight.set(key, job)
-  return job
+  })
 }

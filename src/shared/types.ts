@@ -11,6 +11,8 @@ export interface SystemDef {
   phase: 1 | 2 | 3
   /** Nome della cartella su libretro-thumbnails (copertine). Assente = non ancora supportato */
   thumbs?: string
+  /** I file hanno nomi brevi (es. pbobblen.zip): il titolo si ricava dal DAT di FBNeo */
+  titleDat?: boolean
 }
 
 export interface SystemInfo extends SystemDef {
