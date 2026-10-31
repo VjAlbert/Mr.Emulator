@@ -87,9 +87,13 @@ export default function GameList({ system, games, message, onLaunch, onBack }: P
         <aside className="preview">
           {game ? (
             <div key={game.id} className="preview-card">
-              <div className="preview-art">
-                {art && art.id === game.id ? <img src={art.url} alt={game.name} /> : game.name.slice(0, 1)}
-              </div>
+              {art && art.id === game.id ? (
+                <div className="preview-img">
+                  <img src={art.url} alt={game.name} />
+                </div>
+              ) : (
+                <div className="preview-art">{game.name.slice(0, 1)}</div>
+              )}
               <div className="preview-name">{game.name}</div>
               <div className="preview-meta">
                 {system.name}
