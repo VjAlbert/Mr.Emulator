@@ -508,3 +508,28 @@ b.warnmark { color: #ffd400; margin-right: 8px; font-weight: 400; } .row.active 
 
 /* copertina generata: riempie lo spazio della copertina vera */
 .cv-inner svg, .ls-cover svg, .sp-cover svg { width: 100%; height: 100%; display: block; }
+
+/* impostazioni: schede e scelta dei sistemi in home */
+.tabs { display: flex; gap: 10px; margin-bottom: 18px; }
+.tab { font-family: var(--font); letter-spacing: 2px; padding: 8px 20px; background: #1b1b2a; color: var(--muted); border: 2px solid rgba(255,255,255,.1); clip-path: polygon(10px 0, 100% 0, calc(100% - 10px) 100%, 0 100%); }
+.tab.on { background: var(--accent); color: #000; border-color: #000; }
+.sysopt-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 10px; margin-top: 14px; }
+.sysopt { display: grid; grid-template-columns: auto 1fr; grid-template-rows: auto auto auto; column-gap: 12px; align-items: center; padding: 10px 14px; cursor: pointer; background: linear-gradient(160deg, color-mix(in srgb, var(--tile) 28%, #1a1a2a), #12121c 75%); border: 2px solid color-mix(in srgb, var(--tile) 50%, transparent); }
+.sysopt.off { opacity: .4; filter: grayscale(.8); border-color: rgba(255,255,255,.1); }
+.sysopt input { grid-row: 1 / 4; width: 22px; height: 22px; accent-color: var(--tile); }
+.sysopt-short { font-family: var(--font); font-size: 22px; letter-spacing: 2px; color: var(--tile); -webkit-text-stroke: 1px #000; paint-order: stroke fill; }
+.sysopt-name { font-size: 13px; text-transform: uppercase; letter-spacing: 1px; }
+.sysopt-count { font-size: 12px; color: var(--muted); }
+
+/* disegni dei sistemi nella home (forme originali per categoria, nel colore del sistema) */
+.sysart { --c: var(--tile, var(--accent)); }
+.sysart .g-fill { fill: color-mix(in srgb, var(--c) 30%, #151521); stroke: #000; stroke-width: 4; stroke-linejoin: round; }
+.sysart .g-screen { fill: color-mix(in srgb, var(--c) 55%, #05050a); stroke: #000; stroke-width: 3; }
+.sysart .g-line { fill: none; stroke: var(--c); stroke-width: 5; stroke-linecap: round; }
+.sysart .g-dot { fill: var(--c); stroke: #000; stroke-width: 2; }
+.tile-art { position: absolute; right: 6px; top: 6px; width: 62%; height: auto; opacity: .85; transform: rotate(-6deg); filter: drop-shadow(3px 4px 0 rgba(0,0,0,.6)); pointer-events: none; }
+.tile.active .tile-art { opacity: 1; }
+.tile-short, .tile-name { position: relative; z-index: 1; }
+.hero { position: relative; }
+.hero-art { position: absolute; right: -10px; top: 0; width: min(34%, 260px); height: auto; opacity: .22; transform: rotate(5deg); pointer-events: none; --tile: var(--accent); }
+.hero > *:not(.hero-art) { position: relative; z-index: 1; }

@@ -210,7 +210,7 @@ app.whenReady().then(async () => {
 
   ipcMain.handle('systems:get', (): SystemInfo[] => {
     const settings = loadSettings()
-    return SYSTEMS.map((s) => ({ ...s, gameCount: settings.romsDir ? library.count(s.id) : demoGames(s).length }))
+    return SYSTEMS.map((s) => ({ ...s, hidden: (settings.hiddenSystems ?? []).includes(s.id), gameCount: settings.romsDir ? library.count(s.id) : demoGames(s).length }))
   })
 
   ipcMain.handle('games:get', async (_e, systemId: string) => {

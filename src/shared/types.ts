@@ -33,6 +33,8 @@ export interface SystemDef {
 
 export interface SystemInfo extends SystemDef {
   gameCount: number
+  /** Nascosto dalla griglia della home (scelta dell'utente) */
+  hidden?: boolean
 }
 
 export interface Game {
@@ -91,6 +93,8 @@ export interface Settings {
   mediaDir: string
   /** Cartella con i DAT (FinalBurn Neo, Kawaks, MAME…): nome breve -> titolo, hanno la precedenza */
   datDir: string
+  /** Sistemi nascosti nella griglia della home */
+  hiddenSystems: string[]
   /** Filmato della partita dietro la lista (da videosnaps) */
   videoPreview: boolean
   /** Volume del lettore di musica (colonna sonora) */

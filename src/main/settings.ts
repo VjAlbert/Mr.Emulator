@@ -27,6 +27,7 @@ const DEFAULTS: Settings = {
   launchFloor: 0,
   mediaDir: '',
   datDir: '',
+  hiddenSystems: [],
   videoPreview: true,
   musicVolume: 0.5,
   mameRomDir: '',

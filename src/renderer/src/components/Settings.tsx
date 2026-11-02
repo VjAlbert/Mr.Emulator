@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import type { PickKind, Settings } from '@shared/types'
+import type { PickKind, Settings, SystemInfo } from '@shared/types'
 import { useInput } from '../hooks/useInput'
 import { configureSound, sfx } from '../sound'
 
@@ -18,9 +18,12 @@ export default function SettingsScreen({ onClose, onSaved, onPc, onRomCheck }: P
   const [mameInfo, setMameInfo] = useState<string>('')
   const [mediaInfo, setMediaInfo] = useState<string[]>([])
   const bodyRef = useRef<HTMLDivElement>(null)
+  const [tab, setTab] = useState<'general' | 'systems'>('general')
+  const [all, setAll] = useState<SystemInfo[]>([])
 
   useEffect(() => {
     window.mr.getSettings().then(setS)
+    window.mr.getSystems().then(setAll)
   }, [])
 
   useInput({
@@ -69,6 +72,33 @@ export default function SettingsScreen({ onClose, onSaved, onPc, onRomCheck }: P
         </button>
       </header>
       <div className="settings-body" ref={bodyRef}>
+        <div className="tabs">
+          <button className={`tab ${tab === 'general' ? 'on' : ''}`} onClick={() => setTab('general')}>GENERALE</button>
+          <button className={`tab ${tab === 'systems' ? 'on' : ''}`} onClick={() => setTab('systems')}>SISTEMI IN HOME</button>
+        </div>
+        {tab === 'systems' ? (
+          <div className="sysopts">
+            <p className="hint">Scegli quali sistemi mostrare nella griglia della home. Le ROM restano dove sono: nascondere un sistema non cancella nulla. Ricorda di premere SALVA.</p>
+            <div className="field-row">
+              <button className="chip" onClick={() => setS({ ...s, hiddenSystems: [] })}>MOSTRA TUTTI</button>
+              <button className="chip" onClick={() => setS({ ...s, hiddenSystems: all.filter((x) => x.gameCount === 0 && x.phase === 1).map((x) => x.id) })}>NASCONDI QUELLI SENZA GIOCHI</button>
+            </div>
+            <div className="sysopt-grid">
+              {all.map((x) => {
+                const hidden = s.hiddenSystems.includes(x.id)
+                return (
+                  <label key={x.id} className={`sysopt ${hidden ? 'off' : ''}`} style={{ ['--tile' as string]: x.color }}>
+                    <input type="checkbox" checked={!hidden} onChange={() => setS({ ...s, hiddenSystems: hidden ? s.hiddenSystems.filter((i) => i !== x.id) : [...s.hiddenSystems, x.id] })} />
+                    <span className="sysopt-short">{x.short}</span>
+                    <span className="sysopt-name">{x.name}</span>
+                    <span className="sysopt-count">{x.phase !== 1 ? 'in arrivo' : `${x.gameCount.toLocaleString('it')} giochi`}</span>
+                  </label>
+                )
+              })}
+            </div>
+          </div>
+        ) : (
+          <>
         {field('Cartella ROM', 'Es. D:\\Giochi\\roms (con sottocartelle: snes, megadrive, arcade…)', 'romsDir', 'dir')}
         {field('Cartella BIOS', 'I tuoi file BIOS vanno qui (viene passata a RetroArch)', 'biosDir', 'dir')}
         <div className="field-row">
@@ -238,6 +268,8 @@ export default function SettingsScreen({ onClose, onSaved, onPc, onRomCheck }: P
         <p className="note">
           Mr. Emulator non include né scarica ROM o BIOS. Usa solo i file che indichi tu.
         </p>
+          </>
+        )}
       </div>
     </div>
   )

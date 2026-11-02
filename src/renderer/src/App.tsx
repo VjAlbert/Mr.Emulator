@@ -202,7 +202,7 @@ export default function App(): React.JSX.Element {
       <GameList system={screen.system} games={games} message={message} onLaunch={launch} onBack={() => go({ name: 'systems' })} letterJump={scheme !== 'cabinet'} onRomCheck={() => go({ name: 'romcheck' })} onToastClick={hasLog ? copyLog : undefined} />
     )
   } else {
-    view = <SystemSelect systems={systems} onOpen={openSystem} lib={lib} onSettings={() => go({ name: 'settings' })} onPc={() => go({ name: 'pc' })} onInput={() => go({ name: 'input' })} />
+    view = <SystemSelect systems={systems.filter((x) => !x.hidden)} onOpen={openSystem} lib={lib} onSettings={() => go({ name: 'settings' })} onPc={() => go({ name: 'pc' })} onInput={() => go({ name: 'input' })} />
   }
 
   const wipeColor = screen.name === 'games' ? screen.system.color : '#ffd400'
@@ -220,7 +220,7 @@ export default function App(): React.JSX.Element {
       )}
       {attract && (
         <AttractMode
-          systems={systems}
+          systems={systems.filter((x) => !x.hidden)}
           onClose={() => {
             lastActivity.current = Date.now()
             setAttract(false)

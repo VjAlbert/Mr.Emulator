@@ -4,6 +4,7 @@ import { useInput } from '../hooks/useInput'
 import { sfx } from '../sound'
 import ArtShowcase from './ArtShowcase'
 import Orbs from './Orbs'
+import SystemArt from './SystemArt'
 
 const COLS = 4
 
@@ -77,6 +78,7 @@ export default function SystemSelect({ systems, onOpen, onSettings, onPc, onInpu
 
       <div className="select-body">
         <section className="hero" key={sel.id}>
+          <SystemArt id={sel.id} className="hero-art" />
           <div className="hero-short">{sel.short}</div>
           <div className="hero-name">{sel.name}</div>
           <div className="hero-count">
@@ -93,6 +95,7 @@ export default function SystemSelect({ systems, onOpen, onSettings, onPc, onInpu
               onMouseEnter={() => setIndex(i)}
               onClick={() => s.phase === 1 && onOpen(s)}
             >
+              <SystemArt id={s.id} className="tile-art" />
               <span className="tile-short">{s.short}</span>
               <span className="tile-name">{s.name}</span>
               {s.phase !== 1 && <span className="tile-lock">SOON</span>}
