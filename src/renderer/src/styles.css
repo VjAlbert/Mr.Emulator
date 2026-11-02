@@ -495,3 +495,7 @@ b.warnmark { color: #ffd400; margin-right: 8px; font-weight: 400; } .row.active 
 .mp-game { font-size: 11px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .mp button { flex: none; width: 32px; height: 32px; font-size: 15px; background: #1b1b2a; border: 2px solid rgba(255,255,255,.16); } .mp button:hover { border-color: var(--accent, #ff4fd8); }
 .light-fx .mp.playing .mp-eq i, .light-fx .mp { animation: none; }
+
+/* l'avviso sta sopra ai pulsanti della scheda del gioco e non viene tagliato */
+.toast { z-index: 60; max-width: min(760px, 92vw); max-height: 46vh; overflow-y: auto; line-height: 1.45; box-shadow: 0 8px 0 rgba(0,0,0,.45); }
+.toast::-webkit-scrollbar { width: 6px; } .toast::-webkit-scrollbar-thumb { background: rgba(0,0,0,.4); }

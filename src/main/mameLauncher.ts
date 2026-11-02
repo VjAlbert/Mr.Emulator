@@ -21,6 +21,7 @@ const SUCCESS_AFTER_MS = 6000
 const LEVELS = [
   { note: '' },
   { note: 'senza shader (video predefinito di MAME)' },
+  { note: 'con il video OpenGL' },
   { note: 'con il video semplice GDI' },
   { note: 'con video GDI, senza comandi personalizzati e senza audio' }
 ]
@@ -93,14 +94,19 @@ export function launchMame(
       delete full['video']
       delete full['bgfx_screen_chains']
     }
-    if (level >= 2) full['video'] = 'gdi' // modalità software: la più compatibile
-    if (level >= 3) full['sound'] = 'none'
+    if (level === 2) {
+      // stessa scheda video ma con OpenGL al posto di Direct3D: aggira i crash del driver Direct3D
+      full['video'] = 'bgfx'
+      full['bgfx_backend'] = 'opengl'
+    }
+    if (level >= 3) full['video'] = 'gdi' // modalità software: la più compatibile
+    if (level >= 4) full['sound'] = 'none'
     writeFileSync(join(dir, 'mame.ini'), toIniText(full), 'utf-8')
   }
   writeFileSync(join(dir, 'ctrlr', `${ctrlr.name}.cfg`), ctrlr.xml, 'utf-8')
 
   const argsFor = (level: number): string[] =>
-    level >= 3 ? [machine, '-inipath', dir] : [machine, '-inipath', dir, '-ctrlrpath', join(dir, 'ctrlr'), '-ctrlr', ctrlr.name]
+    level >= 4 ? [machine, '-inipath', dir] : [machine, '-inipath', dir, '-ctrlrpath', join(dir, 'ctrlr'), '-ctrlr', ctrlr.name]
 
   const fail = async (out: string, elapsed: number, code: number | null, level: number): Promise<void> => {
     // il testo completo di MAME si salva, così si può guardare o mandare a chi aiuta
@@ -234,8 +240,11 @@ export async function diagnose(out: string, paths: string[], gameName: string, c
   const key = info.find((l) => /Exception|ACCESS VIOLATION|Fatal error|error:/i.test(l))
   const tail = (key ?? info.slice(-3).join(' · ')).slice(0, 220)
   if (crashed) {
+    // un offset enorme dal simbolo più vicino = l'indirizzo è fuori dal codice di MAME: libreria di Windows o driver
+    const external = /\+0x[0-9a-f]{7,}\)/i.test(key ?? '')
     return (
-      `MAME è andato in crash avviando "${gameName}"${level > 0 ? ` (anche ${LEVELS[level].note})` : ''}: è un errore interno di MAME, non di un file mancante.` +
+      `MAME è andato in crash avviando "${gameName}"${level > 0 ? ` (anche ${LEVELS[level].note})` : ''}: non è un file mancante.` +
+      (external ? ' Il blocco avviene in una libreria esterna a MAME (di Windows o del driver video/audio): prova ad aggiornare i driver della scheda video e dell\'audio.' : '') +
       (tail ? ` Messaggio: ${tail}.` : '') +
       ' Clicca questo avviso per copiare i dettagli completi.'
     )

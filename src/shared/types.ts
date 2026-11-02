@@ -83,6 +83,8 @@ export interface Settings {
   hideBadRoms: boolean
   /** Per i giochi che sono partiti solo con un profilo prudente: livello del profilo (0 = completo) */
   launchFix: Record<string, number>
+  /** Se più giochi hanno richiesto un profilo prudente, tutti partono almeno da questo livello (evita i tentativi falliti) */
+  launchFloor: number
   /** Cartella con le immagini locali (pacchetti Multimedia / EXTRAs): schermate, copertine, titoli col nome breve del gioco */
   mediaDir: string
   /** Filmato della partita dietro la lista (da videosnaps) */

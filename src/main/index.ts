@@ -336,7 +336,7 @@ app.whenReady().then(async () => {
       // cartella non scrivibile: nessun problema, resta quella scelta dall'utente
     }
     // un MAME diverso può comportarsi diversamente: le scelte prudenti ricordate si azzerano
-    if (before.mamePath !== saved.mamePath && Object.keys(saved.launchFix).length) saveSettings({ ...saved, launchFix: {} })
+    if (before.mamePath !== saved.mamePath && (Object.keys(saved.launchFix).length || saved.launchFloor)) saveSettings({ ...saved, launchFix: {}, launchFloor: 0 })
     if (before.mediaDir !== saved.mediaDir) {
       clearLocalArt()
       mediaSrc = null
@@ -448,10 +448,15 @@ app.whenReady().then(async () => {
           return r.checked > 0 ? 'Controllo ROM: ✔ i file del gioco sono a posto, il problema è altrove.' : ''
         },
         // giochi che sono partiti solo con un profilo prudente: si riparte direttamente da quel livello
-        settings.launchFix[game.machine ?? ''] ?? 0,
+        Math.max(settings.launchFix[game.machine ?? ''] ?? 0, settings.launchFloor),
         (level) => {
           const cur = loadSettings()
-          saveSettings({ ...cur, launchFix: { ...cur.launchFix, [game.machine ?? '']: level } })
+          const launchFix = { ...cur.launchFix, [game.machine ?? '']: level }
+          // se almeno due giochi hanno richiesto un profilo prudente, il problema è generale (video/driver):
+          // da quel momento tutti partono almeno dal livello più basso che ha funzionato, senza tentativi falliti
+          const levels = Object.values(launchFix).filter((l) => l > 0)
+          const launchFloor = levels.length >= 2 ? Math.min(...levels) : cur.launchFloor
+          saveSettings({ ...cur, launchFix, launchFloor })
         }
       )
     }
