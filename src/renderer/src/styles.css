@@ -262,3 +262,14 @@ kbd { font-family: var(--font); letter-spacing: 1px; min-width: 38px; text-align
 
 .busy { position: fixed; left: 50%; bottom: 60px; transform: translateX(-50%); z-index: 55; padding: 14px 30px; background: #ffd400; color: #000; font-family: var(--font); letter-spacing: 2px;
   clip-path: polygon(14px 0, 100% 0, calc(100% - 14px) 100%, 0 100%); animation: enter .25s; }
+
+.family { flex: 0 1 240px; padding: 10px 12px; font-size: 14px; max-width: none; }
+.family:focus { outline: none; border-color: var(--accent); }
+
+/* intestazione: tutto su una riga anche con filtro e ricerca */
+.topbar { gap: 16px; }
+.topbar .chip, .sys-title, .counter { white-space: nowrap; }
+.sys-title { flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; font-size: clamp(24px, 2.8vw, 36px); margin-left: 8px; }
+.counter { margin-left: auto; }
+.family { flex: 0 1 210px; min-width: 150px; }
+.search { flex: 0 1 190px; min-width: 120px; }

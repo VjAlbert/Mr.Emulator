@@ -42,6 +42,8 @@ export interface Game {
   systemId: string
   /** MAME: nome breve della macchina da avviare (per le varianti è diverso dal nome dello ZIP) */
   machine?: string
+  /** Famiglia per filtrare la lista (MAME: Neo Geo, Capcom CPS, Sega…) */
+  group?: string
   demo?: boolean
 }
 

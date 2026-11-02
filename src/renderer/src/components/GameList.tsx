@@ -44,19 +44,42 @@ export default function GameList({ system, games, message, onLaunch, onBack, let
 
   // titoli normalizzati una volta sola (con 40.000 giochi non si può rifare a ogni tasto)
   const keys = useMemo(() => games.map((g) => norm(g.name)), [games])
+  // famiglie (Neo Geo, Capcom CPS, Sega…): presenti solo per i sistemi che le conoscono (MAME)
+  const [family, setFamily] = useState<string>(() => {
+    try {
+      return localStorage.getItem(`mr.family.${system.id}`) ?? ''
+    } catch {
+      return ''
+    }
+  })
+  const groups = useMemo(() => {
+    const m = new Map<string, number>()
+    for (const g of games) if (g.group) m.set(g.group, (m.get(g.group) ?? 0) + 1)
+    return [...m.entries()].sort((a, b) => b[1] - a[1])
+  }, [games])
+  const activeFamily = groups.some(([n]) => n === family) ? family : ''
+  const changeFamily = (f: string): void => {
+    setFamily(f)
+    try {
+      localStorage.setItem(`mr.family.${system.id}`, f)
+    } catch {
+      // senza memoria del browser il filtro si dimentica al prossimo avvio: nessun problema
+    }
+  }
+
   const { list, listKeys } = useMemo(() => {
     const q = norm(query.trim())
-    if (!q) return { list: games, listKeys: keys }
+    if (!q && !activeFamily) return { list: games, listKeys: keys }
     const l: Game[] = []
     const k: string[] = []
     for (let i = 0; i < games.length; i++) {
-      if (keys[i].includes(q)) {
-        l.push(games[i])
-        k.push(keys[i])
-      }
+      if (activeFamily && games[i].group !== activeFamily) continue
+      if (q && !keys[i].includes(q)) continue
+      l.push(games[i])
+      k.push(keys[i])
     }
     return { list: l, listKeys: k }
-  }, [games, keys, query])
+  }, [games, keys, query, activeFamily])
 
   const game = list[index]
   selectedId.current = game?.id ?? selectedId.current
@@ -79,6 +102,12 @@ export default function GameList({ system, games, message, onLaunch, onBack, let
     onMove: (dir) => move((i) => (dir === 'up' || dir === 'left' ? i - 1 : i + 1)),
     onPage: (d) => move((i) => i + d * PAGE),
     onConfirm: () => game && onLaunch(game),
+    // Tab / Start del pad / Moneta 1: passa alla famiglia successiva (anche senza mouse)
+    onMenu: () => {
+      if (!groups.length) return
+      const names = ['', ...groups.map(([n]) => n)]
+      changeFamily(names[(names.indexOf(activeFamily) + 1) % names.length])
+    },
     onBack
   })
 
@@ -167,6 +196,21 @@ export default function GameList({ system, games, message, onLaunch, onBack, let
           ◀ INDIETRO
         </button>
         <h2 className="sys-title">{system.name}</h2>
+        {groups.length > 1 && (
+          <select
+            className="family"
+            value={activeFamily}
+            title="Famiglia di giochi (Tab per cambiarla)"
+            onChange={(e) => changeFamily(e.target.value)}
+          >
+            <option value="">Tutti ({games.length.toLocaleString('it')})</option>
+            {groups.map(([n, c]) => (
+              <option key={n} value={n}>
+                {n} ({c.toLocaleString('it')})
+              </option>
+            ))}
+          </select>
+        )}
         {letterJump && (
           <input
             ref={searchRef}
@@ -188,7 +232,7 @@ export default function GameList({ system, games, message, onLaunch, onBack, let
         )}
         <span className="counter">
           {list.length ? `${(index + 1).toLocaleString('it')} / ${list.length.toLocaleString('it')}` : ''}
-          {query && games.length !== list.length ? ` (su ${games.length.toLocaleString('it')})` : ''}
+          {(query || activeFamily) && games.length !== list.length ? ` (su ${games.length.toLocaleString('it')})` : ''}
         </span>
       </header>
 
@@ -207,7 +251,7 @@ export default function GameList({ system, games, message, onLaunch, onBack, let
                   </button>
                 </>
               ) : (
-                <>Nessun titolo corrisponde a “{query}”.</>
+                <>Nessun titolo corrisponde ai filtri scelti.</>
               )}
             </div>
           )}

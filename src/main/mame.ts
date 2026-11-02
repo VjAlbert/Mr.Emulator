@@ -16,6 +16,8 @@ export interface MameMachine {
   manufacturer: string
   /** Gioco principale, se questa è una variante */
   cloneof: string | null
+  /** File del driver MAME che emula il gioco, senza cartella (es. neogeo.cpp): dice a quale hardware appartiene */
+  driver: string
   bios: boolean
   device: boolean
   mechanical: boolean
@@ -52,6 +54,8 @@ export function parseListXml(
           year: '',
           manufacturer: '',
           cloneof: attr(line, 'cloneof'),
+          // le versioni recenti indicano "cartella/file.cpp", quelle come la 0.229 solo "file.cpp"
+          driver: (attr(line, 'sourcefile') ?? '').split(/[\\/]/).pop() ?? '',
           bios: attr(line, 'isbios') === 'yes',
           device: attr(line, 'isdevice') === 'yes',
           mechanical: attr(line, 'ismechanical') === 'yes',
@@ -84,7 +88,7 @@ export function parseListFull(lines: Iterable<string>): Map<string, MameMachine>
     const m = /^(\S+)\s+"(.*)"\s*$/.exec(raw.trim())
     if (!m || m[1] === 'Name:') continue
     out.set(m[1], {
-      name: m[1], description: m[2], year: '', manufacturer: '', cloneof: null,
+      name: m[1], description: m[2], year: '', manufacturer: '', cloneof: null, driver: '',
       bios: false, device: false, mechanical: false, runnable: true, status: 'unknown'
     })
   }
@@ -97,18 +101,18 @@ interface CacheFile {
   size: number
   mtime: number
   version: string
-  /** [nome, titolo, anno, produttore, cloneof, flag, stato] con flag = b(ios) d(evice) m(echanical) n(on avviabile) */
-  rows: Array<[string, string, string, string, string, string, string]>
+  /** [nome, titolo, anno, produttore, cloneof, flag, stato, driver] con flag = b(ios) d(evice) m(echanical) n(on avviabile) */
+  rows: Array<[string, string, string, string, string, string, string, string]>
 }
-const CACHE_V = 1
+const CACHE_V = 2
 
 function pack(m: MameMachine): CacheFile['rows'][number] {
   const flags = (m.bios ? 'b' : '') + (m.device ? 'd' : '') + (m.mechanical ? 'm' : '') + (m.runnable ? '' : 'n')
-  return [m.name, m.description, m.year, m.manufacturer, m.cloneof ?? '', flags, m.status]
+  return [m.name, m.description, m.year, m.manufacturer, m.cloneof ?? '', flags, m.status, m.driver]
 }
 function unpack(r: CacheFile['rows'][number]): MameMachine {
   return {
-    name: r[0], description: r[1], year: r[2], manufacturer: r[3], cloneof: r[4] || null,
+    name: r[0], description: r[1], year: r[2], manufacturer: r[3], cloneof: r[4] || null, driver: r[7] ?? '',
     bios: r[5].includes('b'), device: r[5].includes('d'), mechanical: r[5].includes('m'), runnable: !r[5].includes('n'),
     status: r[6] as MameMachine['status']
   }
@@ -130,6 +134,45 @@ function runLines(exe: string, args: string[]): { lines: AsyncIterable<string>; 
     child.once('close', (code) => res(code ?? 0))
   })
   return { lines: createInterface({ input: child.stdout!, crlfDelay: Infinity }), done }
+}
+
+const CPS = new Set(['cps1.cpp', 'cps2.cpp', 'cps3.cpp'])
+
+/** Produttore (dall'inizio del nome) -> famiglia mostrata nel filtro */
+const MAKERS: Array<[RegExp, string]> = [
+  [/^capcom/i, 'Capcom'],
+  [/^sega/i, 'Sega'],
+  [/^taito/i, 'Taito'],
+  [/^namco/i, 'Namco'],
+  [/^konami/i, 'Konami'],
+  [/^(snk|playmore)/i, 'SNK'],
+  [/^irem/i, 'Irem'],
+  [/^(data east|deco)/i, 'Data East'],
+  [/^(midway|williams|bally)/i, 'Midway / Williams'],
+  [/^atari/i, 'Atari'],
+  [/^nintendo/i, 'Nintendo'],
+  [/^toaplan/i, 'Toaplan'],
+  [/^cave/i, 'Cave'],
+  [/^psikyo/i, 'Psikyo'],
+  [/^tecmo/i, 'Tecmo'],
+  [/^technos/i, 'Technos'],
+  [/^jaleco/i, 'Jaleco'],
+  [/^kaneko/i, 'Kaneko'],
+  [/^seta/i, 'Seta'],
+  [/^(igs|international game)/i, 'IGS'],
+  [/^video system/i, 'Video System']
+]
+
+/**
+ * Famiglia di un gioco per il filtro. Neo Geo e Capcom CPS si riconoscono dal driver (preciso);
+ * le altre dal produttore. Bootleg e varianti senza produttore ereditano la famiglia del gioco principale.
+ */
+export function familyOf(m: MameMachine, machines: Map<string, MameMachine>, depth = 0): string {
+  if (m.driver === 'neogeo.cpp') return 'Neo Geo'
+  if (CPS.has(m.driver)) return 'Capcom CPS'
+  for (const [re, label] of MAKERS) if (re.test(m.manufacturer)) return label
+  const parent = m.cloneof && depth < 3 ? machines.get(m.cloneof) : undefined
+  return parent ? familyOf(parent, machines, depth + 1) : 'Altri'
 }
 
 export interface MameData {

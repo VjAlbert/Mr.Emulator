@@ -2,7 +2,7 @@ import { promises as fsp } from 'fs'
 import { join, parse } from 'path'
 import type { Game, LibraryEvent, Settings, SystemDef } from '@shared/types'
 import { BIOS_SETS, prettyName, scanSystemFiles } from './scanner'
-import type { MameData } from './mame'
+import { familyOf, type MameData } from './mame'
 
 /**
  * Libreria dei giochi: lista di ogni sistema tenuta in memoria e salvata su disco.
@@ -11,7 +11,7 @@ import type { MameData } from './mame'
  * La lista contiene percorsi relativi alla cartella del sistema.
  */
 
-const CACHE_VERSION = 3
+const CACHE_VERSION = 4
 const tick = (): Promise<void> => new Promise((r) => setImmediate(r))
 
 /** Chiave di ordinamento: minuscolo, senza accenti né simboli iniziali (molto più veloce di localeCompare) */
@@ -31,7 +31,7 @@ interface CacheFile {
   /** Opzioni specifiche del sistema (per MAME: quale mame.exe, se mostrare le varianti) */
   extra: string
   /** [percorso relativo, titolo, nome MAME della macchina (solo sistema MAME)] */
-  games: Array<[string, string, string?]>
+  games: Array<[string, string, string?, string?]>
 }
 
 export interface LibraryDeps {
@@ -60,15 +60,16 @@ export function createLibrary(deps: LibraryDeps) {
 
   const cacheFile = (id: string): string => join(deps.cacheDir, `library-${id}.json`)
 
-  const toGames = (sys: SystemDef, list: Array<[string, string, string?]>): Game[] =>
-    list.map(([rel, name, machine]) => ({
+  const toGames = (sys: SystemDef, list: Array<[string, string, string?, string?]>): Game[] =>
+    list.map(([rel, name, machine, group]) => ({
       // le varianti MAME condividono lo ZIP del gioco principale: l'identificativo è il nome della macchina
       id: `${sys.id}:${machine ?? rel}`,
       name,
       fileName: parse(rel).base,
       path: rel,
       systemId: sys.id,
-      ...(machine ? { machine } : {})
+      ...(machine ? { machine } : {}),
+      ...(group ? { group } : {})
     }))
 
   async function loadCache(sys: SystemDef): Promise<CacheFile | null> {
@@ -97,7 +98,7 @@ export function createLibrary(deps: LibraryDeps) {
     let mame: MameData | null = null
     if (sys.engine === 'mame') mame = await deps.mame((found) => gen === generation && emit({ scanning: true, systemId: sys.id, found }))
 
-    const list: Array<[string, string, string?]> = []
+    const list: Array<[string, string, string?, string?]> = []
     const seen = new Set<string>()
     let n = 0
     for (const rel of files) {
@@ -110,10 +111,10 @@ export function createLibrary(deps: LibraryDeps) {
           continue
         }
         const showBroken = settings.showUnsupported
-        const add = (m: { name: string; description: string; status: string }): void => {
+        const add = (m: Parameters<typeof familyOf>[0]): void => {
           if (seen.has(m.name) || (!showBroken && m.status === 'preliminary')) return
           seen.add(m.name)
-          list.push([rel, m.description, m.name])
+          list.push([rel, m.description, m.name, familyOf(m, mame!.machines)])
         }
         const m = mame.machines.get(stem.toLowerCase())
         if (!m || m.device || m.bios || m.mechanical || !m.runnable) continue
@@ -136,7 +137,7 @@ export function createLibrary(deps: LibraryDeps) {
       }
     }
     // ordinamento: si calcola una chiave per titolo e poi si confrontano solo stringhe semplici
-    const keyed: Array<[string, [string, string, string?]]> = []
+    const keyed: Array<[string, [string, string, string?, string?]]> = []
     for (let i = 0; i < list.length; i++) {
       if (i % 4000 === 3999) await tick()
       keyed.push([sortKey(list[i][1]), list[i]])
