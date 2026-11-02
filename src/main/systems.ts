@@ -27,6 +27,10 @@ export const SYSTEMS: SystemDef[] = [
   { id: 'gb', name: 'Game Boy', short: 'GB', folder: 'gb', extensions: ['.gb', '.zip'], core: 'gambatte_libretro', color: '#9bbc0f', cost: 'light', phase: 1, thumbs: 'Nintendo - Game Boy', softlist: ['gameboy'] },
   { id: 'gbc', name: 'Game Boy Color', short: 'GBC', folder: 'gbc', extensions: ['.gbc', '.zip'], core: 'gambatte_libretro', color: '#00c2a8', cost: 'light', phase: 1, thumbs: 'Nintendo - Game Boy Color', softlist: ['gbcolor'] },
   { id: 'gba', name: 'Game Boy Advance', short: 'GBA', folder: 'gba', extensions: ['.gba', '.zip'], core: 'mgba_libretro', color: '#ff6a00', cost: 'light', phase: 1, thumbs: 'Nintendo - Game Boy Advance', softlist: ['gba'] },
+  { id: 'dreamcast', name: 'Dreamcast', short: 'DC', folder: 'dreamcast', extensions: ['.gdi', '.cdi', '.chd', '.cue'], core: 'flycast_libretro', color: '#ff7a00', cost: 'medium', phase: 1, thumbs: 'Sega - Dreamcast', softlist: [] },
+  { id: 'naomi', name: 'Sega Naomi', short: 'NAOMI', folder: 'naomi', extensions: ['.zip', '.7z', '.chd'], core: 'flycast_libretro', color: '#00b4d8', cost: 'medium', phase: 1, thumbs: 'MAME', softlist: [] },
+  { id: 'atomiswave', name: 'Atomiswave', short: 'AW', folder: 'atomiswave', extensions: ['.zip', '.7z'], core: 'flycast_libretro', color: '#e5383b', cost: 'medium', phase: 1, thumbs: 'MAME', softlist: [] },
+  { id: 'psx', name: 'PlayStation', short: 'PS1', folder: 'psx', extensions: ['.cue', '.chd', '.pbp', '.iso'], core: 'pcsx_rearmed_libretro', color: '#8d99ae', cost: 'medium', phase: 1, thumbs: 'Sony - PlayStation' },
   { id: 'n64', name: 'Nintendo 64', short: 'N64', folder: 'n64', extensions: ['.n64', '.z64', '.v64'], core: null, color: '#17c964', cost: 'medium', phase: 2, thumbs: 'Nintendo - Nintendo 64' },
   { id: 'nds', name: 'Nintendo DS', short: 'NDS', folder: 'nds', extensions: ['.nds'], core: null, color: '#00b7ff', cost: 'medium', phase: 2, thumbs: 'Nintendo - Nintendo DS' }
 ]

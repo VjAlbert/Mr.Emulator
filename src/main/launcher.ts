@@ -39,6 +39,19 @@ export function launchGame(
     }
   }
 
+  // BIOS delle console a disco: senza, il core si chiude subito e l'utente non capisce perché
+  const has = (...names: string[]): boolean =>
+    [settings.biosDir, join(settings.biosDir, 'dc'), dirname(game.path)].some((d) => d && names.some((n) => existsSync(join(d, n))))
+  if (system.id === 'psx' && !has('scph5501.bin', 'scph5500.bin', 'scph5502.bin', 'scph1001.bin', 'scph7001.bin')) {
+    return { ok: false, error: 'Manca il BIOS PlayStation (per esempio scph5501.bin). Copialo nella cartella bios.' }
+  }
+  if (system.id === 'dreamcast' && !has('dc_boot.bin')) {
+    return { ok: false, error: 'Manca il BIOS Dreamcast (dc_boot.bin, più dc_flash.bin). Copiali nella cartella bios\\dc.' }
+  }
+  if ((system.id === 'naomi' || system.id === 'atomiswave') && !has('naomi.zip', 'awbios.zip')) {
+    return { ok: false, error: 'Manca il BIOS Naomi / Atomiswave (naomi.zip, awbios.zip). Copialo nella cartella bios\\dc o accanto ai giochi.' }
+  }
+
   // configurazione su misura per questo PC, questo schermo e questo sistema
   const cfg = join(app.getPath('userData'), 'retroarch-mr.cfg')
   mkdirSync(dirname(cfg), { recursive: true })
