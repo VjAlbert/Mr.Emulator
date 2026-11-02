@@ -6,6 +6,7 @@ import Orbs from './Orbs'
 import FadeBackdrop from './FadeBackdrop'
 import SearchPanel from './SearchPanel'
 import { pickArt } from '../hooks/useArt'
+import { sfx } from '../sound'
 import { decadeLabel, decadeOf, initialOf, matchAll, norm, splitTitle } from '../search'
 
 /** Altezza di una riga (compreso lo spazio): la lista disegna solo quelle visibili */
@@ -120,6 +121,11 @@ export default function GameList({ system, games, message, onLaunch, onBack, let
   }, [base, baseKeys, query])
 
   const game = list[index]
+  const firstIndex = useRef(true)
+  useEffect(() => {
+    if (firstIndex.current) firstIndex.current = false
+    else sfx.move()
+  }, [index])
   selectedId.current = game?.id ?? selectedId.current
   const title = game ? splitTitle(game.name) : null
   // schermata di gioco (orizzontale) mostrata in dissolvenza dietro l'interfaccia

@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { LibraryEvent, SystemInfo } from '@shared/types'
 import { useInput } from '../hooks/useInput'
+import { sfx } from '../sound'
 import ArtShowcase from './ArtShowcase'
 import Orbs from './Orbs'
 
@@ -18,6 +19,11 @@ interface Props {
 export default function SystemSelect({ systems, onOpen, onSettings, onPc, onInput, lib }: Props): React.JSX.Element {
   const [index, setIndex] = useState(0)
   const sel = systems[index]
+  const firstRender = useRef(true)
+  useEffect(() => {
+    if (firstRender.current) firstRender.current = false
+    else sfx.move()
+  }, [index])
 
   useEffect(() => {
     setIndex((i) => Math.min(i, Math.max(0, systems.length - 1)))

@@ -82,6 +82,13 @@ export interface Settings {
   /** Cartella dei giochi di MAME (vuota = "mame" dentro la cartella ROM). Di solito una cartella per versione, es. mame0229 */
   mameRomDir: string
   /** Giochi preferiti (identificativi) */
+  /** Suoni dell'interfaccia (sintetizzati dal programma) */
+  soundOn: boolean
+  soundVolume: number
+  /** Dopo quanti secondi senza input parte la rotazione di copertine (0 = mai) */
+  attractSeconds: number
+  /** Breve sequenza "INSERT COIN" prima di avviare un gioco */
+  launchAnimation: boolean
   favorites: string[]
   /** Ultimi giochi avviati, il più recente per primo */
   recents: string[]
@@ -229,5 +236,6 @@ export interface MrApi {
   openFolder(target: 'roms' | 'bios' | string): Promise<void>
   /** Crea le cartelle ROM/BIOS mancanti e le imposta come predefinite */
   setupFolders(): Promise<Settings>
-  getArt(game: Game, kind: ArtKind): Promise<string | null>
+  /** cachedOnly: restituisce solo ciò che è già salvato, senza scaricare niente */
+  getArt(game: Game, kind: ArtKind, cachedOnly?: boolean): Promise<string | null>
 }

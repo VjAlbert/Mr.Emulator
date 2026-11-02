@@ -42,6 +42,7 @@ Sistemi: Arcade (MAME, FBNeo), Neo Geo, Master System, Mega Drive, NES, SNES, Ga
 - [x] Cartella ROM dedicata a ogni versione di MAME (es. mame0229), pulsante "usa un altro disco per tutto" e protezione se il disco esterno è scollegato
 - [x] Pannello di ricerca anche senza tastiera: tastiera sullo schermo per joystick/pad/mouse, iniziali A-Z, risultati in tempo reale, ricerca per parole
 - [x] Ricerca evoluta: tastiera intelligente (spegne i tasti inutili), disposizione alfabetica per joystick, anteprima con copertina, schede (a caso, famiglie, anni), preferiti e ultimi giochi
+- [x] Direzione artistica "fumetto da picchiaduro" (carattere Anton incorporato, contorni, retino, raggi), suoni sintetizzati, sequenza INSERT COIN all'avvio e rotazione di copertine a riposo (attract mode)
 - [ ] Nintendo 64, Nintendo DS, Mega CD, Famicom Disk System
 - [ ] GameCube e Wii (da verificare sulle prestazioni)
 

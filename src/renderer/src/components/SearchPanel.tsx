@@ -4,6 +4,7 @@ import { setModalOpen, useInput } from '../hooks/useInput'
 import { decadeLabel, highlightRanges, INITIALS, initialOf, nextChars, searchTitles, splitTitle } from '../search'
 import { loadAll, pickArt } from '../hooks/useArt'
 import FadeBackdrop from './FadeBackdrop'
+import { sfx } from '../sound'
 
 type Zone = 'initials' | 'keys' | 'pane'
 type Layout = 'qwerty' | 'alfa'
@@ -130,6 +131,13 @@ export default function SearchPanel(p: Props): React.JSX.Element {
 
   useEffect(() => setRes(0), [hits])
 
+  // suono del cursore quando si sposta tra tasti, iniziali, schede e risultati
+  const firstMove = useRef(true)
+  useEffect(() => {
+    if (firstMove.current) firstMove.current = false
+    else sfx.move()
+  }, [zone, row, col, ini, res, tile])
+
   // ---- tasti attivi (tastiera intelligente) ----
   const actionEnabled = (id: string): boolean =>
     id === 'space' ? !!query && !/\s$/.test(query) && allowed.has(' ') : id === 'back' || id === 'clear' ? !!query : hits.total > 0
@@ -165,15 +173,22 @@ export default function SearchPanel(p: Props): React.JSX.Element {
 
   // ---- scrittura ----
   const append = (s: string): void => {
+    sfx.key()
     setQuery((q) => (q + s).slice(0, 40))
     setView(null)
     setFlash(s.trim().toUpperCase())
     window.setTimeout(() => setFlash(''), 140)
   }
-  const del = (): void => setQuery((q) => q.slice(0, -1))
+  const del = (): void => {
+    sfx.back()
+    setQuery((q) => q.slice(0, -1))
+  }
   const pickItem = (i: number): void => {
     const g = items[i]
-    if (g) p.onPick(g)
+    if (g) {
+      sfx.confirm()
+      p.onPick(g)
+    }
   }
   const toggleLayout = (): void => {
     const next: Layout = layout === 'qwerty' ? 'alfa' : 'qwerty'

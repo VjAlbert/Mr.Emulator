@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import type { Feedback, GameEnded } from '@shared/types'
 import { setModalOpen, useInput } from '../hooks/useInput'
+import { sfx } from '../sound'
 
 interface Props {
   ended: GameEnded
@@ -26,6 +27,7 @@ export default function FeedbackPrompt({ ended, onAnswer, onSkip }: Props): Reac
 
   const answer = (a: Feedback): void => {
     if (done) return
+    sfx.confirm()
     const msg = a === 'slow' ? 'Ricevuto: la prossima volta uso meno effetti.' : a === 'better' ? 'Ricevuto: la prossima volta alzo la qualità.' : 'Perfetto, lascio tutto com’è.'
     setDone(msg)
     onAnswer(a)

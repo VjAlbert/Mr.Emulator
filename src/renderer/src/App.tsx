@@ -6,8 +6,11 @@ import SettingsScreen from './components/Settings'
 import SystemReport from './components/SystemReport'
 import InputTest from './components/InputTest'
 import FeedbackPrompt from './components/FeedbackPrompt'
+import LaunchSequence from './components/LaunchSequence'
+import AttractMode from './components/AttractMode'
+import { configureSound, sfx } from './sound'
 import { clearArtCache } from './hooks/useArt'
-import { setCabinetKeys } from './hooks/useInput'
+import { isModalOpen, setCabinetKeys } from './hooks/useInput'
 
 type Screen = { name: 'systems' } | { name: 'games'; system: SystemInfo } | { name: 'settings' } | { name: 'pc' } | { name: 'input' }
 
@@ -22,6 +25,11 @@ export default function App(): React.JSX.Element {
   const [scheme, setScheme] = useState<'laptop' | 'cabinet'>('laptop')
   const [lib, setLib] = useState<LibraryEvent | null>(null)
   const [busy, setBusy] = useState(false)
+  const [launching, setLaunching] = useState<Game | null>(null)
+  const launchDone = useRef<() => void>(() => undefined)
+  const [attract, setAttract] = useState(false)
+  const [opts, setOpts] = useState({ attractSeconds: 90, launchAnimation: true })
+  const lastActivity = useRef(Date.now())
   const screenRef = useRef<Screen>({ name: 'systems' })
   useEffect(() => setCabinetKeys(scheme === 'cabinet'), [scheme])
   const [ended, setEnded] = useState<GameEnded | null>(null)
@@ -57,6 +65,8 @@ export default function App(): React.JSX.Element {
     window.mr.getSettings().then((st) => {
       document.documentElement.classList.toggle('light-fx', !!st.lightEffects)
       setScheme(st.inputScheme)
+      configureSound(st.soundOn, st.soundVolume)
+      setOpts({ attractSeconds: st.attractSeconds, launchAnimation: st.launchAnimation })
     })
   }, [])
 
@@ -71,6 +81,8 @@ export default function App(): React.JSX.Element {
 
   // cambio schermata con tendina diagonale
   const go = (s: Screen): void => {
+    if (s.name === 'systems') sfx.back()
+    else sfx.confirm()
     setWipe((w) => w + 1)
     screenRef.current = s
     setScreen(s)
@@ -78,6 +90,7 @@ export default function App(): React.JSX.Element {
 
   const toastRef = useRef<(m: string) => void>(() => undefined)
   const toast = (m: string): void => {
+    sfx.error()
     setMessage(m)
     window.clearTimeout(timer.current)
     timer.current = window.setTimeout(() => setMessage(''), m.length > 120 ? 11000 : 4500)
@@ -97,9 +110,46 @@ export default function App(): React.JSX.Element {
   }
 
   const launch = async (g: Game): Promise<void> => {
+    // sequenza "INSERT COIN": solo per giochi veri, e si può saltare con un pulsante
+    if (opts.launchAnimation && !g.demo) {
+      await new Promise<void>((resolve) => {
+        launchDone.current = resolve
+        setLaunching(g)
+      })
+    }
     const res = await window.mr.launch(g)
+    setLaunching(null)
+    lastActivity.current = Date.now()
     if (!res.ok && res.error) toast(res.error)
   }
+
+  // rotazione a riposo: dopo un po' senza input, solo nelle schermate dei sistemi e dei giochi
+  useEffect(() => {
+    const bump = (): void => {
+      lastActivity.current = Date.now()
+    }
+    const events = ['keydown', 'mousedown', 'mousemove', 'touchstart', 'focus']
+    events.forEach((e) => window.addEventListener(e, bump, true))
+    let padSig = ''
+    const iv = window.setInterval(() => {
+      // pad: qualsiasi pulsante o levetta mossa conta come attività
+      let sig = ''
+      for (const p of navigator.getGamepads()) if (p) sig += p.buttons.map((b) => (b.pressed ? 1 : 0)).join('') + p.axes.map((a) => Math.round(a * 2)).join(',')
+      if (sig !== padSig) {
+        padSig = sig
+        bump()
+      }
+      const cur = screenRef.current.name
+      const idle = Date.now() - lastActivity.current
+      if (opts.attractSeconds > 0 && idle > opts.attractSeconds * 1000 && (cur === 'systems' || cur === 'games') && !document.hidden && !isModalOpen()) {
+        setAttract(true)
+      }
+    }, 1000)
+    return () => {
+      events.forEach((e) => window.removeEventListener(e, bump, true))
+      window.clearInterval(iv)
+    }
+  }, [opts.attractSeconds])
 
   let view: React.JSX.Element
   if (screen.name === 'input') {
@@ -130,6 +180,23 @@ export default function App(): React.JSX.Element {
   return (
     <>
       {view}
+      {launching && (
+        <LaunchSequence
+          game={launching}
+          systemName={screen.name === 'games' ? screen.system.name : ''}
+          color={screen.name === 'games' ? screen.system.color : '#ffd400'}
+          onDone={() => launchDone.current()}
+        />
+      )}
+      {attract && (
+        <AttractMode
+          systems={systems}
+          onClose={() => {
+            lastActivity.current = Date.now()
+            setAttract(false)
+          }}
+        />
+      )}
       {busy && <div className="busy">⟳ Preparazione dell'elenco… (succede solo la prima volta)</div>}
       {wipe > 0 && <div key={wipe} className="wipe" style={{ ['--w' as string]: wipeColor }} />}
       {ended && (

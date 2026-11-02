@@ -56,7 +56,8 @@ function createWindow(): void {
       preload: join(__dirname, '../preload/index.js'),
       contextIsolation: true,
       nodeIntegration: false,
-      sandbox: true
+      sandbox: true,
+      autoplayPolicy: 'no-user-gesture-required'
     }
   })
   // nessun menu: il tasto Alt (pulsante 2 sul pannello arcade) non deve far comparire barre
@@ -108,9 +109,10 @@ app.whenReady().then(async () => {
     return file ? net.fetch(pathToFileURL(file).toString()) : new Response('Not found', { status: 404 })
   })
 
-  ipcMain.handle('art:get', (_e, game: Game, kind: ArtKind) => {
+  ipcMain.handle('art:get', (_e, game: Game, kind: ArtKind, cachedOnly?: boolean) => {
     const system = SYSTEMS.find((s) => s.id === game.systemId)
-    return system ? getArt(game, system, loadSettings().downloadArt, kind) : null
+    // cachedOnly (rotazione a riposo): niente download, si usa solo ciò che c'è già sul disco
+    return system ? getArt(game, system, loadSettings().downloadArt && !cachedOnly, kind) : null
   })
 
   ipcMain.handle('systems:get', (): SystemInfo[] => {

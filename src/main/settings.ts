@@ -23,6 +23,10 @@ const DEFAULTS: Settings = {
   mamePath: '',
   mameChdDir: '',
   mameRomDir: '',
+  soundOn: true,
+  soundVolume: 0.4,
+  attractSeconds: 90,
+  launchAnimation: true,
   favorites: [],
   recents: [],
   mameClones: false

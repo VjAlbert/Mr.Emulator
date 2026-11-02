@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import type { PickKind, Settings } from '@shared/types'
 import { useInput } from '../hooks/useInput'
+import { configureSound, sfx } from '../sound'
 
 type PathKey = 'romsDir' | 'biosDir' | 'retroarchPath' | 'coresDir' | 'mamePath' | 'mameChdDir' | 'mameRomDir'
 
@@ -137,6 +138,51 @@ export default function SettingsScreen({ onClose, onSaved, onPc }: Props): React
           <input type="checkbox" checked={s.showUnsupported} onChange={(e) => setS({ ...s, showUnsupported: e.target.checked })} />
           Arcade e Neo Geo: mostra anche i giochi che il motore (FBNeo) non supporta, come i set MAME completi
         </label>
+        <label className="check">
+          <input
+            type="checkbox"
+            checked={s.soundOn}
+            onChange={(e) => {
+              setS({ ...s, soundOn: e.target.checked })
+              configureSound(e.target.checked, s.soundVolume)
+              if (e.target.checked) sfx.confirm()
+            }}
+          />
+          Suoni dell'interfaccia (bip da sala giochi)
+        </label>
+        {s.soundOn && (
+          <div className="field-row" style={{ alignItems: 'center' }}>
+            <span className="hint" style={{ margin: 0 }}>Volume</span>
+            <input
+              type="range"
+              min={0.05}
+              max={1}
+              step={0.05}
+              value={s.soundVolume}
+              style={{ flex: 1, maxWidth: 320 }}
+              onChange={(e) => {
+                const v = Number(e.target.value)
+                setS({ ...s, soundVolume: v })
+                configureSound(true, v)
+                sfx.confirm()
+              }}
+            />
+          </div>
+        )}
+        <label className="check">
+          <input type="checkbox" checked={s.launchAnimation} onChange={(e) => setS({ ...s, launchAnimation: e.target.checked })} />
+          Sequenza "INSERT COIN" prima di avviare un gioco (si salta con un pulsante)
+        </label>
+        <div className="field-row" style={{ alignItems: 'center' }}>
+          <span className="hint" style={{ margin: 0 }}>Rotazione di copertine a riposo, dopo</span>
+          <select value={s.attractSeconds} onChange={(e) => setS({ ...s, attractSeconds: Number(e.target.value) })}>
+            <option value={0}>mai</option>
+            <option value={60}>1 minuto</option>
+            <option value={90}>1 minuto e mezzo</option>
+            <option value={180}>3 minuti</option>
+            <option value={300}>5 minuti</option>
+          </select>
+        </div>
         <label className="check">
           <input type="checkbox" checked={s.lightEffects} onChange={(e) => setS({ ...s, lightEffects: e.target.checked })} />
           Effetti ridotti (consigliato per PC lenti: meno animazioni e luci)

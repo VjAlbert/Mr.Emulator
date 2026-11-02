@@ -29,6 +29,8 @@ let cabinetKeys = false
 export function setCabinetKeys(on: boolean): void {
   cabinetKeys = on
 }
+/** Vero se è aperta una finestra che si prende tutti i comandi (ricerca, domanda dopo il gioco…) */
+export const isModalOpen = (): boolean => modalOpen
 /** Pulsanti del pad già premuti quando una finestra si apre o si chiude: vanno ignorati finché non vengono rilasciati */
 const blocked = new Set<string>()
 

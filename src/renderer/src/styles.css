@@ -4,7 +4,7 @@
   --text: #f4f4fa;
   --muted: #8a8aa3;
   --accent: #ff2d55;
-  --font: 'Impact', 'Arial Black', 'Segoe UI', sans-serif;
+  --font: 'Anton', 'Impact', 'Arial Black', 'Segoe UI', sans-serif;
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 html, body, #root { height: 100%; }
@@ -367,3 +367,90 @@ b.fav { color: #ffd400; margin-right: 8px; font-weight: 400; } .row.active b.fav
 @media (max-width: 1000px) { .sp-tiles { grid-template-columns: repeat(2, 1fr); } }
 .light-fx .sp-tile, .light-fx .sp-res, .light-fx .sp-row button.pressed, .light-fx .sp-preview, .light-fx .sp-cover img { animation: none; }
 .light-fx .sp .backdrop { display: none; }
+
+/* ================================================================
+   DIREZIONE ARTISTICA: fumetto da picchiaduro
+   carattere robusto, contorni e ombre nette, retino, raggi, lame diagonali
+   ================================================================ */
+.logo, .sys-title, .hero-short, .hero-name, .chip, .badge, .modal-title, .at-title, .ls-title { font-weight: 400; }
+
+/* titoli: contorno scuro e ombra spigolosa, come nei menu dei picchiaduro */
+.logo { -webkit-text-stroke: 1.5px #000; paint-order: stroke fill; text-shadow: 3px 3px 0 rgba(0,0,0,.85); letter-spacing: 3px; font-size: 44px; }
+.logo span { text-shadow: 3px 3px 0 #000, 0 0 26px var(--accent); }
+.sys-title { -webkit-text-stroke: 1.5px #000; paint-order: stroke fill; text-shadow: 3px 3px 0 rgba(0,0,0,.85); letter-spacing: 3px; }
+.hero-short { -webkit-text-stroke: 4px #000; paint-order: stroke fill; letter-spacing: 6px;
+  text-shadow: 10px 10px 0 rgba(0,0,0,.65), 0 0 60px color-mix(in srgb, var(--accent) 55%, transparent); }
+.hero-name { -webkit-text-stroke: 1.5px #000; paint-order: stroke fill; text-shadow: 4px 4px 0 rgba(0,0,0,.7); letter-spacing: 3px; }
+
+/* retino dietro il nome del sistema */
+.hero { position: relative; }
+.hero::before { content: ''; position: absolute; inset: -30px -50px -30px -40px; z-index: -1; pointer-events: none;
+  background-image: radial-gradient(circle, color-mix(in srgb, var(--accent) 80%, transparent) 2.2px, transparent 2.8px); background-size: 13px 13px;
+  -webkit-mask-image: linear-gradient(100deg, #000 0%, transparent 78%); mask-image: linear-gradient(100deg, #000 0%, transparent 78%); opacity: .38; }
+
+/* raggi di velocità e lama diagonale (dentro .orbs, quindi dietro l'interfaccia) */
+.orbs s { position: absolute; width: 190vmax; height: 190vmax; left: 50%; top: 50%; margin: -95vmax 0 0 -95vmax; pointer-events: none; will-change: transform;
+  background: repeating-conic-gradient(from 0deg at 50% 50%, rgba(255,255,255,.055) 0 1.4deg, transparent 1.4deg 6deg);
+  -webkit-mask-image: radial-gradient(circle at 50% 50%, transparent 4%, #000 24%, transparent 46%); mask-image: radial-gradient(circle at 50% 50%, transparent 4%, #000 24%, transparent 46%);
+  animation: rays 90s linear infinite; text-decoration: none; }
+@keyframes rays { to { transform: rotate(360deg); } }
+.orbs b { position: absolute; top: -12%; bottom: -12%; right: 26%; width: 110px; transform: skewX(-18deg); pointer-events: none; opacity: .11;
+  background: linear-gradient(180deg, var(--accent), transparent 85%); box-shadow: 150px 0 0 -30px color-mix(in srgb, var(--accent) 60%, transparent); font-weight: 400; }
+
+/* righe e riquadri: un colpo di luce diagonale quando si selezionano */
+.row.active::before { content: ''; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(105deg, transparent 30%, rgba(255,255,255,.55) 46%, transparent 62%); transform: translateX(-120%); animation: slash .5s ease-out forwards; }
+@keyframes slash { to { transform: translateX(120%); } }
+.row-name { letter-spacing: .3px; }
+.row.active .row-name { font-weight: 800; }
+.preview-name, .sp-pname, .sp-tlabel, .sp-text { font-family: var(--font); font-weight: 400; letter-spacing: 1.5px; }
+.preview-name { -webkit-text-stroke: .6px #000; paint-order: stroke fill; text-shadow: 3px 3px 0 rgba(0,0,0,.7); font-size: clamp(26px, 2.8vw, 38px); text-transform: uppercase; }
+.preview-meta { font-family: var(--font); font-weight: 400; letter-spacing: 3px; }
+.tile-short { font-family: var(--font); -webkit-text-stroke: 1px #000; paint-order: stroke fill; text-shadow: 3px 3px 0 rgba(0,0,0,.7); letter-spacing: 2px; }
+.chip { letter-spacing: 2px; text-shadow: 1px 1px 0 rgba(0,0,0,.6); }
+
+/* ---------------- sequenza di avvio ---------------- */
+.ls { position: fixed; inset: 0; z-index: 70; overflow: hidden; background: #05050a; cursor: pointer; animation: lsIn .18s ease-out; }
+@keyframes lsIn { from { opacity: 0; } to { opacity: 1; } }
+.ls-slash { position: absolute; top: -10%; bottom: -10%; left: -30%; width: 75%; transform: skewX(-14deg); background: linear-gradient(100deg, var(--accent), color-mix(in srgb, var(--accent) 35%, #000)); animation: lsSlash .35s cubic-bezier(.2,.9,.2,1) both; }
+@keyframes lsSlash { from { transform: translateX(-120%) skewX(-14deg); } to { transform: skewX(-14deg); } }
+.ls-cover { position: absolute; left: 7%; top: 50%; height: min(62vh, 520px); width: min(30vw, 400px); transform: translateY(-50%) rotate(-3deg); animation: lsCover 1.35s cubic-bezier(.2,.8,.2,1) both; display: grid; place-items: center; }
+@keyframes lsCover { 0% { transform: translateY(-50%) rotate(-12deg) scale(.4); opacity: 0; } 28% { transform: translateY(-50%) rotate(-3deg) scale(1.04); opacity: 1; } 100% { transform: translateY(-50%) rotate(-3deg) scale(1.12); opacity: 1; } }
+.ls-cover img { max-width: 100%; max-height: 100%; object-fit: contain; filter: drop-shadow(10px 10px 0 rgba(0,0,0,.6)); }
+.ls-ph { font-family: var(--font); font-size: 150px; color: #000; }
+.ls-text { position: absolute; left: 46%; top: 50%; transform: translateY(-50%); right: 4%; }
+.ls-sys { font-family: var(--font); letter-spacing: 6px; color: var(--accent); font-size: clamp(18px, 2vw, 26px); animation: lsFade .3s .1s both; }
+.ls-title { font-family: var(--font); font-size: clamp(40px, 5.5vw, 84px); line-height: 1; text-transform: uppercase; -webkit-text-stroke: 3px #000; paint-order: stroke fill; text-shadow: 8px 8px 0 rgba(0,0,0,.7); animation: lsTitle .4s .15s cubic-bezier(.2,.9,.2,1) both; }
+@keyframes lsTitle { from { transform: translateX(80px) skewX(-10deg); opacity: 0; } to { transform: none; opacity: 1; } }
+@keyframes lsFade { from { opacity: 0; } to { opacity: 1; } }
+.ls-coin, .ls-ready { font-family: var(--font); letter-spacing: 6px; margin-top: 28px; font-size: clamp(30px, 4vw, 60px); -webkit-text-stroke: 2px #000; paint-order: stroke fill; }
+.ls-coin { color: #ffd400; animation: lsCoin 1.35s steps(1) both; }
+@keyframes lsCoin { 0%, 12% { opacity: 1; } 20% { opacity: 0; } 28%, 40% { opacity: 1; } 48% { opacity: 0; } 56%, 100% { opacity: 0; } }
+.ls-ready { margin-top: -66px; color: #fff; text-shadow: 6px 6px 0 var(--accent); opacity: 0; animation: lsReady 1.35s both; }
+@keyframes lsReady { 0%, 40% { opacity: 0; transform: scale(2.2); } 48% { opacity: 1; transform: scale(.95); } 54% { transform: scale(1.04) rotate(-1deg); } 62%, 100% { opacity: 1; transform: scale(1); } }
+.ls-bar { position: absolute; left: 0; right: 0; bottom: 0; height: 8px; background: rgba(255,255,255,.1); }
+.ls-bar i { display: block; height: 100%; background: var(--accent); animation: lsBar 1.35s linear both; }
+@keyframes lsBar { from { width: 0; } to { width: 100%; } }
+
+/* ---------------- rotazione a riposo ---------------- */
+.at { position: fixed; inset: 0; z-index: 80; background: #05050a; overflow: hidden; cursor: none; animation: lsIn .5s ease-out; }
+.at-slide { position: absolute; inset: 0; animation: atSlide .6s cubic-bezier(.2,.9,.2,1) both; }
+@keyframes atSlide { from { clip-path: polygon(0 0, 0 0, -20% 100%, -20% 100%); } to { clip-path: polygon(0 0, 140% 0, 120% 100%, -20% 100%); } }
+.at-bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: .65; animation: atKen 7.5s ease-out both; }
+@keyframes atKen { from { transform: scale(1.04); } to { transform: scale(1.2) translateX(-2%); } }
+.at-shade { position: absolute; inset: 0; background: linear-gradient(90deg, rgba(5,5,10,.92) 0%, rgba(5,5,10,.55) 45%, rgba(5,5,10,.2) 100%), linear-gradient(0deg, rgba(5,5,10,.9), transparent 40%); }
+.at-slashes { position: absolute; top: -10%; bottom: -10%; left: 44%; width: 120px; transform: skewX(-16deg); background: linear-gradient(180deg, var(--accent), transparent); opacity: .32; box-shadow: 170px 0 0 -40px color-mix(in srgb, var(--accent) 55%, transparent); }
+.at-cover { position: absolute; right: 8%; top: 50%; height: min(66vh, 560px); transform: translateY(-50%) rotate(3deg); filter: drop-shadow(12px 12px 0 rgba(0,0,0,.6)) drop-shadow(0 0 28px var(--accent)); animation: atCover .7s .2s cubic-bezier(.2,.9,.2,1) both; }
+@keyframes atCover { from { transform: translateY(-50%) translateX(80px) rotate(10deg); opacity: 0; } to { transform: translateY(-50%) rotate(3deg); opacity: 1; } }
+.at-info { position: absolute; left: 6%; bottom: 16%; max-width: 54%; }
+.at-sys { font-family: var(--font); letter-spacing: 8px; color: var(--accent); font-size: clamp(18px, 2vw, 28px); margin-bottom: 6px; }
+.at-title { font-family: var(--font); font-size: clamp(44px, 6vw, 96px); line-height: 1; text-transform: uppercase; -webkit-text-stroke: 3px #000; paint-order: stroke fill; text-shadow: 8px 8px 0 rgba(0,0,0,.75); animation: lsTitle .5s .1s cubic-bezier(.2,.9,.2,1) both; }
+.at-year { margin-top: 10px; font-family: var(--font); letter-spacing: 6px; font-size: 24px; color: #fff; opacity: .8; }
+.at-logo { position: absolute; inset: 0; display: grid; place-items: center; font-family: var(--font); font-size: clamp(60px, 11vw, 170px); -webkit-text-stroke: 4px #000; paint-order: stroke fill; text-shadow: 10px 10px 0 rgba(0,0,0,.7); }
+.at-logo span { color: var(--accent); text-shadow: 10px 10px 0 #000, 0 0 60px var(--accent); }
+.at-press { position: absolute; left: 0; right: 0; bottom: 5%; text-align: center; font-family: var(--font); letter-spacing: 8px; font-size: clamp(18px, 2.2vw, 30px); color: #ffd400; -webkit-text-stroke: 1px #000; paint-order: stroke fill; animation: blink 1.1s steps(2) infinite; }
+
+/* ---------------- effetti ridotti ---------------- */
+.light-fx .orbs s, .light-fx .orbs b, .light-fx .hero::before { display: none; }
+.light-fx .row.active::before, .light-fx .at-bg, .light-fx .at-cover, .light-fx .at-press, .light-fx .ls-cover, .light-fx .ls-slash, .light-fx .ls-title { animation: none; }
+.light-fx .ls-coin { animation: none; opacity: 1; } .light-fx .ls-ready { animation: none; opacity: 0; }

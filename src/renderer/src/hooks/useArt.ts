@@ -79,3 +79,20 @@ export function pickArt(id: string): PickedArt {
   const back = (landscape.find((x) => x.kind === 'snap') ?? landscape.find((x) => x.kind === 'title') ?? landscape[0])?.url ?? null
   return { cover, back }
 }
+
+/**
+ * Guarda solo cosa c'è già sul disco (nessun download): serve alla rotazione a riposo,
+ * che non deve scaricare niente di nuovo.
+ */
+export async function peekKind(game: Game, kind: ArtKind): Promise<string | null> {
+  if (game.demo) return null
+  const k = key(game.id, kind)
+  const hit = done.get(k)
+  if (hit) return hit
+  const url = await window.mr.getArt(game, kind, true).catch(() => null)
+  if (url) {
+    await measure(url)
+    done.set(k, url) // un risultato "no" non si memorizza: potrebbe comparire più tardi
+  }
+  return url
+}
