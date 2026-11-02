@@ -19,7 +19,10 @@ const DEFAULTS: Settings = {
   dedicatedGpu: true,
   inputScheme: 'laptop',
   arcadeLayout: 'standard',
-  showUnsupported: false
+  showUnsupported: false,
+  mamePath: '',
+  mameChdDir: '',
+  mameClones: false
 }
 
 const file = (): string => join(app.getPath('userData'), 'settings.json')

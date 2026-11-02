@@ -6,6 +6,7 @@ import type { SystemDef } from '@shared/types'
  */
 export const SYSTEMS: SystemDef[] = [
   { id: 'arcade', name: 'Arcade', short: 'ARC', folder: 'arcade', extensions: ['.zip', '.7z'], core: 'fbneo_libretro', color: '#ff2d55', cost: 'light', phase: 1, thumbs: 'FBNeo - Arcade Games', titleDat: true },
+  { id: 'mame', name: 'Arcade (MAME)', short: 'MAME', folder: 'mame', extensions: ['.zip', '.7z'], core: null, engine: 'mame', titleSource: 'mame', color: '#ff4fd8', cost: 'medium', phase: 1, thumbs: 'MAME' },
   { id: 'neogeo', name: 'Neo Geo', short: 'NEO', folder: 'neogeo', extensions: ['.zip', '.7z'], core: 'fbneo_libretro', color: '#ffb800', cost: 'light', phase: 1, thumbs: 'FBNeo - Arcade Games', titleDat: true },
   { id: 'mastersystem', name: 'Master System', short: 'SMS', folder: 'mastersystem', extensions: ['.sms', '.zip'], core: 'genesis_plus_gx_libretro', color: '#2d7dff', cost: 'light', phase: 1, thumbs: 'Sega - Master System - Mark III' },
   { id: 'megadrive', name: 'Mega Drive', short: 'MD', folder: 'megadrive', extensions: ['.md', '.gen', '.smd', '.bin', '.zip'], core: 'genesis_plus_gx_libretro', color: '#7b3dff', cost: 'light', phase: 1, thumbs: 'Sega - Mega Drive - Genesis' },

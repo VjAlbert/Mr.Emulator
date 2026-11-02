@@ -11,7 +11,7 @@ import type {
   SystemProfile
 } from '@shared/types'
 import { SYSTEMS } from './systems'
-import { buildProfile, type Profile } from './profiles'
+import { buildMameProfile, buildProfile, type MameProfile, type Profile } from './profiles'
 import { currentScreen } from './hardware'
 import { LEVEL_LABEL, shiftLevel } from './tiers'
 
@@ -67,6 +67,25 @@ export function profileFor(
   return { profile, level, delta }
 }
 
+export function mameProfileFor(
+  s: Settings,
+  hw: HardwareReport,
+  win: BrowserWindow | null,
+  systemId = 'mame'
+): { profile: MameProfile; level: PerfLevel; delta: number } {
+  const cur = currentScreen(win, hw.screens)
+  const delta = s.autoTune ? (s.tuning[systemId] ?? 0) : 0
+  const level = shiftLevel(baseLevel(hw, s), delta)
+  const profile = buildMameProfile({
+    level,
+    gpuTier: hw.gpuTier,
+    display: { width: cur.width, height: cur.height, hz: cur.hz },
+    imageStyle: s.imageStyle,
+    fullscreen: s.fullscreen
+  })
+  return { profile, level, delta }
+}
+
 export function buildReport(
   s: Settings,
   hw: HardwareReport,
@@ -75,7 +94,11 @@ export function buildReport(
 ): OptimizationReport {
   const cur = currentScreen(win, hw.screens)
   const shaders = findShaders(s.retroarchPath)
-  const profiles: SystemProfile[] = SYSTEMS.filter((x) => x.core).map((x) => {
+  const profiles: SystemProfile[] = SYSTEMS.filter((x) => x.core || x.engine === 'mame').map((x) => {
+    if (x.engine === 'mame') {
+      const m = mameProfileFor(s, hw, win, x.id)
+      return { systemId: x.id, name: x.name, level: m.level, delta: m.delta, shader: m.profile.chain, runAhead: false, summary: m.profile.summary }
+    }
     const { profile, level, delta } = profileFor(x, s, hw, win)
     return { systemId: x.id, name: x.name, level, delta, shader: profile.shader, runAhead: profile.runAhead, summary: profile.summary }
   })

@@ -259,3 +259,6 @@ kbd { font-family: var(--font); letter-spacing: 1px; min-width: 38px; text-align
 .search:focus { outline: none; border-color: var(--accent); }
 .scan { font-family: var(--font); letter-spacing: 2px; font-size: 13px; color: var(--accent); align-self: center; animation: blink 1.2s steps(2) infinite; }
 .light-fx .scan { animation: none; }
+
+.busy { position: fixed; left: 50%; bottom: 60px; transform: translateX(-50%); z-index: 55; padding: 14px 30px; background: #ffd400; color: #000; font-family: var(--font); letter-spacing: 2px;
+  clip-path: polygon(14px 0, 100% 0, calc(100% - 14px) 100%, 0 100%); animation: enter .25s; }

@@ -130,3 +130,48 @@ export function buildInputMap(scheme: InputScheme, layout: ArcadeLayout): InputM
     ]
   }
 }
+
+/** Nome del tasto in RetroArch -> nome in MAME */
+function mameKey(key: string): string {
+  const fixed: Record<string, string> = {
+    up: 'KEYCODE_UP', down: 'KEYCODE_DOWN', left: 'KEYCODE_LEFT', right: 'KEYCODE_RIGHT', enter: 'KEYCODE_ENTER',
+    kp_enter: 'KEYCODE_ENTER_PAD', space: 'KEYCODE_SPACE', lctrl: 'KEYCODE_LCONTROL', lalt: 'KEYCODE_LALT',
+    lshift: 'KEYCODE_LSHIFT', rshift: 'KEYCODE_RSHIFT', escape: 'KEYCODE_ESC'
+  }
+  if (fixed[key]) return fixed[key]
+  const pad = /^keypad(\d)$/.exec(key)
+  if (pad) return `KEYCODE_${pad[1]}_PAD`
+  const num = /^num(\d)$/.exec(key)
+  if (num) return `KEYCODE_${num[1]}`
+  return `KEYCODE_${key.toUpperCase()}`
+}
+
+/**
+ * File di mappatura per MAME ("ctrlr"). Con il pannello arcade I-PAC i tasti predefiniti di MAME sono già
+ * quelli giusti: serve solo la combinazione per uscire (Moneta 1 + Start 1). Per la tastiera del portatile
+ * si assegnano WASD + J/K/L; i pad restano utilizzabili grazie ai comandi predefiniti di MAME.
+ */
+export function buildMameCtrlr(scheme: InputScheme, layout: ArcadeLayout): { name: string; xml: string } {
+  const port = (type: string, seq: string): string =>
+    `            <port type="${type}">\n                <newseq type="standard">${seq}</newseq>\n            </port>\n`
+  let body = ''
+  if (scheme === 'cabinet') {
+    body += port('UI_CANCEL', 'KEYCODE_ESC OR KEYCODE_5 KEYCODE_1')
+  } else {
+    const k = KEYS.laptop
+    // "capcom": i pugni (pulsanti 1-3) stanno sulla fila alta della tastiera (U I O), i calci (4-6) su J K L
+    const order = layout === 'capcom' ? [3, 4, 5, 0, 1, 2] : [0, 1, 2, 3, 4, 5]
+    ;([['1', k.p1], ['2', k.p2]] as const).forEach(([n, pk]) => {
+      body += port(`P${n}_JOYSTICK_UP`, `${mameKey(pk.up)} OR JOYCODE_${n}_YAXIS_UP_SWITCH OR JOYCODE_${n}_DPADUP`)
+      body += port(`P${n}_JOYSTICK_DOWN`, `${mameKey(pk.down)} OR JOYCODE_${n}_YAXIS_DOWN_SWITCH OR JOYCODE_${n}_DPADDOWN`)
+      body += port(`P${n}_JOYSTICK_LEFT`, `${mameKey(pk.left)} OR JOYCODE_${n}_XAXIS_LEFT_SWITCH OR JOYCODE_${n}_DPADLEFT`)
+      body += port(`P${n}_JOYSTICK_RIGHT`, `${mameKey(pk.right)} OR JOYCODE_${n}_XAXIS_RIGHT_SWITCH OR JOYCODE_${n}_DPADRIGHT`)
+      order.forEach((idx, b) => (body += port(`P${n}_BUTTON${b + 1}`, `${mameKey(pk.buttons[idx])} OR JOYCODE_${n}_BUTTON${b + 1}`)))
+      body += port(`START${n}`, `${mameKey(pk.start)} OR JOYCODE_${n}_BUTTON9`)
+      body += port(`COIN${n}`, `${mameKey(pk.select)} OR JOYCODE_${n}_BUTTON10`)
+    })
+    body += port('UI_CANCEL', 'KEYCODE_ESC')
+  }
+  const xml = `<?xml version="1.0"?>\n<mameconfig version="10">\n    <system name="default">\n        <input>\n${body}        </input>\n    </system>\n</mameconfig>\n`
+  return { name: scheme === 'cabinet' ? 'mrcabinet' : 'mrlaptop', xml }
+}

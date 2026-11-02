@@ -107,3 +107,57 @@ export function toConfigText(config: Record<string, string>): string {
       .join('\n') + '\n'
   )
 }
+
+export interface MameProfile {
+  ini: Record<string, string>
+  chain: string | null
+  summary: string
+}
+
+/** Impostazioni di MAME (mame.ini) in base a PC, schermo e livello: stessa logica dell'autoguida di RetroArch */
+export function buildMameProfile(i: {
+  level: PerfLevel
+  gpuTier: Tier
+  display: { width: number; height: number; hz: number }
+  imageStyle: ImageStyle
+  fullscreen: boolean
+}): MameProfile {
+  const ini: Record<string, string> = {
+    window: i.fullscreen ? '0' : '1',
+    maximize: '1',
+    keepaspect: '1',
+    // "pixel perfetti" = niente stiramenti irregolari
+    unevenstretch: i.imageStyle === 'pixel' ? '0' : '1',
+    waitvsync: '1',
+    sleep: '1',
+    throttle: '1',
+    autoframeskip: '0',
+    frameskip: '0',
+    skip_gameinfo: '1',
+    confirm_quit: '0',
+    cheat: '0',
+    autosave: '0',
+    mouse: '0'
+  }
+
+  // gli effetti a righe su schermi piccoli si vedono male; con 4K servono schede potenti
+  let chain: string | null = null
+  const small = i.display.height < 900
+  const huge = i.display.height >= 2000
+  if (i.level !== 'light' && !small && !(huge && i.gpuTier !== 'high')) {
+    chain = i.level === 'max' && i.gpuTier === 'high' && i.display.height <= 1600 ? 'hlsl' : 'crt-geom'
+  }
+  if (chain) {
+    ini['video'] = 'bgfx'
+    ini['bgfx_screen_chains'] = chain
+  } else {
+    ini['video'] = 'd3d'
+  }
+
+  const label = chain === 'hlsl' ? 'CRT HLSL' : chain === 'crt-geom' ? 'CRT Geom' : 'nessuno shader'
+  return { ini, chain, summary: [LEVEL_LABEL[i.level], label, i.imageStyle === 'pixel' ? 'pixel perfetti' : 'schermo adattato'].join(' · ') }
+}
+
+export function toIniText(ini: Record<string, string>): string {
+  return Object.entries(ini).map(([k, v]) => `${k.padEnd(28)}${v}`).join('\n') + '\n'
+}

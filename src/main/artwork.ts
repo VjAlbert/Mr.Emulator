@@ -29,6 +29,16 @@ const clean = (s: string): string => s.replace(/[&*/:`<>?\\|"]/g, '_')
 const DAT_URL =
   'https://raw.githubusercontent.com/libretro/libretro-database/master/metadat/fbneo-split/FBNeo%20-%20Arcade%20Games.dat'
 
+/** Titoli di MAME (nome breve -> titolo, e titolo del gioco principale per le varianti), forniti dal programma */
+export interface MameTitles {
+  titleOf(name: string): string | undefined
+  parentTitleOf(name: string): string | undefined
+}
+let mameProvider: (() => Promise<MameTitles | null>) | null = null
+export const setMameTitleProvider = (fn: () => Promise<MameTitles | null>): void => {
+  mameProvider = fn
+}
+
 let datMap: Map<string, string> | null = null
 let titleIndex: TitleIndex = new Map()
 
@@ -128,7 +138,8 @@ const inflight = new Map<string, Promise<string | null>>()
 
 export function getArt(game: Game, system: SystemDef, enabled: boolean, kind: ArtKind): Promise<string | null> {
   if (game.demo || !system.thumbs) return Promise.resolve(null)
-  const stem = clean(parse(game.fileName).name)
+  // per le varianti MAME il nome della macchina è diverso da quello dello ZIP
+  const stem = clean(game.machine ?? parse(game.fileName).name)
   const key = `${system.id}:${stem}:${kind}`
   const running = inflight.get(key)
   if (running) return running
@@ -140,7 +151,15 @@ export function getArt(game: Game, system: SystemDef, enabled: boolean, kind: Ar
 async function resolveArt(game: Game, system: SystemDef, enabled: boolean, stem: string, kind: ArtKind): Promise<string | null> {
   let names: string[]
   let fallbacks: string[] = []
-  if (system.titleDat) {
+  if (system.titleSource === 'mame') {
+    const titles = mameProvider ? await mameProvider() : null
+    if (!titles) return null // mame.exe non disponibile: nessun titolo, nessun segno di "mancante"
+    const title = titles.titleOf(stem.toLowerCase())
+    names = title ? [clean(title)] : []
+    // le varianti spesso non hanno la copertina: si ripiega su quella del gioco principale
+    const parent = titles.parentTitleOf(stem.toLowerCase())
+    if (kind === 'boxart' && parent) fallbacks = [clean(parent)]
+  } else if (system.titleDat) {
     // Arcade / Neo Geo: dal nome breve del file si ricava il titolo completo
     const titles = await arcadeTitles()
     if (!titles) return null // DAT non disponibile (offline): nessun segno di "mancante"

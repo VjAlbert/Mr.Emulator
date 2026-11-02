@@ -2,6 +2,12 @@ import { contextBridge, ipcRenderer } from 'electron'
 import type { GameEnded, LibraryEvent, MrApi } from '@shared/types'
 
 const api: MrApi = {
+  checkMame: () => ipcRenderer.invoke('mame:check'),
+  onGameFailed: (cb) => {
+    const handler = (_e: unknown, msg: string): void => cb(msg)
+    ipcRenderer.on('game:failed', handler)
+    return () => ipcRenderer.removeListener('game:failed', handler)
+  },
   getLibraryStatus: () => ipcRenderer.invoke('library:status'),
   onLibrary: (cb) => {
     const handler = (_e: unknown, data: LibraryEvent): void => cb(data)

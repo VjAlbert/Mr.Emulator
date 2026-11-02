@@ -19,6 +19,10 @@ export interface SystemDef {
   color: string
   phase: 1 | 2 | 3
   cost: CoreCost
+  /** retroarch (predefinito) oppure mame: emulatore autonomo avviato come programma a parte */
+  engine?: 'retroarch' | 'mame'
+  /** Da dove ricavare i titoli completi dei giochi con nome breve (fbneo = elenco FBNeo, mame = elenco del MAME dell'utente) */
+  titleSource?: 'fbneo' | 'mame'
   /** Nome della cartella su libretro-thumbnails (copertine). Assente = non ancora supportato */
   thumbs?: string
   /** I file hanno nomi brevi (es. pbobblen.zip): il titolo si ricava dal DAT di FBNeo */
@@ -33,8 +37,11 @@ export interface Game {
   id: string
   name: string
   fileName: string
+  /** Percorso relativo alla cartella del sistema */
   path: string
   systemId: string
+  /** MAME: nome breve della macchina da avviare (per le varianti è diverso dal nome dello ZIP) */
+  machine?: string
   demo?: boolean
 }
 
@@ -64,6 +71,12 @@ export interface Settings {
   arcadeLayout: ArcadeLayout
   /** Arcade/Neo Geo: mostra anche i giochi che il motore FBNeo non supporta (set MAME completi) */
   showUnsupported: boolean
+  /** MAME autonomo (mame.exe), usato dal sistema "Arcade (MAME)" */
+  mamePath: string
+  /** Cartella dei dischi CHD (facoltativa): si aggiunge a quella delle ROM */
+  mameChdDir: string
+  /** Mostra anche le varianti (cloni) dei giochi: con i set "merged" stanno dentro lo ZIP del gioco principale */
+  mameClones: boolean
 }
 
 /** laptop = tastiera del portatile (WASD + J/K/L); cabinet = pannello arcade con encoder tipo I-PAC */
@@ -177,6 +190,9 @@ export type ArtKind = 'boxart' | 'snap' | 'title'
 export type PickKind = 'dir' | 'file'
 
 export interface MrApi {
+  /** Controlla il mame.exe indicato: versione e numero di macchine che conosce */
+  checkMame(): Promise<{ ok: boolean; version: string; machines: number; error?: string }>
+  onGameFailed(cb: (message: string) => void): () => void
   getLibraryStatus(): Promise<LibraryEvent>
   onLibrary(cb: (e: LibraryEvent) => void): () => void
   getInputMap(): Promise<InputMapReport>

@@ -11,11 +11,13 @@ import { launchGame } from './launcher'
 import { platform } from './platform'
 import { ensureFolders } from './folders'
 import { detectHardware } from './hardware'
-import { buildReport, profileFor } from './optimize'
+import { buildReport, mameProfileFor, profileFor } from './optimize'
 import { toConfigText } from './profiles'
 import { setHighPerformanceGpu } from './gpuPref'
-import { buildInputConfig, buildInputMap } from './inputs'
-import { ART_SCHEME, arcadeTitles, getArt, resolveArtUrl } from './artwork'
+import { buildInputConfig, buildInputMap, buildMameCtrlr } from './inputs'
+import { ART_SCHEME, arcadeTitles, getArt, resolveArtUrl, setMameTitleProvider } from './artwork'
+import { loadMameData, type MameData } from './mame'
+import { launchMame } from './mameLauncher'
 
 protocol.registerSchemesAsPrivileged([
   { scheme: ART_SCHEME, privileges: { standard: true, secure: true, supportFetchAPI: true } }
@@ -63,11 +65,38 @@ function createWindow(): void {
   else win.loadFile(join(__dirname, '../renderer/index.html'))
 }
 
+/** Elenco delle macchine del MAME dell'utente: si legge una volta e si riusa */
+let mameCache: { key: string; data: Promise<MameData | null> } | null = null
+function getMame(onProgress?: (n: number) => void, force = false): Promise<MameData | null> {
+  const key = loadSettings().mamePath
+  if (force || !mameCache || mameCache.key !== key) {
+    mameCache = { key, data: loadMameData(key, join(app.getPath('userData'), 'library'), onProgress) }
+  }
+  return mameCache.data
+}
+setMameTitleProvider(async () => {
+  const d = await getMame()
+  if (!d) return null
+  return {
+    titleOf: (n) => d.machines.get(n)?.description,
+    parentTitleOf: (n) => {
+      const p = d.machines.get(n)?.cloneof
+      return p ? d.machines.get(p)?.description : undefined
+    }
+  }
+})
+
 const library = createLibrary({
   cacheDir: join(app.getPath('userData'), 'library'),
   systems: SYSTEMS,
   getSettings: loadSettings,
   titles: arcadeTitles,
+  mame: (onProgress) => getMame(onProgress),
+  signature: (sys) => {
+    if (sys.engine !== 'mame') return ''
+    const s = loadSettings()
+    return `${s.mamePath}|${s.mameClones}`
+  },
   emit: (e) => win?.webContents.send('library:event', e)
 })
 
@@ -116,7 +145,7 @@ app.whenReady().then(async () => {
     } catch {
       // cartella non scrivibile: nessun problema, resta quella scelta dall'utente
     }
-    if (before.romsDir !== saved.romsDir || before.showUnsupported !== saved.showUnsupported) {
+    if (before.romsDir !== saved.romsDir || before.showUnsupported !== saved.showUnsupported || before.mamePath !== saved.mamePath || before.mameClones !== saved.mameClones) {
       library.rescan(before.romsDir !== saved.romsDir)
     }
     return saved
@@ -148,36 +177,67 @@ app.whenReady().then(async () => {
     // la lista contiene percorsi relativi alla cartella del sistema
     if (!game.demo) game = { ...game, path: join(settings.romsDir, system.folder, game.path) }
     const hw = await detectHardware(true)
+
+    const onEnd = (startedAt: { t: number }) => (): void => {
+      win?.show()
+      win?.focus()
+      const seconds = startedAt.t ? Math.round((Date.now() - startedAt.t) / 1000) : 0
+      startedAt.t = 0
+      // il parere dell'utente si chiede solo dopo una partita vera
+      if (seconds >= 45 && settings.autoTune) {
+        const ended: GameEnded = { gameId: game.id, gameName: game.name, systemId: system.id, systemName: system.name, seconds }
+        win?.webContents.send('game:ended', ended)
+      }
+    }
+
+    if (system.engine === 'mame') {
+      const { profile } = mameProfileFor(settings, hw, win, system.id)
+      const t = { t: 0 }
+      return launchMame(
+        game,
+        system,
+        settings,
+        profile.ini,
+        buildMameCtrlr(settings.inputScheme, settings.arcadeLayout),
+        () => {
+          t.t = Date.now()
+          win?.hide()
+        },
+        onEnd(t),
+        (message) => win?.webContents.send('game:failed', message)
+      )
+    }
+
     await applyGpuPreference(settings)
     const { profile } = profileFor(system, settings, hw, win)
     const input = buildInputConfig(settings.inputScheme, settings.arcadeLayout, system.id === 'arcade')
-    let startedAt = 0
+    const t = { t: 0 }
     return launchGame(
       game,
       system,
       settings,
       toConfigText({ ...profile.config, ...input }),
       () => {
-        startedAt = Date.now()
+        t.t = Date.now()
         win?.hide()
       },
-      () => {
-        win?.show()
-        win?.focus()
-        const seconds = startedAt ? Math.round((Date.now() - startedAt) / 1000) : 0
-        startedAt = 0
-        // il parere dell'utente si chiede solo dopo una partita vera
-        if (seconds >= 45 && settings.autoTune) {
-          const ended: GameEnded = { gameId: game.id, gameName: game.name, systemId: system.id, systemName: system.name, seconds }
-          win?.webContents.send('game:ended', ended)
-        }
-      }
+      onEnd(t)
     )
   })
 
   ipcMain.handle('input:map', () => {
     const s = loadSettings()
     return buildInputMap(s.inputScheme, s.arcadeLayout)
+  })
+
+  // controllo di mame.exe: versione e quante macchine conosce (rilegge l'elenco da capo)
+  ipcMain.handle('mame:check', async () => {
+    const s = loadSettings()
+    if (!s.mamePath) return { ok: false, version: '', machines: 0, error: 'Indica prima il percorso di mame.exe.' }
+    const d = await getMame(undefined, true)
+    if (!d) return { ok: false, version: '', machines: 0, error: 'MAME non risponde: controlla che il file sia mame.exe e che si avvii.' }
+    library.rescan(false)
+    return { ok: true, version: d.version, machines: d.machines.size }
   })
 
   ipcMain.handle('report:get', async () => buildReport(loadSettings(), await detectHardware(true), win, gpuPref))

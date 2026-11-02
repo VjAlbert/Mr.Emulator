@@ -20,11 +20,15 @@ export default function App(): React.JSX.Element {
   const [wipe, setWipe] = useState(0)
   const [scheme, setScheme] = useState<'laptop' | 'cabinet'>('laptop')
   const [lib, setLib] = useState<LibraryEvent | null>(null)
+  const [busy, setBusy] = useState(false)
   const screenRef = useRef<Screen>({ name: 'systems' })
   const [ended, setEnded] = useState<GameEnded | null>(null)
 
   // quando un gioco si chiude, il programma chiede com'è andata
   useEffect(() => window.mr.onGameEnded(setEnded), [])
+
+  // MAME (o altri programmi) non riesce ad avviare un gioco: si mostra il motivo
+  useEffect(() => window.mr.onGameFailed((m) => toastRef.current(m)), [])
 
   // la libreria si aggiorna in background: contatori e, se serve, la lista aperta
   useEffect(() => {
@@ -70,14 +74,23 @@ export default function App(): React.JSX.Element {
     setScreen(s)
   }
 
+  const toastRef = useRef<(m: string) => void>(() => undefined)
   const toast = (m: string): void => {
     setMessage(m)
     window.clearTimeout(timer.current)
-    timer.current = window.setTimeout(() => setMessage(''), 4500)
+    timer.current = window.setTimeout(() => setMessage(''), m.length > 120 ? 11000 : 4500)
   }
+  toastRef.current = toast
 
   const openSystem = async (system: SystemInfo): Promise<void> => {
-    setGames(await window.mr.getGames(system.id))
+    // la prima volta l'elenco di un sistema (specie MAME) può richiedere qualche secondo: si avvisa
+    const t = window.setTimeout(() => setBusy(true), 400)
+    try {
+      setGames(await window.mr.getGames(system.id))
+    } finally {
+      window.clearTimeout(t)
+      setBusy(false)
+    }
     go({ name: 'games', system })
   }
 
@@ -115,6 +128,7 @@ export default function App(): React.JSX.Element {
   return (
     <>
       {view}
+      {busy && <div className="busy">⟳ Preparazione dell'elenco… (succede solo la prima volta)</div>}
       {wipe > 0 && <div key={wipe} className="wipe" style={{ ['--w' as string]: wipeColor }} />}
       {ended && (
         <FeedbackPrompt

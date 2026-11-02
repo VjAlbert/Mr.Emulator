@@ -2,6 +2,7 @@ import { promises as fsp } from 'fs'
 import { join, parse } from 'path'
 import type { Game, LibraryEvent, Settings, SystemDef } from '@shared/types'
 import { BIOS_SETS, prettyName, scanSystemFiles } from './scanner'
+import type { MameData } from './mame'
 
 /**
  * Libreria dei giochi: lista di ogni sistema tenuta in memoria e salvata su disco.
@@ -10,7 +11,7 @@ import { BIOS_SETS, prettyName, scanSystemFiles } from './scanner'
  * La lista contiene percorsi relativi alla cartella del sistema.
  */
 
-const CACHE_VERSION = 2
+const CACHE_VERSION = 3
 const tick = (): Promise<void> => new Promise((r) => setImmediate(r))
 
 /** Chiave di ordinamento: minuscolo, senza accenti né simboli iniziali (molto più veloce di localeCompare) */
@@ -27,8 +28,10 @@ interface CacheFile {
   showUnsupported: boolean
   /** true se i titoli completi (DAT) erano disponibili quando è stata creata */
   named: boolean
-  /** [percorso relativo, titolo] */
-  games: Array<[string, string]>
+  /** Opzioni specifiche del sistema (per MAME: quale mame.exe, se mostrare le varianti) */
+  extra: string
+  /** [percorso relativo, titolo, nome MAME della macchina (solo sistema MAME)] */
+  games: Array<[string, string, string?]>
 }
 
 export interface LibraryDeps {
@@ -37,6 +40,10 @@ export interface LibraryDeps {
   getSettings: () => Settings
   /** Elenco "nome file -> titolo completo" dei giochi arcade FBNeo (null se non disponibile) */
   titles: () => Promise<Map<string, string> | null>
+  /** Elenco delle macchine del MAME dell'utente (null se mame.exe non è indicato o non risponde) */
+  mame: (onProgress?: (n: number) => void) => Promise<MameData | null>
+  /** Opzioni che rendono valida o no la copia salvata di un sistema */
+  signature: (sys: SystemDef) => string
   emit: (e: LibraryEvent) => void
 }
 
@@ -53,14 +60,22 @@ export function createLibrary(deps: LibraryDeps) {
 
   const cacheFile = (id: string): string => join(deps.cacheDir, `library-${id}.json`)
 
-  const toGames = (sys: SystemDef, list: Array<[string, string]>): Game[] =>
-    list.map(([rel, name]) => ({ id: `${sys.id}:${rel}`, name, fileName: parse(rel).base, path: rel, systemId: sys.id }))
+  const toGames = (sys: SystemDef, list: Array<[string, string, string?]>): Game[] =>
+    list.map(([rel, name, machine]) => ({
+      // le varianti MAME condividono lo ZIP del gioco principale: l'identificativo è il nome della macchina
+      id: `${sys.id}:${machine ?? rel}`,
+      name,
+      fileName: parse(rel).base,
+      path: rel,
+      systemId: sys.id,
+      ...(machine ? { machine } : {})
+    }))
 
   async function loadCache(sys: SystemDef): Promise<CacheFile | null> {
     try {
       const c = JSON.parse(await fsp.readFile(cacheFile(sys.id), 'utf-8')) as CacheFile
       const s = deps.getSettings()
-      if (c.v !== CACHE_VERSION || c.romsDir !== s.romsDir || c.showUnsupported !== s.showUnsupported) return null
+      if (c.v !== CACHE_VERSION || c.romsDir !== s.romsDir || c.showUnsupported !== s.showUnsupported || c.extra !== deps.signature(sys)) return null
       return c
     } catch {
       return null
@@ -79,12 +94,36 @@ export function createLibrary(deps: LibraryDeps) {
 
     let titles: Map<string, string> | null = null
     if (sys.titleDat) titles = await deps.titles()
+    let mame: MameData | null = null
+    if (sys.engine === 'mame') mame = await deps.mame((found) => gen === generation && emit({ scanning: true, systemId: sys.id, found }))
 
-    const list: Array<[string, string]> = []
+    const list: Array<[string, string, string?]> = []
+    const seen = new Set<string>()
     let n = 0
     for (const rel of files) {
       if (++n % 3000 === 0) await tick()
       const stem = parse(rel).name
+      if (sys.engine === 'mame') {
+        if (!mame) {
+          // senza mame.exe non si conoscono i titoli: si mostrano i nomi dei file
+          list.push([rel, stem, stem])
+          continue
+        }
+        const showBroken = settings.showUnsupported
+        const add = (m: { name: string; description: string; status: string }): void => {
+          if (seen.has(m.name) || (!showBroken && m.status === 'preliminary')) return
+          seen.add(m.name)
+          list.push([rel, m.description, m.name])
+        }
+        const m = mame.machines.get(stem.toLowerCase())
+        if (!m || m.device || m.bios || m.mechanical || !m.runnable) continue
+        add(m)
+        // set "merged": le varianti stanno dentro lo ZIP del gioco principale
+        if (settings.mameClones) {
+          for (const c of mame.children.get(m.name) ?? []) if (!c.device && !c.bios && !c.mechanical && c.runnable) add(c)
+        }
+        continue
+      }
       if (sys.titleDat) {
         const key = stem.toLowerCase()
         if (BIOS_SETS.has(key)) continue
@@ -97,7 +136,7 @@ export function createLibrary(deps: LibraryDeps) {
       }
     }
     // ordinamento: si calcola una chiave per titolo e poi si confrontano solo stringhe semplici
-    const keyed: Array<[string, [string, string]]> = []
+    const keyed: Array<[string, [string, string, string?]]> = []
     for (let i = 0; i < list.length; i++) {
       if (i % 4000 === 3999) await tick()
       keyed.push([sortKey(list[i][1]), list[i]])
@@ -122,7 +161,7 @@ export function createLibrary(deps: LibraryDeps) {
     }
     mem.set(sys.id, next)
 
-    const cache: CacheFile = { v: CACHE_VERSION, romsDir: settings.romsDir, showUnsupported: settings.showUnsupported, named: titles !== null || !sys.titleDat, games: list }
+    const cache: CacheFile = { v: CACHE_VERSION, romsDir: settings.romsDir, showUnsupported: settings.showUnsupported, named: titles !== null || !sys.titleDat, extra: deps.signature(sys), games: list }
     await fsp.mkdir(deps.cacheDir, { recursive: true })
     await tick()
     const json = JSON.stringify(cache)
@@ -144,7 +183,9 @@ export function createLibrary(deps: LibraryDeps) {
     const gen = ++generation
     running.clear()
     emit({ scanning: true, systemId: null, found: 0 })
-    for (const sys of deps.systems) {
+    // MAME per ultimo: la prima lettura del suo elenco richiede qualche secondo
+    const ordered = [...deps.systems].sort((a, b) => Number(a.engine === 'mame') - Number(b.engine === 'mame'))
+    for (const sys of ordered) {
       if (gen !== generation) return
       await scan(sys, gen)
     }

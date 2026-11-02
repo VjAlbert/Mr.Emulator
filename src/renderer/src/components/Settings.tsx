@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react'
 import type { PickKind, Settings } from '@shared/types'
 import { useInput } from '../hooks/useInput'
 
+type PathKey = 'romsDir' | 'biosDir' | 'retroarchPath' | 'coresDir' | 'mamePath' | 'mameChdDir'
+
 interface Props {
   onClose: () => void
   onSaved: () => void
@@ -11,6 +13,7 @@ interface Props {
 export default function SettingsScreen({ onClose, onSaved, onPc }: Props): React.JSX.Element {
   const [s, setS] = useState<Settings | null>(null)
   const [saved, setSaved] = useState(false)
+  const [mameInfo, setMameInfo] = useState<string>('')
 
   useEffect(() => {
     window.mr.getSettings().then(setS)
@@ -20,7 +23,7 @@ export default function SettingsScreen({ onClose, onSaved, onPc }: Props): React
 
   if (!s) return <div className="loading">Caricamento…</div>
 
-  const pick = async (key: 'romsDir' | 'biosDir' | 'retroarchPath' | 'coresDir', kind: PickKind): Promise<void> => {
+  const pick = async (key: PathKey, kind: PickKind): Promise<void> => {
     const p = await window.mr.pickPath(kind)
     if (p) setS({ ...s, [key]: p })
   }
@@ -32,7 +35,7 @@ export default function SettingsScreen({ onClose, onSaved, onPc }: Props): React
     setTimeout(() => setSaved(false), 1800)
   }
 
-  const field = (label: string, hint: string, key: 'romsDir' | 'biosDir' | 'retroarchPath' | 'coresDir', kind: PickKind): React.JSX.Element => (
+  const field = (label: string, hint: string, key: PathKey, kind: PickKind): React.JSX.Element => (
     <div className="field">
       <label>{label}</label>
       <div className="field-row">
@@ -61,6 +64,26 @@ export default function SettingsScreen({ onClose, onSaved, onPc }: Props): React
           <button className="chip" onClick={() => window.mr.setupFolders().then(setS)}>CREA CARTELLE MANCANTI</button>
         </div>
         {field('RetroArch (retroarch.exe)', 'Es. C:\\RetroArch-Win64\\retroarch.exe', 'retroarchPath', 'file')}
+        {field('MAME (mame.exe)', 'Es. D:\\MAME\\mame.exe — serve per il sistema Arcade (MAME); usa la stessa versione del tuo set ROM', 'mamePath', 'file')}
+        <div className="field-row">
+          <button
+            className="chip"
+            onClick={async () => {
+              setMameInfo('Controllo in corso… (la prima volta può richiedere qualche secondo)')
+              await window.mr.saveSettings(s)
+              const r = await window.mr.checkMame()
+              setMameInfo(r.ok ? `✔ MAME ${r.version} · ${r.machines.toLocaleString('it')} macchine riconosciute` : `⚠ ${r.error ?? 'MAME non risponde'}`)
+            }}
+          >
+            VERIFICA MAME
+          </button>
+          <span className="hint" style={{ margin: 0, alignSelf: 'center' }}>{mameInfo}</span>
+        </div>
+        {field('Cartella dei dischi CHD per MAME (facoltativa)', 'Se i dischi non stanno già dentro la cartella ROM di MAME', 'mameChdDir', 'dir')}
+        <label className="check">
+          <input type="checkbox" checked={s.mameClones} onChange={(e) => setS({ ...s, mameClones: e.target.checked })} />
+          Arcade (MAME): mostra anche le varianti dei giochi (nei set "merged" stanno dentro lo ZIP del gioco principale)
+        </label>
         {field('Cartella dei core (facoltativa)', 'Se vuota si usa la cartella "cores" accanto a RetroArch', 'coresDir', 'dir')}
         <label className="check">
           <input type="checkbox" checked={s.fullscreen} onChange={(e) => setS({ ...s, fullscreen: e.target.checked })} />
