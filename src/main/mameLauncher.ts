@@ -24,7 +24,9 @@ export function launchMame(
   const machine = game.machine ?? parse(game.path).name
   // game.path è già assoluto: la cartella dello ZIP può essere una sottocartella
   const base = systemDir(system, settings)
-  const paths = [...new Set([dirname(game.path), base, settings.mameChdDir].filter(Boolean))]
+  // MAME cerca ogni ZIP nelle cartelle in questo ordine: prima i giochi, poi i CHD, infine la cartella BIOS
+  // (così gli ZIP di sistema come neogeo.zip si possono tenere in bios\)
+  const paths = [...new Set([dirname(game.path), base, settings.mameChdDir, settings.biosDir].filter(Boolean))]
 
   // configurazione di Mr. Emulator: separata da quella eventuale di MAME, così non la tocca
   const dir = join(app.getPath('userData'), 'mame')
