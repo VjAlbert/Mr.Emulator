@@ -1,3 +1,4 @@
+import { writeFileAtomicAsync } from './atomic'
 import { promises as fsp } from 'fs'
 import { join, parse } from 'path'
 import type { Game, LibraryEvent, LibraryStats, Settings, SystemDef } from '@shared/types'
@@ -196,7 +197,7 @@ export function createLibrary(deps: LibraryDeps) {
     await tick()
     const json = JSON.stringify(cache)
     await tick()
-    await fsp.writeFile(cacheFile(sys.id), json, 'utf-8')
+    await writeFileAtomicAsync(cacheFile(sys.id), json)
     if (changed) emit({ scanning: true, systemId: sys.id, found: next.length, updated: sys.id })
   }
 

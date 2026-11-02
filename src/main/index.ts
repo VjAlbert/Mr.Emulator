@@ -25,6 +25,7 @@ import { MediaSource } from './media'
 import { runVerify, type VerifyBad } from './verify'
 import { existsSync, readFileSync, writeFileSync } from 'fs'
 import { loadMameData, type MameData } from './mame'
+import { writeFileAtomic } from './atomic'
 import { softTitles } from './softlist'
 import { datTitles } from './datfiles'
 import { launchMame } from './mameLauncher'
@@ -94,6 +95,14 @@ function createWindow(): void {
   Menu.setApplicationMenu(null)
   win.removeMenu()
   win.setMenuBarVisibility(false)
+  // se la finestra si blocca o la sua parte grafica si chiude da sola, si registra e si ricarica invece di restare nera
+  let reloads = 0
+  win.webContents.on('render-process-gone', (_e, d) => {
+    logCrash('render-process-gone', d.reason)
+    if (reloads++ < 3 && win && !win.isDestroyed()) win.webContents.reload()
+  })
+  win.webContents.on('unresponsive', () => logCrash('unresponsive', 'la finestra non risponde'))
+  win.webContents.on('did-fail-load', (_e, code, desc) => logCrash('did-fail-load', `${code} ${desc}`))
   if (process.env['ELECTRON_RENDERER_URL']) win.loadURL(process.env['ELECTRON_RENDERER_URL'])
   else win.loadFile(join(__dirname, '../renderer/index.html'))
 }
@@ -179,6 +188,30 @@ const library = createLibrary({
   },
   emit: (e) => win?.webContents.send('library:event', e)
 })
+
+/** Registro degli errori imprevisti: un cabinato non deve mostrare finestre di errore, e a me serve sapere cosa è successo */
+function logCrash(kind: string, err: unknown): void {
+  try {
+    const text = err instanceof Error ? `${err.message}\n${err.stack ?? ''}` : String(err)
+    const file = join(app.getPath('userData'), 'main.log')
+    const old = existsSync(file) ? readFileSync(file, 'utf-8').slice(-60000) : ''
+    writeFileAtomic(file, `${old}[${new Date().toISOString()}] ${kind}: ${text}\n\n`)
+  } catch {
+    // il registro è un extra: mai un errore causato dal registro
+  }
+}
+process.on('uncaughtException', (e) => logCrash('uncaughtException', e))
+process.on('unhandledRejection', (e) => logCrash('unhandledRejection', e))
+
+// una sola copia del programma: con l'avvio automatico con Windows una seconda copia andrebbe a sovrapporsi alla prima
+if (!app.requestSingleInstanceLock()) app.quit()
+else
+  app.on('second-instance', () => {
+    if (win && !win.isDestroyed()) {
+      if (win.isMinimized()) win.restore()
+      win.focus()
+    }
+  })
 
 app.whenReady().then(async () => {
   protocol.handle('mrmedia', (req) => {
@@ -310,7 +343,7 @@ app.whenReady().then(async () => {
       badNames = new Set(bad.map((b) => b.name))
       try {
         mkdirSync(join(app.getPath('userData'), 'library'), { recursive: true })
-        writeFileSync(verifyFile(), JSON.stringify(verifyState), 'utf-8')
+        writeFileAtomic(verifyFile(), JSON.stringify(verifyState))
       } catch {
         // il risultato si vede comunque; solo non resta al prossimo avvio
       }

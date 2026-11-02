@@ -1,5 +1,6 @@
 import { app } from 'electron'
 import { join, resolve, parse, sep } from 'path'
+import { writeFileAtomic } from './atomic'
 import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'fs'
 import type { ArtKind, Game, SystemDef } from '@shared/types'
 import { prettyName } from './scanner'
@@ -95,7 +96,7 @@ export async function arcadeTitles(): Promise<Map<string, string> | null> {
       if (res.ok) {
         text = await res.text()
         mkdirSync(join(file, '..'), { recursive: true })
-        writeFileSync(file, text, 'utf-8')
+        writeFileAtomic(file, text)
       }
     } catch {
       // offline: si riproverà più tardi
@@ -269,7 +270,7 @@ async function resolveArt(game: Game, system: SystemDef, enabled: boolean, stem:
         const saveAs = names[0] ?? n
         const file = localPath(system.id, dir, saveAs)
         mkdirSync(join(file, '..'), { recursive: true })
-        writeFileSync(file, res.data)
+        writeFileAtomic(file, res.data)
         return toUrl(system.id, dir, saveAs)
       }
     }

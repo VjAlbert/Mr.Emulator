@@ -1,3 +1,4 @@
+import { writeFileAtomic } from './atomic'
 import { execFile } from 'child_process'
 import { dirname, join } from 'path'
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs'
@@ -61,7 +62,7 @@ async function loadSoftTitles(exe: string, lists: string[], cacheDir: string): P
         if (xml) {
           map = parseSoftList(xml)
           mkdirSync(cacheDir, { recursive: true })
-          writeFileSync(file, JSON.stringify({ exe, titles: [...map] }), 'utf-8')
+          writeFileAtomic(file, JSON.stringify({ exe, titles: [...map] }))
         }
       }
       if (map) memo.set(key, map)

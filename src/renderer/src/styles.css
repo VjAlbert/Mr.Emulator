@@ -533,3 +533,7 @@ b.warnmark { color: #ffd400; margin-right: 8px; font-weight: 400; } .row.active 
 .hero { position: relative; }
 .hero-art { position: absolute; right: -10px; top: 0; width: min(34%, 260px); height: auto; opacity: .22; transform: rotate(5deg); pointer-events: none; --tile: var(--accent); }
 .hero > *:not(.hero-art) { position: relative; z-index: 1; }
+
+/* molti sistemi: la griglia scorre dentro il suo spazio (senza finire sotto i suggerimenti) */
+.select-body > .grid { max-height: 100%; overflow-y: auto; padding: 18px 14px; scrollbar-width: none; }
+.select-body > .grid::-webkit-scrollbar { display: none; }

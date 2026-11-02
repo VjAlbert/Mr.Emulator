@@ -30,6 +30,12 @@ export default function SystemSelect({ systems, onOpen, onSettings, onPc, onInpu
     setIndex((i) => Math.min(i, Math.max(0, systems.length - 1)))
   }, [systems.length])
 
+  const gridRef = useRef<HTMLElement>(null)
+  // il sistema scelto resta sempre visibile quando la griglia scorre
+  useEffect(() => {
+    gridRef.current?.children[index]?.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
+  }, [index])
+
   useInput({
     onMove: (dir) =>
       setIndex((i) => {
@@ -86,7 +92,7 @@ export default function SystemSelect({ systems, onOpen, onSettings, onPc, onInpu
           </div>
         </section>
 
-        <section className="grid" style={{ gridTemplateColumns: `repeat(${COLS}, 1fr)` }}>
+        <section className="grid" ref={gridRef} style={{ gridTemplateColumns: `repeat(${COLS}, 1fr)` }}>
           {systems.map((s, i) => (
             <button
               key={s.id}

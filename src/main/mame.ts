@@ -1,3 +1,4 @@
+import { writeFileAtomicAsync } from './atomic'
 import { spawn, execFile } from 'child_process'
 import { createInterface } from 'readline'
 import { promises as fsp, statSync } from 'fs'
@@ -232,6 +233,6 @@ export async function loadMameData(
 
   const cache: CacheFile = { v: CACHE_V, exe, size: st.size, mtime: st.mtimeMs, version, rows: [...machines.values()].map(pack) }
   await fsp.mkdir(cacheDir, { recursive: true })
-  await fsp.writeFile(file, JSON.stringify(cache), 'utf-8')
+  await writeFileAtomicAsync(file, JSON.stringify(cache))
   return index(machines, version)
 }
