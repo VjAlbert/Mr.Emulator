@@ -83,6 +83,10 @@ export interface Settings {
   hideBadRoms: boolean
   /** Cartella con le immagini locali (pacchetti Multimedia / EXTRAs): schermate, copertine, titoli col nome breve del gioco */
   mediaDir: string
+  /** Filmato della partita dietro la lista (da videosnaps) */
+  videoPreview: boolean
+  /** Volume del lettore di musica (colonna sonora) */
+  musicVolume: number
   /** Cartella dei giochi di MAME (vuota = "mame" dentro la cartella ROM). Di solito una cartella per versione, es. mame0229 */
   mameRomDir: string
   /** Giochi preferiti (identificativi) */
@@ -255,13 +259,22 @@ export interface VerifyState {
 
 export interface MediaReport {
   base: string
-  found: Array<{ kind: 'boxart' | 'snap' | 'title'; name: string; path: string; type: 'dir' | 'zip'; count: number }>
+  found: Array<{ kind: 'boxart' | 'snap' | 'title' | 'video' | 'sound'; name: string; path: string; type: 'dir' | 'zip'; count: number }>
   other: string[]
   unsupported: string[]
   error?: string
 }
 
+export interface MediaTrack {
+  title: string
+  url: string
+}
+
 export interface MrApi {
+  /** Filmato della partita del gioco (indirizzo da usare in un video), se esiste */
+  getVideo(game: Game): Promise<string | null>
+  /** Brani della colonna sonora del gioco */
+  getTracks(game: Game): Promise<MediaTrack[]>
   startVerify(): Promise<{ ok: boolean; error?: string }>
   cancelVerify(): Promise<void>
   getVerify(): Promise<VerifyState>

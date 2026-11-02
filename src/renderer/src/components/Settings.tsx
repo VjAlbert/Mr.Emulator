@@ -131,9 +131,9 @@ export default function SettingsScreen({ onClose, onSaved, onPc, onRomCheck }: P
               await window.mr.saveSettings(s)
               const r = await window.mr.analyzeMedia()
               if (r.error) return setMediaInfo([`⚠ ${r.error}`])
-              const kindName = { boxart: 'Copertine', snap: 'Schermate', title: 'Titoli' } as const
-              const lines = r.found.map((f) => `✔ ${kindName[f.kind]}: ${f.name}${f.type === 'zip' ? ' (archivio ZIP)' : ''} · ${f.count.toLocaleString('it')} immagini`)
-              if (!r.found.length) lines.push('⚠ Non riconosco nessuna cartella di immagini.')
+              const kindName = { boxart: 'Copertine', snap: 'Schermate', title: 'Titoli', video: 'Video delle partite', sound: 'Colonna sonora' } as const
+              const lines = r.found.map((f) => `✔ ${kindName[f.kind]}: ${f.name}${f.type === 'zip' ? ' (archivio ZIP)' : ''} · ${f.count.toLocaleString('it')} ${f.kind === 'sound' ? 'cartelle di giochi' : f.kind === 'video' ? 'file' : 'immagini'}`)
+              if (!r.found.length) lines.push('⚠ Non riconosco nessuna cartella di immagini, video o musica.')
               if (r.unsupported.length) lines.push(`⚠ Archivi che non so leggere (serve estrarli): ${r.unsupported.join(', ')}`)
               if (r.other.length) lines.push(`Altre cartelle trovate (non usate): ${r.other.slice(0, 14).join(', ')}${r.other.length > 14 ? '…' : ''}`)
               setMediaInfo(lines)
@@ -199,6 +199,14 @@ export default function SettingsScreen({ onClose, onSaved, onPc, onRomCheck }: P
             />
           </div>
         )}
+        <label className="check">
+          <input type="checkbox" checked={s.videoPreview} onChange={(e) => setS({ ...s, videoPreview: e.target.checked })} />
+          Filmato della partita sul gioco selezionato (serve la cartella videosnaps del pacchetto Multimedia)
+        </label>
+        <div className="field-row" style={{ alignItems: 'center' }}>
+          <span className="hint" style={{ margin: 0 }}>Volume della colonna sonora</span>
+          <input type="range" min={0.05} max={1} step={0.05} value={s.musicVolume} style={{ flex: 1, maxWidth: 320 }} onChange={(e) => setS({ ...s, musicVolume: Number(e.target.value) })} />
+        </div>
         <label className="check">
           <input type="checkbox" checked={s.launchAnimation} onChange={(e) => setS({ ...s, launchAnimation: e.target.checked })} />
           Sequenza "INSERT COIN" prima di avviare un gioco (si salta con un pulsante)

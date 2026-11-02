@@ -9,6 +9,8 @@ import { openZip, readZipEntry, type ZipArchive } from './zipinfo'
  */
 
 export type MediaKind = 'boxart' | 'snap' | 'title'
+/** Oltre alle immagini: filmati delle partite e colonna sonora */
+export type MediaKindAll = MediaKind | 'video' | 'sound'
 
 /** Nomi di cartella o archivio riconosciuti per ogni tipo di immagine, dal preferito al meno preferito */
 const FOLDERS: Record<MediaKind, string[]> = {
@@ -16,11 +18,18 @@ const FOLDERS: Record<MediaKind, string[]> = {
   snap: ['snap', 'snaps', 'screenshots', 'ingame', 'ingames'],
   title: ['titles', 'title']
 }
+/** Cartelle dei filmati e della musica (non sono immagini: si cercano a parte) */
+const EXTRA_FOLDERS: Record<'video' | 'sound', string[]> = {
+  video: ['videosnaps', 'videosnap', 'videos', 'video'],
+  sound: ['soundtrack', 'soundtracks', 'music', 'ost']
+}
+const VIDEO_EXT = ['.mp4', '.webm', '.m4v']
+const AUDIO_EXT = ['.mp3', '.ogg', '.m4a', '.flac', '.wav', '.opus']
 const IMAGE_EXT = ['.png', '.jpg', '.jpeg', '.webp']
 const isImage = (ext: string): boolean => IMAGE_EXT.includes(ext)
 
 interface Source {
-  kind: MediaKind
+  kind: MediaKindAll
   name: string
   path: string
   type: 'dir' | 'zip'
@@ -28,7 +37,7 @@ interface Source {
 
 export interface MediaReport {
   base: string
-  found: Array<{ kind: MediaKind; name: string; path: string; type: 'dir' | 'zip'; count: number }>
+  found: Array<{ kind: MediaKindAll; name: string; path: string; type: 'dir' | 'zip'; count: number }>
   /** Cartelle presenti ma non riconosciute come immagini (può servire a capire la struttura) */
   other: string[]
   /** Archivi in formati che il programma non sa leggere (7z, rar) */
@@ -54,8 +63,9 @@ export class MediaSource {
     const other: string[] = []
     const unsupported: string[] = []
     const queue: Array<[string, number]> = [[this.base, 0]]
-    const kindOf = (name: string): MediaKind | null => {
+    const kindOf = (name: string): MediaKindAll | null => {
       for (const k of Object.keys(FOLDERS) as MediaKind[]) if (FOLDERS[k].includes(name)) return k
+      for (const k of ['video', 'sound'] as const) if (EXTRA_FOLDERS[k].includes(name)) return k
       return null
     }
     while (queue.length) {
@@ -84,7 +94,8 @@ export class MediaSource {
       }
     }
     // dentro ogni tipo, prima i nomi preferiti
-    sources.sort((a, b) => FOLDERS[a.kind].indexOf(a.name.toLowerCase().replace(/\.zip$/, '')) - FOLDERS[b.kind].indexOf(b.name.toLowerCase().replace(/\.zip$/, '')))
+    const list = (k: MediaKindAll): string[] => (k === 'video' || k === 'sound' ? EXTRA_FOLDERS[k] : FOLDERS[k])
+    sources.sort((a, b) => list(a.kind).indexOf(a.name.toLowerCase().replace(/\.zip$/, '')) - list(b.kind).indexOf(b.name.toLowerCase().replace(/\.zip$/, '')))
     this.detected = { sources, other, unsupported }
     return this.detected
   }
@@ -119,6 +130,50 @@ export class MediaSource {
       found.push({ kind: s.kind, name: s.name, path: s.path, type: s.type, count })
     }
     return { base: this.base, found, other: d.other, unsupported: d.unsupported }
+  }
+
+  /** Filmato della partita (videosnaps/nome.mp4): percorso del file, se c'è */
+  async findVideo(names: string[]): Promise<string | null> {
+    const d = await this.detect()
+    for (const s of d.sources) {
+      if (s.kind !== 'video' || s.type !== 'dir') continue
+      for (const name of names) {
+        if (!name) continue
+        for (const ext of VIDEO_EXT) {
+          const file = join(s.path, name + ext)
+          try {
+            if ((await fsp.stat(file)).isFile()) return file
+          } catch {
+            // non c'è con questa estensione
+          }
+        }
+      }
+    }
+    return null
+  }
+
+  /** Brani della colonna sonora (soundtrack/nome/01 Titolo.mp3), in ordine di numero */
+  async findTracks(names: string[]): Promise<Array<{ title: string; path: string }>> {
+    const d = await this.detect()
+    for (const s of d.sources) {
+      if (s.kind !== 'sound' || s.type !== 'dir') continue
+      for (const name of names) {
+        if (!name) continue
+        const dir = join(s.path, name)
+        let files: string[]
+        try {
+          files = await fsp.readdir(dir)
+        } catch {
+          continue
+        }
+        const tracks = files
+          .filter((f) => AUDIO_EXT.some((e) => f.toLowerCase().endsWith(e)))
+          .sort((a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' }))
+          .map((f) => ({ path: join(dir, f), title: f.replace(/\.[^.]+$/, '').replace(/^\d+\s*[-_.]?\s*/, '') || f }))
+        if (tracks.length) return tracks
+      }
+    }
+    return []
   }
 
   /** Cerca l'immagine di un gioco provando i nomi dati in ordine (nome breve e, se c'è, quello del gioco principale) */

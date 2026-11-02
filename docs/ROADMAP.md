@@ -45,7 +45,7 @@ Sistemi: Arcade (MAME, FBNeo), Neo Geo, Master System, Mega Drive, NES, SNES, Ga
 - [x] Direzione artistica "fumetto da picchiaduro" (carattere Anton incorporato, contorni, retino, raggi), suoni sintetizzati, sequenza INSERT COIN all'avvio e rotazione di copertine a riposo (attract mode)
 - [x] Controllo ROM con il verificatore di MAME: elenco degli ZIP difettosi con i file da sostituire, segno ⚠ nella lista, controllo del singolo gioco, opzione per nascondere i giochi difettosi
 - [x] Immagini locali per MAME/FBNeo (cartelle o ZIP con snap, flyers, titles…) con precedenza sul download
-- [ ] Anteprime video (videosnaps) e colonna sonora dal pacchetto Multimedia
+- [x] Pacchetto Multimedia: monitor video con cornice sul gioco selezionato (videosnaps) e lettore della colonna sonora (soundtrack), con pausa da tastiera e pad (da verificare dentro Electron: codec e riproduzione)
 - [ ] Nintendo 64, Nintendo DS, Mega CD, Famicom Disk System
 - [ ] GameCube e Wii (da verificare sulle prestazioni)
 

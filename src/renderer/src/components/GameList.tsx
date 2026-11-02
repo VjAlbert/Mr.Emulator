@@ -7,6 +7,8 @@ import FadeBackdrop from './FadeBackdrop'
 import SearchPanel from './SearchPanel'
 import { pickArt } from '../hooks/useArt'
 import { sfx } from '../sound'
+import { music } from '../music'
+import type { MediaTrack } from '@shared/types'
 import type { LibraryStats } from '@shared/types'
 import { decadeLabel, decadeOf, initialOf, matchAll, norm, splitTitle } from '../search'
 
@@ -150,6 +152,30 @@ export default function GameList({ system, games, message, onLaunch, onBack, let
   }, [base, baseKeys, query])
 
   const game = list[index]
+  // ---- media del gioco selezionato: filmato (videosnaps) e colonna sonora (soundtrack) ----
+  const [mediaOpts, setMediaOpts] = useState({ video: false, music: true })
+  useEffect(() => {
+    window.mr.getSettings().then((s) => setMediaOpts({ video: s.videoPreview && !s.lightEffects && !!s.mediaDir, music: !!s.mediaDir }))
+  }, [])
+  const [video, setVideo] = useState<string | null>(null)
+  const [videoReady, setVideoReady] = useState(false)
+  const [tracks, setTracks] = useState<MediaTrack[]>([])
+  useEffect(() => {
+    // al cambio di gioco il filmato sparisce subito; ricompare dopo una breve sosta (scorrendo veloce non si carica niente)
+    setVideo(null)
+    setVideoReady(false)
+    setTracks([])
+    if (!game || game.demo || !game.machine && system.engine === 'mame') return
+    let off = false
+    const t = window.setTimeout(() => {
+      if (mediaOpts.video) window.mr.getVideo(game).then((u) => !off && setVideo(u))
+      if (mediaOpts.music) window.mr.getTracks(game).then((ts) => !off && setTracks(ts))
+    }, 650)
+    return () => {
+      off = true
+      window.clearTimeout(t)
+    }
+  }, [game?.id, mediaOpts.video, mediaOpts.music]) // eslint-disable-line react-hooks/exhaustive-deps
   const firstIndex = useRef(true)
   useEffect(() => {
     if (firstIndex.current) firstIndex.current = false
@@ -204,6 +230,8 @@ export default function GameList({ system, games, message, onLaunch, onBack, let
     onMenu: nextFamily,
     // Y / X del pad: apre la ricerca
     onSearch: () => setSearchOpen(true),
+    // Select del pad / F3: colonna sonora del gioco (pausa / riprendi / avvia)
+    onMusic: () => game && (tracks.length ? music.toggleFor(game.id, game.name, tracks) : music.toggle()),
     // X del pad / F2: aggiunge o toglie il gioco dai preferiti
     onAlt: () => game && toggleFav(game),
     onBack
@@ -384,9 +412,25 @@ export default function GameList({ system, games, message, onLaunch, onBack, let
           </div>
         </div>
 
-        <aside className="preview">
+        <aside className={`preview ${video && videoReady ? 'has-video' : ''}`}>
           {game && title ? (
             <>
+              {video && (
+                <div className={`vmon ${videoReady ? 'on' : ''}`}>
+                  <video
+                    key={video}
+                    src={video}
+                    autoPlay
+                    muted
+                    loop
+                    playsInline
+                    onCanPlay={() => setVideoReady(true)}
+                    onError={() => setVideo(null)}
+                  />
+                  <i className="vmon-scan" />
+                  <span className="vmon-tag">● PLAY</span>
+                </div>
+              )}
               <CoverCarousel games={list} index={index} onSelect={(i) => move(() => i)} onActivate={() => onLaunch(game)} onLoaded={() => setTick((n) => n + 1)} />
               <div key={game.id} className="preview-card">
                 <div className="preview-name">{title.main}</div>
@@ -396,6 +440,11 @@ export default function GameList({ system, games, message, onLaunch, onBack, let
                   {game.demo ? ' · DEMO' : ''}
                 </div>
                 {game.machine && badSet.has(game.machine) && <div className="warnchip">⚠ ROM DIFETTOSA: apri il Controllo ROM</div>}
+                {tracks.length > 0 && (
+                  <button className="sp-star music" onClick={() => music.toggleFor(game.id, game.name, tracks)} title="Colonna sonora (Select del pad · F3)">
+                    ♪ COLONNA SONORA ({tracks.length} {tracks.length === 1 ? 'brano' : 'brani'})
+                  </button>
+                )}
                 {system.engine === 'mame' && (
                   <button className="sp-star" onClick={() => checkOne(game)}>
                     🧪 CONTROLLA QUESTO GIOCO

@@ -13,6 +13,8 @@ export interface InputHandlers {
   onSearch?: () => void
   /** Azione secondaria: X del pad o F2 (preferito nella lista, cambio tastiera nella ricerca) */
   onAlt?: () => void
+  /** Colonna sonora: pausa / riprendi o avvia (Select del pad, F3) */
+  onMusic?: () => void
 }
 
 const REPEAT_FIRST = 380
@@ -46,6 +48,7 @@ function padState(pad: Gamepad): Record<string, boolean> {
     r: !!b[15]?.pressed || ax > DEADZONE,
     se: !!b[3]?.pressed,
     x: !!b[2]?.pressed,
+    sel: !!b[8]?.pressed,
     pl: !!b[4]?.pressed,
     pr: !!b[5]?.pressed,
     a: !!b[0]?.pressed,
@@ -98,6 +101,7 @@ export function useInput(handlers: InputHandlers, opts: { modal?: boolean; keybo
         Enter: () => h.onConfirm?.(),
         ' ': () => h.onConfirm?.(),
         F2: () => h.onAlt?.(),
+        F3: () => h.onMusic?.(),
         PageUp: () => h.onPage?.(-1),
         PageDown: () => h.onPage?.(1),
         Escape: () => h.onBack?.(),
@@ -161,6 +165,7 @@ export function useInput(handlers: InputHandlers, opts: { modal?: boolean; keybo
         press(`${id}r`, !!b[15]?.pressed || ax > DEADZONE, now, () => h.onMove?.('right'))
         press(`${id}se`, !!b[3]?.pressed, now, () => h.onSearch?.())
         press(`${id}x`, !!b[2]?.pressed, now, () => h.onAlt?.())
+        press(`${id}sel`, !!b[8]?.pressed, now, () => h.onMusic?.())
         press(`${id}pl`, !!b[4]?.pressed, now, () => h.onPage?.(-1))
         press(`${id}pr`, !!b[5]?.pressed, now, () => h.onPage?.(1))
         press(`${id}a`, !!b[0]?.pressed, now, () => h.onConfirm?.())

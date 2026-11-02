@@ -24,6 +24,8 @@ const DEFAULTS: Settings = {
   mameChdDir: '',
   hideBadRoms: false,
   mediaDir: '',
+  videoPreview: true,
+  musicVolume: 0.5,
   mameRomDir: '',
   soundOn: true,
   soundVolume: 0.4,

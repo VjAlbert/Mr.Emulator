@@ -10,6 +10,8 @@ import FeedbackPrompt from './components/FeedbackPrompt'
 import LaunchSequence from './components/LaunchSequence'
 import AttractMode from './components/AttractMode'
 import { configureSound, sfx } from './sound'
+import { music } from './music'
+import MiniPlayer from './components/MiniPlayer'
 import { clearArtCache } from './hooks/useArt'
 import { isModalOpen, setCabinetKeys } from './hooks/useInput'
 
@@ -67,6 +69,7 @@ export default function App(): React.JSX.Element {
       document.documentElement.classList.toggle('light-fx', !!st.lightEffects)
       setScheme(st.inputScheme)
       configureSound(st.soundOn, st.soundVolume)
+      music.setVolume(st.musicVolume)
       setOpts({ attractSeconds: st.attractSeconds, launchAnimation: st.launchAnimation })
     })
   }, [])
@@ -118,6 +121,7 @@ export default function App(): React.JSX.Element {
         setLaunching(g)
       })
     }
+    music.stop() // la musica non deve continuare mentre si gioca
     const res = await window.mr.launch(g)
     setLaunching(null)
     lastActivity.current = Date.now()
@@ -184,6 +188,7 @@ export default function App(): React.JSX.Element {
   return (
     <>
       {view}
+      <MiniPlayer />
       {launching && (
         <LaunchSequence
           game={launching}

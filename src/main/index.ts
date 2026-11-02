@@ -1,5 +1,9 @@
 import { app, BrowserWindow, dialog, ipcMain, Menu, net, protocol, shell } from 'electron'
 import { pathToFileURL } from 'url'
+import { createReadStream, statSync } from 'fs'
+import { Readable } from 'stream'
+import { extname } from 'path'
+import { MEDIA_MIME, parseRange } from './rangeFile'
 import { tmpdir } from 'os'
 import { basename, join } from 'path'
 import type { ArtKind, Feedback, Game, GameEnded, OptimizationReport, PickKind, Settings, SystemInfo, VerifyState } from '@shared/types'
@@ -25,8 +29,29 @@ import { launchMame } from './mameLauncher'
 import { mameFolderName, systemDir } from './paths'
 
 protocol.registerSchemesAsPrivileged([
-  { scheme: ART_SCHEME, privileges: { standard: true, secure: true, supportFetchAPI: true } }
+  { scheme: ART_SCHEME, privileges: { standard: true, secure: true, supportFetchAPI: true } },
+  // filmati e musica: "stream" serve perché il lettore chieda porzioni di file
+  { scheme: 'mrmedia', privileges: { standard: true, secure: true, supportFetchAPI: true, stream: true } }
 ])
+
+/** Indirizzi dei file multimediali: la pagina riceve un codice, mai un percorso, e solo i file indicizzati si possono leggere */
+const mediaTokens = new Map<string, string>()
+const mediaByPath = new Map<string, string>()
+let mediaSeq = 0
+function mediaUrl(path: string): string {
+  let id = mediaByPath.get(path)
+  if (!id) {
+    id = String(++mediaSeq)
+    mediaByPath.set(path, id)
+    mediaTokens.set(id, path)
+    if (mediaTokens.size > 3000) {
+      const first = mediaTokens.keys().next().value as string
+      mediaByPath.delete(mediaTokens.get(first)!)
+      mediaTokens.delete(first)
+    }
+  }
+  return `mrmedia://m/${id}`
+}
 
 // Cache di Chromium in una cartella temporanea e senza cache degli shader su disco:
 // evita gli avvisi "Unable to move the cache" quando un'altra copia ha la cartella bloccata.
@@ -134,6 +159,22 @@ const library = createLibrary({
 })
 
 app.whenReady().then(async () => {
+  protocol.handle('mrmedia', (req) => {
+    const path = mediaTokens.get(new URL(req.url).pathname.slice(1))
+    if (!path || !existsSync(path)) return new Response('Not found', { status: 404 })
+    const size = statSync(path).size
+    const mime = MEDIA_MIME[extname(path).toLowerCase()] ?? 'application/octet-stream'
+    const range = parseRange(req.headers.get('range'), size)
+    if (range === 'invalid') return new Response(null, { status: 416, headers: { 'Content-Range': `bytes */${size}` } })
+    const body = Readable.toWeb(createReadStream(path, range ? { start: range.start, end: range.end } : undefined)) as unknown as ReadableStream
+    const headers: Record<string, string> = { 'Content-Type': mime, 'Accept-Ranges': 'bytes' }
+    if (range) {
+      headers['Content-Range'] = `bytes ${range.start}-${range.end}/${size}`
+      headers['Content-Length'] = String(range.end - range.start + 1)
+    } else headers['Content-Length'] = String(size)
+    return new Response(body, { status: range ? 206 : 200, headers })
+  })
+
   protocol.handle(ART_SCHEME, (req) => {
     const file = resolveArtUrl(req.url)
     return file ? net.fetch(pathToFileURL(file).toString()) : new Response('Not found', { status: 404 })
@@ -167,6 +208,27 @@ app.whenReady().then(async () => {
     }
     await applyGpuPreference(loadSettings())
   }
+
+  /** Nomi con cui cercare i media di un gioco: nome breve e, per le varianti, quello del gioco principale */
+  async function mediaNames(game: Game): Promise<string[]> {
+    const system = SYSTEMS.find((s) => s.id === game.systemId)
+    if (!system || (system.engine !== 'mame' && !system.titleDat)) return []
+    const stem = (game.machine ?? game.fileName.replace(/\.[^.]+$/, '')).toLowerCase()
+    let parent = ''
+    if (system.engine === 'mame') parent = (await getMame())?.machines.get(stem)?.cloneof ?? ''
+    return [stem, parent].filter(Boolean)
+  }
+  ipcMain.handle('media:video', async (_e, game: Game) => {
+    const media = getMedia()
+    if (!media || game.demo) return null
+    const file = await media.findVideo(await mediaNames(game))
+    return file ? mediaUrl(file) : null
+  })
+  ipcMain.handle('media:tracks', async (_e, game: Game) => {
+    const media = getMedia()
+    if (!media || game.demo) return []
+    return (await media.findTracks(await mediaNames(game))).map((t) => ({ title: t.title, url: mediaUrl(t.path) }))
+  })
 
   // analisi della cartella delle immagini locali: dice cosa riconosce (cartelle, archivi, quante immagini)
   ipcMain.handle('media:analyze', async () => {

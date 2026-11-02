@@ -2,6 +2,8 @@ import { contextBridge, ipcRenderer } from 'electron'
 import type { GameEnded, LibraryEvent, MrApi, VerifyState } from '@shared/types'
 
 const api: MrApi = {
+  getVideo: (game) => ipcRenderer.invoke('media:video', game),
+  getTracks: (game) => ipcRenderer.invoke('media:tracks', game),
   startVerify: () => ipcRenderer.invoke('verify:start'),
   cancelVerify: () => ipcRenderer.invoke('verify:cancel'),
   getVerify: () => ipcRenderer.invoke('verify:get'),
