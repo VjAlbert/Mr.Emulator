@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { PickKind, Settings } from '@shared/types'
 import { useInput } from '../hooks/useInput'
 
@@ -14,12 +14,19 @@ export default function SettingsScreen({ onClose, onSaved, onPc }: Props): React
   const [s, setS] = useState<Settings | null>(null)
   const [saved, setSaved] = useState(false)
   const [mameInfo, setMameInfo] = useState<string>('')
+  const bodyRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     window.mr.getSettings().then(setS)
   }, [])
 
-  useInput({ onBack: onClose })
+  useInput({
+    onBack: onClose,
+    // con tastiera e pad la pagina scorre con su/giù
+    onMove: (d) => {
+      if (d === 'up' || d === 'down') bodyRef.current?.scrollBy({ top: d === 'up' ? -160 : 160, behavior: 'smooth' })
+    }
+  })
 
   if (!s) return <div className="loading">Caricamento…</div>
 
@@ -54,8 +61,11 @@ export default function SettingsScreen({ onClose, onSaved, onPc }: Props): React
           ◀ INDIETRO
         </button>
         <h2 className="sys-title">Impostazioni</h2>
+        <button className="chip save" onClick={save}>
+          {saved ? '✔ SALVATO' : '💾 SALVA'}
+        </button>
       </header>
-      <div className="settings-body">
+      <div className="settings-body" ref={bodyRef}>
         {field('Cartella ROM', 'Es. D:\\Giochi\\roms (con sottocartelle: snes, megadrive, arcade…)', 'romsDir', 'dir')}
         {field('Cartella BIOS', 'I tuoi file BIOS vanno qui (viene passata a RetroArch)', 'biosDir', 'dir')}
         <div className="field-row">

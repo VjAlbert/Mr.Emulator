@@ -275,3 +275,10 @@ kbd { font-family: var(--font); letter-spacing: 1px; min-width: 38px; text-align
 .search { flex: 0 1 190px; min-width: 120px; }
 
 .scan.warn { color: #ffd400; animation: none; }
+
+/* impostazioni: la pagina scorre e SALVA resta sempre visibile in alto */
+.screen.settings { overflow: hidden; }
+.settings-body { flex: 1; min-height: 0; overflow-y: auto; padding-right: 12px; padding-bottom: 24px; }
+.settings-body::-webkit-scrollbar { width: 8px; } .settings-body::-webkit-scrollbar-thumb { background: rgba(255,255,255,.18); }
+.chip.save { margin-left: auto; background: var(--accent); color: #000; border-color: var(--accent); }
+.chip.save:hover { filter: brightness(1.15); color: #000; }
