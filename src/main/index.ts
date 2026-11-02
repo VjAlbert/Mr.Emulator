@@ -2,7 +2,8 @@ import { app, BrowserWindow, dialog, ipcMain, Menu, net, protocol, shell } from 
 import { pathToFileURL } from 'url'
 import { tmpdir } from 'os'
 import { basename, join } from 'path'
-import type { ArtKind, Feedback, Game, GameEnded, OptimizationReport, PickKind, Settings, SystemInfo } from '@shared/types'
+import type { ArtKind, Feedback, Game, GameEnded, OptimizationReport, PickKind, Settings, SystemInfo, VerifyState } from '@shared/types'
+import { mkdirSync } from 'fs'
 import { SYSTEMS } from './systems'
 import { loadSettings, saveSettings } from './settings'
 import { demoGames } from './scanner'
@@ -15,11 +16,13 @@ import { buildReport, mameProfileFor, profileFor } from './optimize'
 import { toConfigText } from './profiles'
 import { setHighPerformanceGpu } from './gpuPref'
 import { buildInputConfig, buildInputMap, buildMameCtrlr } from './inputs'
-import { ART_SCHEME, arcadeTitles, getArt, resolveArtUrl, setMameTitleProvider } from './artwork'
+import { ART_SCHEME, arcadeTitles, clearLocalArt, getArt, resolveArtUrl, setMameTitleProvider, setMediaProvider } from './artwork'
+import { MediaSource } from './media'
+import { runVerify, type VerifyBad } from './verify'
+import { existsSync, readFileSync, writeFileSync } from 'fs'
 import { loadMameData, type MameData } from './mame'
 import { launchMame } from './mameLauncher'
 import { mameFolderName, systemDir } from './paths'
-import { mkdirSync } from 'fs'
 
 protocol.registerSchemesAsPrivileged([
   { scheme: ART_SCHEME, privileges: { standard: true, secure: true, supportFetchAPI: true } }
@@ -77,10 +80,21 @@ function getMame(onProgress?: (n: number) => void, force = false): Promise<MameD
   }
   return mameCache.data
 }
+/** Immagini locali (Multimedia): una sola istanza finché la cartella non cambia */
+let mediaSrc: { dir: string; src: MediaSource } | null = null
+function getMedia(): MediaSource | null {
+  const dir = loadSettings().mediaDir
+  if (!dir) return null
+  if (!mediaSrc || mediaSrc.dir !== dir) mediaSrc = { dir, src: new MediaSource(dir) }
+  return mediaSrc.src
+}
+setMediaProvider(getMedia)
+
 setMameTitleProvider(async () => {
   const d = await getMame()
   if (!d) return null
   return {
+    parentOf: (n) => d.machines.get(n)?.cloneof ?? undefined,
     titleOf: (n) => d.machines.get(n)?.description,
     parentTitleOf: (n) => {
       const p = d.machines.get(n)?.cloneof
@@ -89,7 +103,23 @@ setMameTitleProvider(async () => {
   }
 })
 
+/** Controllo ROM con MAME: risultato dell'ultima verifica (salvato su disco) e controllo in corso */
+const verifyFile = (): string => join(app.getPath('userData'), 'library', 'verify-mame.json')
+let verifyState: VerifyState = { running: false, checked: 0, bad: 0, summary: null, badList: [], tail: [] }
+let verifyRun: { cancel: () => void } | null = null
+let badNames = new Set<string>()
+try {
+  if (existsSync(verifyFile())) {
+    const saved = JSON.parse(readFileSync(verifyFile(), 'utf-8')) as VerifyState
+    verifyState = { ...saved, running: false }
+    badNames = new Set(verifyState.badList.map((b) => b.name))
+  }
+} catch {
+  // nessun risultato salvato valido: si riparte da zero
+}
+
 const library = createLibrary({
+  isBad: (n) => badNames.has(n),
   cacheDir: join(app.getPath('userData'), 'library'),
   systems: SYSTEMS,
   getSettings: loadSettings,
@@ -98,7 +128,7 @@ const library = createLibrary({
   signature: (sys) => {
     if (sys.engine !== 'mame') return ''
     const s = loadSettings()
-    return `${s.mamePath}|${s.mameClones}|${s.mameRomDir}`
+    return `${s.mamePath}|${s.mameClones}|${s.mameRomDir}|${s.hideBadRoms}`
   },
   emit: (e) => win?.webContents.send('library:event', e)
 })
@@ -138,6 +168,79 @@ app.whenReady().then(async () => {
     await applyGpuPreference(loadSettings())
   }
 
+  // analisi della cartella delle immagini locali: dice cosa riconosce (cartelle, archivi, quante immagini)
+  ipcMain.handle('media:analyze', async () => {
+    const dir = loadSettings().mediaDir
+    if (!dir) return { base: '', found: [], other: [], unsupported: [], error: 'Indica prima la cartella delle immagini e premi SALVA.' }
+    mediaSrc = { dir, src: new MediaSource(dir) }
+    return mediaSrc.src.analyze()
+  })
+
+  // ---- controllo ROM ----
+  const mameSys = SYSTEMS.find((x) => x.engine === 'mame')!
+  /** File di configurazione minimo per la verifica: solo le cartelle dove cercare gli ZIP */
+  const verifyIni = (s: Settings): string => {
+    const dir = join(app.getPath('userData'), 'mame-verify')
+    mkdirSync(dir, { recursive: true })
+    const paths = [systemDir(mameSys, s), s.mameChdDir, s.biosDir].filter(Boolean)
+    writeFileSync(join(dir, 'mame.ini'), `rompath                     ${paths.join(';')}\n`, 'utf-8')
+    return dir
+  }
+  const pushVerify = (): void => {
+    win?.webContents.send('verify:state', verifyState)
+  }
+
+  ipcMain.handle('verify:get', () => verifyState)
+
+  ipcMain.handle('verify:start', async () => {
+    const s = loadSettings()
+    if (verifyRun) return { ok: false, error: 'Il controllo è già in corso.' }
+    if (!s.mamePath || !existsSync(s.mamePath)) return { ok: false, error: 'Indica prima il percorso di mame.exe nelle Impostazioni.' }
+    const data = await getMame()
+    const job = runVerify(s.mamePath, ['-verifyroms', '-inipath', verifyIni(s)], (checked, bad) => {
+      verifyState = { ...verifyState, running: true, checked, bad }
+      pushVerify()
+    })
+    verifyRun = job
+    verifyState = { running: true, checked: 0, bad: 0, summary: null, badList: [], tail: [] }
+    pushVerify()
+    void job.done.then((r) => {
+      verifyRun = null
+      const bad: VerifyBad[] = r.bad
+      verifyState = {
+        running: false,
+        checked: r.checked,
+        bad: bad.length,
+        summary: { at: r.at, version: data?.version ?? '', checked: r.checked, good: r.good, badCount: bad.length, cancelled: r.cancelled },
+        badList: bad,
+        tail: r.tail
+      }
+      badNames = new Set(bad.map((b) => b.name))
+      try {
+        mkdirSync(join(app.getPath('userData'), 'library'), { recursive: true })
+        writeFileSync(verifyFile(), JSON.stringify(verifyState), 'utf-8')
+      } catch {
+        // il risultato si vede comunque; solo non resta al prossimo avvio
+      }
+      pushVerify()
+      if (loadSettings().hideBadRoms) library.rescan(false)
+    })
+    return { ok: true }
+  })
+
+  ipcMain.handle('verify:cancel', () => {
+    verifyRun?.cancel()
+  })
+
+  // un solo gioco: pochi secondi
+  ipcMain.handle('verify:machine', async (_e, name: string) => {
+    const s = loadSettings()
+    if (!s.mamePath || !existsSync(s.mamePath)) return { ok: false, issues: [], error: 'MAME non trovato.' }
+    const r = await runVerify(s.mamePath, ['-verifyroms', name, '-inipath', verifyIni(s)]).done
+    const hit = r.bad.find((b) => b.name === name)
+    return { ok: true, issues: hit?.issues ?? [] }
+  })
+
   ipcMain.handle('library:status', () => library.status())
   ipcMain.handle('library:stats', (_e, systemId: string) => library.stats(systemId))
 
@@ -162,7 +265,11 @@ app.whenReady().then(async () => {
     } catch {
       // cartella non scrivibile: nessun problema, resta quella scelta dall'utente
     }
-    if (before.romsDir !== saved.romsDir || before.showUnsupported !== saved.showUnsupported || before.mamePath !== saved.mamePath || before.mameClones !== saved.mameClones || before.mameRomDir !== saved.mameRomDir) {
+    if (before.mediaDir !== saved.mediaDir) {
+      clearLocalArt()
+      mediaSrc = null
+    }
+    if (before.romsDir !== saved.romsDir || before.showUnsupported !== saved.showUnsupported || before.mamePath !== saved.mamePath || before.mameClones !== saved.mameClones || before.mameRomDir !== saved.mameRomDir || before.hideBadRoms !== saved.hideBadRoms) {
       library.rescan(before.romsDir !== saved.romsDir || before.mameRomDir !== saved.mameRomDir)
     }
     return saved

@@ -1,8 +1,9 @@
 import { app } from 'electron'
 import { join, resolve, parse, sep } from 'path'
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs'
+import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'fs'
 import type { ArtKind, Game, SystemDef } from '@shared/types'
 import { prettyName } from './scanner'
+import type { MediaSource } from './media'
 import { buildTitleIndex, parentCandidates, type TitleIndex } from './titles'
 
 /**
@@ -30,7 +31,28 @@ const DAT_URL =
   'https://raw.githubusercontent.com/libretro/libretro-database/master/metadat/fbneo-split/FBNeo%20-%20Arcade%20Games.dat'
 
 /** Titoli di MAME (nome breve -> titolo, e titolo del gioco principale per le varianti), forniti dal programma */
+/** Cartella delle immagini locali (Multimedia / EXTRAs), se indicata */
+let mediaProvider: (() => MediaSource | null) | null = null
+export const setMediaProvider = (fn: () => MediaSource | null): void => {
+  mediaProvider = fn
+}
+
+/** Toglie le copie delle immagini locali già fatte (da usare quando cambia la cartella indicata) */
+export function clearLocalArt(): void {
+  try {
+    for (const sys of readdirSync(artRoot())) {
+      for (const sub of readdirSync(join(artRoot(), sys))) {
+        if (sub.startsWith('local_')) rmSync(join(artRoot(), sys, sub), { recursive: true, force: true })
+      }
+    }
+  } catch {
+    // niente cache: niente da togliere
+  }
+}
+
 export interface MameTitles {
+  /** Nome breve del gioco principale, se questa è una variante */
+  parentOf(name: string): string | undefined
   titleOf(name: string): string | undefined
   parentTitleOf(name: string): string | undefined
 }
@@ -149,6 +171,25 @@ export function getArt(game: Game, system: SystemDef, enabled: boolean, kind: Ar
 }
 
 async function resolveArt(game: Game, system: SystemDef, enabled: boolean, stem: string, kind: ArtKind): Promise<string | null> {
+  // 0) immagini locali (pacchetti Multimedia): nome breve esatto, senza rete; per le varianti si ripiega sul gioco principale
+  const media = mediaProvider?.() ?? null
+  if (media && (system.engine === 'mame' || system.titleDat)) {
+    const parent = system.titleSource === 'mame' && mameProvider ? (await mameProvider())?.parentOf(stem.toLowerCase()) : undefined
+    const hit = await media.find(kind, [stem.toLowerCase(), parent ?? ''])
+    if (hit) {
+      const dest = localPath(system.id, `local_${kind}`, stem)
+      try {
+        if (!existsSync(dest)) {
+          mkdirSync(join(dest, '..'), { recursive: true })
+          writeFileSync(dest, await hit.read())
+        }
+        return toUrl(system.id, `local_${kind}`, stem)
+      } catch {
+        // file illeggibile o danneggiato: si prosegue con le altre fonti
+      }
+    }
+  }
+
   let names: string[]
   let fallbacks: string[] = []
   if (system.titleSource === 'mame') {

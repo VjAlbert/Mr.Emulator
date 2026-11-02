@@ -1,7 +1,17 @@
 import { contextBridge, ipcRenderer } from 'electron'
-import type { GameEnded, LibraryEvent, MrApi } from '@shared/types'
+import type { GameEnded, LibraryEvent, MrApi, VerifyState } from '@shared/types'
 
 const api: MrApi = {
+  startVerify: () => ipcRenderer.invoke('verify:start'),
+  cancelVerify: () => ipcRenderer.invoke('verify:cancel'),
+  getVerify: () => ipcRenderer.invoke('verify:get'),
+  verifyMachine: (name) => ipcRenderer.invoke('verify:machine', name),
+  onVerify: (cb) => {
+    const handler = (_e: unknown, s: VerifyState): void => cb(s)
+    ipcRenderer.on('verify:state', handler)
+    return () => ipcRenderer.removeListener('verify:state', handler)
+  },
+  analyzeMedia: () => ipcRenderer.invoke('media:analyze'),
   getLibraryStats: (systemId) => ipcRenderer.invoke('library:stats', systemId),
   getPrefs: () => ipcRenderer.invoke('prefs:get'),
   toggleFavorite: (id) => ipcRenderer.invoke('prefs:toggle-favorite', id),

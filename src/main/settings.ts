@@ -22,6 +22,8 @@ const DEFAULTS: Settings = {
   showUnsupported: false,
   mamePath: '',
   mameChdDir: '',
+  hideBadRoms: false,
+  mediaDir: '',
   mameRomDir: '',
   soundOn: true,
   soundVolume: 0.4,

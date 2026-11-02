@@ -5,6 +5,7 @@ import GameList from './components/GameList'
 import SettingsScreen from './components/Settings'
 import SystemReport from './components/SystemReport'
 import InputTest from './components/InputTest'
+import RomCheck from './components/RomCheck'
 import FeedbackPrompt from './components/FeedbackPrompt'
 import LaunchSequence from './components/LaunchSequence'
 import AttractMode from './components/AttractMode'
@@ -12,7 +13,7 @@ import { configureSound, sfx } from './sound'
 import { clearArtCache } from './hooks/useArt'
 import { isModalOpen, setCabinetKeys } from './hooks/useInput'
 
-type Screen = { name: 'systems' } | { name: 'games'; system: SystemInfo } | { name: 'settings' } | { name: 'pc' } | { name: 'input' }
+type Screen = { name: 'systems' } | { name: 'games'; system: SystemInfo } | { name: 'settings' } | { name: 'pc' } | { name: 'input' } | { name: 'romcheck' }
 
 export default function App(): React.JSX.Element {
   const [screen, setScreen] = useState<Screen>({ name: 'systems' })
@@ -152,7 +153,9 @@ export default function App(): React.JSX.Element {
   }, [opts.attractSeconds])
 
   let view: React.JSX.Element
-  if (screen.name === 'input') {
+  if (screen.name === 'romcheck') {
+    view = <RomCheck onBack={() => go({ name: 'systems' })} />
+  } else if (screen.name === 'input') {
     view = <InputTest onBack={() => go({ name: 'systems' })} onChanged={(st) => setScheme(st.inputScheme)} />
   } else if (screen.name === 'pc') {
     view = <SystemReport onBack={() => go({ name: 'systems' })} />
@@ -160,6 +163,7 @@ export default function App(): React.JSX.Element {
     view = (
       <SettingsScreen
         onPc={() => go({ name: 'pc' })}
+        onRomCheck={() => go({ name: 'romcheck' })}
         onClose={() => go({ name: 'systems' })}
         onSaved={() => {
           clearArtCache()
@@ -170,7 +174,7 @@ export default function App(): React.JSX.Element {
     )
   } else if (screen.name === 'games') {
     view = (
-      <GameList system={screen.system} games={games} message={message} onLaunch={launch} onBack={() => go({ name: 'systems' })} letterJump={scheme !== 'cabinet'} />
+      <GameList system={screen.system} games={games} message={message} onLaunch={launch} onBack={() => go({ name: 'systems' })} letterJump={scheme !== 'cabinet'} onRomCheck={() => go({ name: 'romcheck' })} />
     )
   } else {
     view = <SystemSelect systems={systems} onOpen={openSystem} lib={lib} onSettings={() => go({ name: 'settings' })} onPc={() => go({ name: 'pc' })} onInput={() => go({ name: 'input' })} />

@@ -79,6 +79,10 @@ export interface Settings {
   mamePath: string
   /** Cartella dei dischi CHD (facoltativa): si aggiunge a quella delle ROM */
   mameChdDir: string
+  /** Nasconde dalla lista i giochi che il controllo ROM ha trovato difettosi */
+  hideBadRoms: boolean
+  /** Cartella con le immagini locali (pacchetti Multimedia / EXTRAs): schermate, copertine, titoli col nome breve del gioco */
+  mediaDir: string
   /** Cartella dei giochi di MAME (vuota = "mame" dentro la cartella ROM). Di solito una cartella per versione, es. mame0229 */
   mameRomDir: string
   /** Giochi preferiti (identificativi) */
@@ -222,7 +226,50 @@ export type ArtKind = 'boxart' | 'snap' | 'title'
 
 export type PickKind = 'dir' | 'file'
 
+export interface VerifyIssue {
+  set: string
+  file: string
+  reason: string
+}
+export interface VerifyBad {
+  name: string
+  parent: string
+  issues: VerifyIssue[]
+}
+export interface VerifySummary {
+  at: number
+  version: string
+  checked: number
+  good: number
+  badCount: number
+  cancelled: boolean
+}
+export interface VerifyState {
+  running: boolean
+  checked: number
+  bad: number
+  summary: VerifySummary | null
+  badList: VerifyBad[]
+  tail: string[]
+}
+
+export interface MediaReport {
+  base: string
+  found: Array<{ kind: 'boxart' | 'snap' | 'title'; name: string; path: string; type: 'dir' | 'zip'; count: number }>
+  other: string[]
+  unsupported: string[]
+  error?: string
+}
+
 export interface MrApi {
+  startVerify(): Promise<{ ok: boolean; error?: string }>
+  cancelVerify(): Promise<void>
+  getVerify(): Promise<VerifyState>
+  /** Controlla un solo gioco (pochi secondi) */
+  verifyMachine(name: string): Promise<{ ok: boolean; issues: VerifyIssue[]; error?: string }>
+  onVerify(cb: (s: VerifyState) => void): () => void
+  /** Analizza la cartella delle immagini locali e dice cosa riconosce */
+  analyzeMedia(): Promise<MediaReport>
   getLibraryStats(systemId: string): Promise<LibraryStats | null>
   getPrefs(): Promise<{ favorites: string[]; recents: string[] }>
   toggleFavorite(gameId: string): Promise<string[]>

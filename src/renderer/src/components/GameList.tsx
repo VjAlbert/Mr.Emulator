@@ -23,9 +23,11 @@ interface Props {
   onBack: () => void
   /** Con un pannello arcade i tasti lettera sono pulsanti di gioco: salto e ricerca vanno spenti */
   letterJump: boolean
+  /** Apre il controllo ROM (solo per i sistemi MAME) */
+  onRomCheck?: () => void
 }
 
-export default function GameList({ system, games, message, onLaunch, onBack, letterJump }: Props): React.JSX.Element {
+export default function GameList({ system, games, message, onLaunch, onBack, letterJump, onRomCheck }: Props): React.JSX.Element {
   const [index, setIndex] = useState(0)
   const [, setTick] = useState(0)
   const [query, setQuery] = useState('')
@@ -76,6 +78,27 @@ export default function GameList({ system, games, message, onLaunch, onBack, let
   useEffect(() => {
     if (system.engine === 'mame' && games.length === 0) window.mr.getLibraryStats(system.id).then(setStats)
   }, [system.id, system.engine, games.length])
+  // giochi con ROM difettose (dal controllo ROM) e controllo di un singolo gioco
+  const [badSet, setBadSet] = useState<Set<string>>(new Set())
+  const [note, setNote] = useState('')
+  useEffect(() => {
+    if (system.engine !== 'mame') return
+    const apply = (s: { badList: Array<{ name: string }> }): void => setBadSet(new Set(s.badList.map((b) => b.name)))
+    window.mr.getVerify().then(apply)
+    return window.mr.onVerify(apply)
+  }, [system.engine])
+  const checkOne = async (g: Game): Promise<void> => {
+    if (!g.machine) return
+    setNote('Controllo in corso…')
+    const r = await window.mr.verifyMachine(g.machine)
+    const msg = !r.ok
+      ? (r.error ?? 'Controllo non riuscito.')
+      : r.issues.length === 0
+        ? '✔ ROM a posto: questo gioco è completo.'
+        : `⚠ ROM difettosa: ${r.issues.slice(0, 3).map((i) => `${i.set}.zip → ${i.file}`).join(' · ')}${r.issues.length > 3 ? ` (+${r.issues.length - 3})` : ''}`
+    setNote(msg)
+    window.setTimeout(() => setNote(''), 9000)
+  }
   const [prefs, setPrefs] = useState<{ favorites: string[]; recents: string[] }>({ favorites: [], recents: [] })
   useEffect(() => {
     window.mr.getPrefs().then(setPrefs)
@@ -265,6 +288,7 @@ export default function GameList({ system, games, message, onLaunch, onBack, let
         <span className="row-num">{String(i + 1).padStart(3, '0')}</span>
         <span className="row-name">
           {favIds.has(g.id) && <b className="fav">★</b>}
+          {g.machine && badSet.has(g.machine) && <b className="warnmark">⚠</b>}
           {t.main}
           {t.tag && <small>{t.tag}</small>}
         </span>
@@ -295,6 +319,11 @@ export default function GameList({ system, games, message, onLaunch, onBack, let
               </option>
             ))}
           </select>
+        )}
+        {system.engine === 'mame' && onRomCheck && (
+          <button className="chip" onClick={onRomCheck} title="Controlla gli ZIP delle ROM con MAME">
+            🧪 CONTROLLO ROM
+          </button>
         )}
         <button className="chip search-btn" onClick={() => setSearchOpen(true)} title="Cerca un titolo ( / · Y del pad · pulsante 4 del pannello )">
           🔍 CERCA
@@ -366,6 +395,12 @@ export default function GameList({ system, games, message, onLaunch, onBack, let
                   {system.name}
                   {game.demo ? ' · DEMO' : ''}
                 </div>
+                {game.machine && badSet.has(game.machine) && <div className="warnchip">⚠ ROM DIFETTOSA: apri il Controllo ROM</div>}
+                {system.engine === 'mame' && (
+                  <button className="sp-star" onClick={() => checkOne(game)}>
+                    🧪 CONTROLLA QUESTO GIOCO
+                  </button>
+                )}
                 <button className={`sp-star ${favIds.has(game.id) ? 'on' : ''}`} onClick={() => toggleFav(game)} title="Preferito (X del pad · F2 · Start 2 sul pannello)">
                   {favIds.has(game.id) ? '★ NEI PREFERITI' : '☆ AGGIUNGI AI PREFERITI'}
                 </button>
@@ -408,7 +443,7 @@ export default function GameList({ system, games, message, onLaunch, onBack, let
         />
       )}
 
-      {message && <div className="toast">{message}</div>}
+      {(note || message) && <div className="toast">{note || message}</div>}
     </div>
   )
 }

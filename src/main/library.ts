@@ -43,6 +43,8 @@ export interface LibraryDeps {
   titles: () => Promise<Map<string, string> | null>
   /** Elenco delle macchine del MAME dell'utente (null se mame.exe non è indicato o non risponde) */
   mame: (onProgress?: (n: number) => void) => Promise<MameData | null>
+  /** true se il controllo ROM ha trovato difettoso questo gioco (nome breve) */
+  isBad?: (name: string) => boolean
   /** Opzioni che rendono valida o no la copia salvata di un sistema */
   signature: (sys: SystemDef) => string
   emit: (e: LibraryEvent) => void
@@ -129,6 +131,7 @@ export function createLibrary(deps: LibraryDeps) {
           list.push([rel, m.description, m.name, familyOf(m, mame!.machines), m.year || undefined])
         }
         const m = mame.machines.get(stem.toLowerCase())
+        if (m && settings.hideBadRoms && deps.isBad?.(m.name)) continue
         if (!m) st.unknown++
         else if (m.device) st.device++
         else if (m.bios) st.bios++

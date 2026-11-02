@@ -454,3 +454,16 @@ b.fav { color: #ffd400; margin-right: 8px; font-weight: 400; } .row.active b.fav
 .light-fx .orbs s, .light-fx .orbs b, .light-fx .hero::before { display: none; }
 .light-fx .row.active::before, .light-fx .at-bg, .light-fx .at-cover, .light-fx .at-press, .light-fx .ls-cover, .light-fx .ls-slash, .light-fx .ls-title { animation: none; }
 .light-fx .ls-coin { animation: none; opacity: 1; } .light-fx .ls-ready { animation: none; opacity: 0; }
+
+/* ---- controllo ROM ---- */
+.rc-bar { height: 10px; background: rgba(255,255,255,.1); margin: 4px 0 14px; overflow: hidden; position: relative; }
+.rc-bar i { position: absolute; top: 0; bottom: 0; width: 30%; background: var(--accent); animation: rcBar 1.2s ease-in-out infinite alternate; }
+@keyframes rcBar { from { left: 0; } to { left: 70%; } }
+.light-fx .rc-bar i { animation: none; left: 35%; }
+.rc-tail { background: #0b0b12; padding: 10px 12px; font-size: 12px; color: var(--muted); white-space: pre-wrap; user-select: text; }
+.rc-list { display: flex; flex-direction: column; gap: 8px; }
+.rc-item { padding: 10px 14px; background: rgba(255,255,255,.04); border-left: 4px solid #ffd400; }
+.rc-name { font-weight: 700; } .rc-name small { margin-left: 8px; color: var(--muted); font-weight: 400; }
+.rc-fix { margin-top: 4px; font-size: 13px; color: var(--muted); user-select: text; } .rc-fix b { color: var(--text); }
+b.warnmark { color: #ffd400; margin-right: 8px; font-weight: 400; } .row.active b.warnmark { color: #000; }
+.warnchip { margin: 8px auto 0; padding: 5px 14px; background: #ffd400; color: #000; font-family: var(--font); letter-spacing: 1.5px; font-size: 12px; display: inline-block; }

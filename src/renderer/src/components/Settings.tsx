@@ -3,18 +3,20 @@ import type { PickKind, Settings } from '@shared/types'
 import { useInput } from '../hooks/useInput'
 import { configureSound, sfx } from '../sound'
 
-type PathKey = 'romsDir' | 'biosDir' | 'retroarchPath' | 'coresDir' | 'mamePath' | 'mameChdDir' | 'mameRomDir'
+type PathKey = 'romsDir' | 'biosDir' | 'retroarchPath' | 'coresDir' | 'mamePath' | 'mameChdDir' | 'mameRomDir' | 'mediaDir'
 
 interface Props {
   onClose: () => void
   onSaved: () => void
   onPc: () => void
+  onRomCheck: () => void
 }
 
-export default function SettingsScreen({ onClose, onSaved, onPc }: Props): React.JSX.Element {
+export default function SettingsScreen({ onClose, onSaved, onPc, onRomCheck }: Props): React.JSX.Element {
   const [s, setS] = useState<Settings | null>(null)
   const [saved, setSaved] = useState(false)
   const [mameInfo, setMameInfo] = useState<string>('')
+  const [mediaInfo, setMediaInfo] = useState<string[]>([])
   const bodyRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -120,6 +122,34 @@ export default function SettingsScreen({ onClose, onSaved, onPc }: Props): React
             USA UN ALTRO DISCO PER TUTTO…
           </button>
         </div>
+        {field('Cartella immagini locali (Multimedia / EXTRAs)', 'Cartella con snap, titles, flyers… (file col nome breve del gioco). Ha la precedenza sul download', 'mediaDir', 'dir')}
+        <div className="field-row">
+          <button
+            className="chip"
+            onClick={async () => {
+              setMediaInfo(['Analisi in corso…'])
+              await window.mr.saveSettings(s)
+              const r = await window.mr.analyzeMedia()
+              if (r.error) return setMediaInfo([`⚠ ${r.error}`])
+              const kindName = { boxart: 'Copertine', snap: 'Schermate', title: 'Titoli' } as const
+              const lines = r.found.map((f) => `✔ ${kindName[f.kind]}: ${f.name}${f.type === 'zip' ? ' (archivio ZIP)' : ''} · ${f.count.toLocaleString('it')} immagini`)
+              if (!r.found.length) lines.push('⚠ Non riconosco nessuna cartella di immagini.')
+              if (r.unsupported.length) lines.push(`⚠ Archivi che non so leggere (serve estrarli): ${r.unsupported.join(', ')}`)
+              if (r.other.length) lines.push(`Altre cartelle trovate (non usate): ${r.other.slice(0, 14).join(', ')}${r.other.length > 14 ? '…' : ''}`)
+              setMediaInfo(lines)
+              onSaved()
+            }}
+          >
+            ANALIZZA LA CARTELLA IMMAGINI
+          </button>
+        </div>
+        {mediaInfo.length > 0 && (
+          <div className="hint" style={{ margin: 0, lineHeight: 1.7 }}>
+            {mediaInfo.map((l) => (
+              <div key={l}>{l}</div>
+            ))}
+          </div>
+        )}
         {field('Cartella dei dischi CHD per MAME (facoltativa)', 'Se i dischi non stanno già dentro la cartella ROM di MAME', 'mameChdDir', 'dir')}
         <label className="check">
           <input type="checkbox" checked={s.mameClones} onChange={(e) => setS({ ...s, mameClones: e.target.checked })} />
@@ -187,6 +217,9 @@ export default function SettingsScreen({ onClose, onSaved, onPc }: Props): React
           <input type="checkbox" checked={s.lightEffects} onChange={(e) => setS({ ...s, lightEffects: e.target.checked })} />
           Effetti ridotti (consigliato per PC lenti: meno animazioni e luci)
         </label>
+        <button className="chip" onClick={onRomCheck}>
+          🧪 CONTROLLO ROM DI MAME (trova gli ZIP difettosi)
+        </button>
         <button className="chip" onClick={onPc}>
           ⚡ OTTIMIZZAZIONE AUTOMATICA DEL PC
         </button>

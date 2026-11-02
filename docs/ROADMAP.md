@@ -43,6 +43,9 @@ Sistemi: Arcade (MAME, FBNeo), Neo Geo, Master System, Mega Drive, NES, SNES, Ga
 - [x] Pannello di ricerca anche senza tastiera: tastiera sullo schermo per joystick/pad/mouse, iniziali A-Z, risultati in tempo reale, ricerca per parole
 - [x] Ricerca evoluta: tastiera intelligente (spegne i tasti inutili), disposizione alfabetica per joystick, anteprima con copertina, schede (a caso, famiglie, anni), preferiti e ultimi giochi
 - [x] Direzione artistica "fumetto da picchiaduro" (carattere Anton incorporato, contorni, retino, raggi), suoni sintetizzati, sequenza INSERT COIN all'avvio e rotazione di copertine a riposo (attract mode)
+- [x] Controllo ROM con il verificatore di MAME: elenco degli ZIP difettosi con i file da sostituire, segno ⚠ nella lista, controllo del singolo gioco, opzione per nascondere i giochi difettosi
+- [x] Immagini locali per MAME/FBNeo (cartelle o ZIP con snap, flyers, titles…) con precedenza sul download
+- [ ] Anteprime video (videosnaps) e colonna sonora dal pacchetto Multimedia
 - [ ] Nintendo 64, Nintendo DS, Mega CD, Famicom Disk System
 - [ ] GameCube e Wii (da verificare sulle prestazioni)
 
