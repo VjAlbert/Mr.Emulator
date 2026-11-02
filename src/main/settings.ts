@@ -23,6 +23,8 @@ const DEFAULTS: Settings = {
   mamePath: '',
   mameChdDir: '',
   mameRomDir: '',
+  favorites: [],
+  recents: [],
   mameClones: false
 }
 

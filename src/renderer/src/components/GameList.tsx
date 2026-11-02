@@ -6,7 +6,7 @@ import Orbs from './Orbs'
 import FadeBackdrop from './FadeBackdrop'
 import SearchPanel from './SearchPanel'
 import { pickArt } from '../hooks/useArt'
-import { initialOf, matchAll, norm, splitTitle } from '../search'
+import { decadeLabel, decadeOf, initialOf, matchAll, norm, splitTitle } from '../search'
 
 /** Altezza di una riga (compreso lo spazio): la lista disegna solo quelle visibili */
 const ROW_H = 58
@@ -44,6 +44,46 @@ export default function GameList({ system, games, message, onLaunch, onBack, let
       return ''
     }
   })
+  // decennio (solo se i giochi hanno l'anno: MAME) e preferiti / ultimi giochi
+  const [decade, setDecade] = useState<string>(() => {
+    try {
+      return localStorage.getItem(`mr.decade.${system.id}`) ?? ''
+    } catch {
+      return ''
+    }
+  })
+  const decades = useMemo(() => {
+    const m = new Map<string, number>()
+    for (const g of games) {
+      const d = decadeOf(g.year)
+      if (d) m.set(d, (m.get(d) ?? 0) + 1)
+    }
+    return [...m.entries()].sort((a, b) => (a[0] < b[0] ? -1 : 1))
+  }, [games])
+  const activeDecade = decades.some(([d]) => d === decade) ? decade : ''
+  const changeDecade = (d: string): void => {
+    setDecade(d)
+    try {
+      localStorage.setItem(`mr.decade.${system.id}`, d)
+    } catch {
+      // vedi sopra
+    }
+  }
+  const [prefs, setPrefs] = useState<{ favorites: string[]; recents: string[] }>({ favorites: [], recents: [] })
+  useEffect(() => {
+    window.mr.getPrefs().then(setPrefs)
+  }, [])
+  const favIds = useMemo(() => new Set(prefs.favorites), [prefs.favorites])
+  const byId = useMemo(() => new Map(games.map((g) => [g.id, g])), [games])
+  const favGames = useMemo(() => games.filter((g) => favIds.has(g.id)), [games, favIds])
+  const recentGames = useMemo(
+    () => prefs.recents.map((id) => byId.get(id)).filter((g): g is Game => !!g),
+    [prefs.recents, byId]
+  )
+  const toggleFav = (g: Game): void => {
+    window.mr.toggleFavorite(g.id).then((favorites) => setPrefs((p) => ({ ...p, favorites })))
+  }
+
   const groups = useMemo(() => {
     const m = new Map<string, number>()
     for (const g of games) if (g.group) m.set(g.group, (m.get(g.group) ?? 0) + 1)
@@ -61,17 +101,17 @@ export default function GameList({ system, games, message, onLaunch, onBack, let
 
   // base = giochi della famiglia scelta; list = base ristretta dal testo cercato
   const { base, baseKeys } = useMemo(() => {
-    if (!activeFamily) return { base: games, baseKeys: keys }
+    if (!activeFamily && !activeDecade) return { base: games, baseKeys: keys }
     const b: Game[] = []
     const k: string[] = []
     for (let i = 0; i < games.length; i++) {
-      if (games[i].group === activeFamily) {
-        b.push(games[i])
-        k.push(keys[i])
-      }
+      if (activeFamily && games[i].group !== activeFamily) continue
+      if (activeDecade && decadeOf(games[i].year) !== activeDecade) continue
+      b.push(games[i])
+      k.push(keys[i])
     }
     return { base: b, baseKeys: k }
-  }, [games, keys, activeFamily])
+  }, [games, keys, activeFamily, activeDecade])
 
   const { list, listKeys } = useMemo(() => {
     if (!query.trim()) return { list: base, listKeys: baseKeys }
@@ -95,6 +135,7 @@ export default function GameList({ system, games, message, onLaunch, onBack, let
   const goToGame = (g: Game): void => {
     selectedId.current = g.id
     if (activeFamily && g.group !== activeFamily) changeFamily('')
+    if (activeDecade && decadeOf(g.year) !== activeDecade) changeDecade('')
     setQuery('')
     setSearchOpen(false)
     // se la lista non cambia l'effetto sotto non scatta: si seleziona subito
@@ -128,6 +169,8 @@ export default function GameList({ system, games, message, onLaunch, onBack, let
     onMenu: nextFamily,
     // Y / X del pad: apre la ricerca
     onSearch: () => setSearchOpen(true),
+    // X del pad / F2: aggiunge o toglie il gioco dai preferiti
+    onAlt: () => game && toggleFav(game),
     onBack
   })
 
@@ -163,6 +206,9 @@ export default function GameList({ system, games, message, onLaunch, onBack, let
         if (e.code === 'ShiftLeft' && !e.repeat) {
           e.preventDefault()
           setSearchOpen(true)
+        } else if (e.code === 'Digit2' && !e.repeat && game) {
+          e.preventDefault()
+          toggleFav(game)
         }
         return
       }
@@ -184,7 +230,7 @@ export default function GameList({ system, games, message, onLaunch, onBack, let
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [list, listKeys, letterJump, searchOpen]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [list, listKeys, letterJump, searchOpen, game]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // righe da disegnare: solo quelle visibili (+ qualcuna di margine)
   const first = Math.max(0, Math.floor(scrollTop / ROW_H) - OVERSCAN)
@@ -206,6 +252,7 @@ export default function GameList({ system, games, message, onLaunch, onBack, let
       >
         <span className="row-num">{String(i + 1).padStart(3, '0')}</span>
         <span className="row-name">
+          {favIds.has(g.id) && <b className="fav">★</b>}
           {t.main}
           {t.tag && <small>{t.tag}</small>}
         </span>
@@ -240,6 +287,11 @@ export default function GameList({ system, games, message, onLaunch, onBack, let
         <button className="chip search-btn" onClick={() => setSearchOpen(true)} title="Cerca un titolo ( / · Y del pad · pulsante 4 del pannello )">
           🔍 CERCA
         </button>
+        {activeDecade && (
+          <button className="chip on" onClick={() => changeDecade('')} title="Togli il filtro per anni">
+            {decadeLabel(activeDecade)} ✕
+          </button>
+        )}
         {query.trim() && (
           <button className="chip on" onClick={() => setQuery('')} title="Togli il filtro">
             “{query.trim()}” ✕
@@ -286,6 +338,9 @@ export default function GameList({ system, games, message, onLaunch, onBack, let
                   {system.name}
                   {game.demo ? ' · DEMO' : ''}
                 </div>
+                <button className={`sp-star ${favIds.has(game.id) ? 'on' : ''}`} onClick={() => toggleFav(game)} title="Preferito (X del pad · F2 · Start 2 sul pannello)">
+                  {favIds.has(game.id) ? '★ NEI PREFERITI' : '☆ AGGIUNGI AI PREFERITI'}
+                </button>
                 <div className="preview-start">▶ PREMI INVIO PER GIOCARE</div>
               </div>
             </>
@@ -300,6 +355,20 @@ export default function GameList({ system, games, message, onLaunch, onBack, let
           initialQuery={query}
           family={activeFamily}
           typing={letterJump}
+          families={groups}
+          decades={decades}
+          favorites={favGames}
+          recents={recentGames}
+          favIds={favIds}
+          onFamilyPick={(f) => {
+            changeFamily(f)
+            setSearchOpen(false)
+          }}
+          onDecadePick={(d) => {
+            changeDecade(d)
+            setSearchOpen(false)
+          }}
+          onToggleFav={toggleFav}
           onFamily={nextFamily}
           onPick={goToGame}
           onApply={(q) => {

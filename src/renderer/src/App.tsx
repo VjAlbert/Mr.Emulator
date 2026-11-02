@@ -7,6 +7,7 @@ import SystemReport from './components/SystemReport'
 import InputTest from './components/InputTest'
 import FeedbackPrompt from './components/FeedbackPrompt'
 import { clearArtCache } from './hooks/useArt'
+import { setCabinetKeys } from './hooks/useInput'
 
 type Screen = { name: 'systems' } | { name: 'games'; system: SystemInfo } | { name: 'settings' } | { name: 'pc' } | { name: 'input' }
 
@@ -22,6 +23,7 @@ export default function App(): React.JSX.Element {
   const [lib, setLib] = useState<LibraryEvent | null>(null)
   const [busy, setBusy] = useState(false)
   const screenRef = useRef<Screen>({ name: 'systems' })
+  useEffect(() => setCabinetKeys(scheme === 'cabinet'), [scheme])
   const [ended, setEnded] = useState<GameEnded | null>(null)
 
   // quando un gioco si chiude, il programma chiede com'è andata

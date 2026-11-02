@@ -137,6 +137,18 @@ app.whenReady().then(async () => {
   }
 
   ipcMain.handle('library:status', () => library.status())
+
+  // preferiti e ultimi giochi: si salvano insieme alle impostazioni
+  ipcMain.handle('prefs:get', () => {
+    const s = loadSettings()
+    return { favorites: s.favorites, recents: s.recents }
+  })
+  ipcMain.handle('prefs:toggle-favorite', (_e, id: string) => {
+    const s = loadSettings()
+    const favorites = s.favorites.includes(id) ? s.favorites.filter((x) => x !== id) : [...s.favorites, id]
+    saveSettings({ ...s, favorites })
+    return favorites
+  })
   ipcMain.handle('settings:get', () => loadSettings())
   ipcMain.handle('settings:save', (_e, s: Settings) => {
     const before = loadSettings()
@@ -211,6 +223,11 @@ app.whenReady().then(async () => {
     const settings = loadSettings()
     // la lista contiene percorsi relativi alla cartella del sistema
     if (!game.demo) game = { ...game, path: join(systemDir(system, settings), game.path) }
+    // ultimi giochi avviati (si aggiorna all'avvio, il più recente per primo)
+    {
+      const cur = loadSettings()
+      saveSettings({ ...cur, recents: [game.id, ...cur.recents.filter((x) => x !== game.id)].slice(0, 40) })
+    }
     const hw = await detectHardware(true)
 
     const onEnd = (startedAt: { t: number }) => (): void => {

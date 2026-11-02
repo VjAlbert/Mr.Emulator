@@ -44,6 +44,8 @@ export interface Game {
   machine?: string
   /** Famiglia per filtrare la lista (MAME: Neo Geo, Capcom CPS, Sega…) */
   group?: string
+  /** Anno di uscita, se noto (MAME) */
+  year?: string
   demo?: boolean
 }
 
@@ -79,6 +81,10 @@ export interface Settings {
   mameChdDir: string
   /** Cartella dei giochi di MAME (vuota = "mame" dentro la cartella ROM). Di solito una cartella per versione, es. mame0229 */
   mameRomDir: string
+  /** Giochi preferiti (identificativi) */
+  favorites: string[]
+  /** Ultimi giochi avviati, il più recente per primo */
+  recents: string[]
   /** Mostra anche le varianti (cloni) dei giochi: con i set "merged" stanno dentro lo ZIP del gioco principale */
   mameClones: boolean
 }
@@ -196,6 +202,8 @@ export type ArtKind = 'boxart' | 'snap' | 'title'
 export type PickKind = 'dir' | 'file'
 
 export interface MrApi {
+  getPrefs(): Promise<{ favorites: string[]; recents: string[] }>
+  toggleFavorite(gameId: string): Promise<string[]>
   /** Sposta tutto (ROM, BIOS, cartella MAME di questa versione) su un'altra cartella o disco */
   setupRoot(rootDir: string): Promise<Settings>
   /** Crea la cartella dedicata alla versione di MAME indicata e la imposta */

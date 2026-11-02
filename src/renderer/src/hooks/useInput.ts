@@ -11,6 +11,8 @@ export interface InputHandlers {
   onPage?: (dir: -1 | 1) => void
   /** Apre la ricerca: pulsante superiore sinistro del pad (Y / X) */
   onSearch?: () => void
+  /** Azione secondaria: X del pad o F2 (preferito nella lista, cambio tastiera nella ricerca) */
+  onAlt?: () => void
 }
 
 const REPEAT_FIRST = 380
@@ -22,6 +24,11 @@ const DEADZONE = 0.55
  * ed encoder arcade (che si presentano come tastiera o joystick).
  */
 let modalOpen = false
+/** I tasti del pannello arcade (Ctrl, Alt, 1, 5…) valgono solo con lo schema "cabinato": sul portatile Ctrl e Alt servono per le scorciatoie */
+let cabinetKeys = false
+export function setCabinetKeys(on: boolean): void {
+  cabinetKeys = on
+}
 /** Pulsanti del pad già premuti quando una finestra si apre o si chiude: vanno ignorati finché non vengono rilasciati */
 const blocked = new Set<string>()
 
@@ -36,6 +43,7 @@ function padState(pad: Gamepad): Record<string, boolean> {
     l: !!b[14]?.pressed || ax < -DEADZONE,
     r: !!b[15]?.pressed || ax > DEADZONE,
     se: !!b[3]?.pressed,
+    x: !!b[2]?.pressed,
     pl: !!b[4]?.pressed,
     pr: !!b[5]?.pressed,
     a: !!b[0]?.pressed,
@@ -75,7 +83,7 @@ export function useInput(handlers: InputHandlers, opts: { modal?: boolean; keybo
         Digit1: () => h.onConfirm?.(),
         Digit5: () => h.onMenu?.()
       }
-      if (byCode[e.code]) {
+      if (cabinetKeys && byCode[e.code]) {
         e.preventDefault()
         byCode[e.code]()
         return
@@ -87,6 +95,7 @@ export function useInput(handlers: InputHandlers, opts: { modal?: boolean; keybo
         ArrowRight: () => h.onMove?.('right'),
         Enter: () => h.onConfirm?.(),
         ' ': () => h.onConfirm?.(),
+        F2: () => h.onAlt?.(),
         PageUp: () => h.onPage?.(-1),
         PageDown: () => h.onPage?.(1),
         Escape: () => h.onBack?.(),
@@ -149,6 +158,7 @@ export function useInput(handlers: InputHandlers, opts: { modal?: boolean; keybo
         press(`${id}l`, !!b[14]?.pressed || ax < -DEADZONE, now, () => h.onMove?.('left'))
         press(`${id}r`, !!b[15]?.pressed || ax > DEADZONE, now, () => h.onMove?.('right'))
         press(`${id}se`, !!b[3]?.pressed, now, () => h.onSearch?.())
+        press(`${id}x`, !!b[2]?.pressed, now, () => h.onAlt?.())
         press(`${id}pl`, !!b[4]?.pressed, now, () => h.onPage?.(-1))
         press(`${id}pr`, !!b[5]?.pressed, now, () => h.onPage?.(1))
         press(`${id}a`, !!b[0]?.pressed, now, () => h.onConfirm?.())
