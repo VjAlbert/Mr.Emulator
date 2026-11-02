@@ -27,7 +27,19 @@ const memo = new Map<string, Map<string, string>>()
  * Titoli completi dei giochi delle console, ricavati dalle Software List del MAME dell'utente
  * (gli ZIP di FBNeo per console hanno gli stessi nomi brevi). Il risultato si salva su disco.
  */
-export async function softTitles(exe: string, lists: string[], cacheDir: string): Promise<Map<string, string> | null> {
+const pending = new Map<string, Promise<Map<string, string> | null>>()
+
+export function softTitles(exe: string, lists: string[], cacheDir: string): Promise<Map<string, string> | null> {
+  const key = `${exe}|${lists.join(',')}`
+  let p = pending.get(key)
+  if (!p) {
+    p = loadSoftTitles(exe, lists, cacheDir).finally(() => pending.delete(key))
+    pending.set(key, p)
+  }
+  return p
+}
+
+async function loadSoftTitles(exe: string, lists: string[], cacheDir: string): Promise<Map<string, string> | null> {
   if (!exe || !existsSync(exe)) return null
   const all = new Map<string, string>()
   let any = false
