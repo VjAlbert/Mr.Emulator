@@ -4,22 +4,14 @@ import { useInput } from '../hooks/useInput'
 import CoverCarousel from './CoverCarousel'
 import Orbs from './Orbs'
 import FadeBackdrop from './FadeBackdrop'
+import SearchPanel from './SearchPanel'
 import { pickArt } from '../hooks/useArt'
-
-/** "Titolo (dettagli)" -> parte principale + dettagli tecnici mostrati più piccoli */
-function splitTitle(name: string): { main: string; tag: string } {
-  const i = name.indexOf(' (')
-  return i > 0 ? { main: name.slice(0, i), tag: name.slice(i + 1) } : { main: name, tag: '' }
-}
+import { initialOf, matchAll, norm, splitTitle } from '../search'
 
 /** Altezza di una riga (compreso lo spazio): la lista disegna solo quelle visibili */
 const ROW_H = 58
 const OVERSCAN = 6
 const PAGE = 10
-
-/** Chiave per cercare e saltare con le lettere: minuscolo, senza accenti né simboli iniziali */
-const norm = (s: string): string =>
-  s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '')
 
 interface Props {
   system: SystemInfo
@@ -38,7 +30,7 @@ export default function GameList({ system, games, message, onLaunch, onBack, let
   const [scrollTop, setScrollTop] = useState(0)
   const [viewH, setViewH] = useState(600)
   const listRef = useRef<HTMLDivElement>(null)
-  const searchRef = useRef<HTMLInputElement>(null)
+  const [searchOpen, setSearchOpen] = useState(false)
   const byMouse = useRef(false)
   const selectedId = useRef<string | null>(null)
 
@@ -67,19 +59,25 @@ export default function GameList({ system, games, message, onLaunch, onBack, let
     }
   }
 
-  const { list, listKeys } = useMemo(() => {
-    const q = norm(query.trim())
-    if (!q && !activeFamily) return { list: games, listKeys: keys }
-    const l: Game[] = []
+  // base = giochi della famiglia scelta; list = base ristretta dal testo cercato
+  const { base, baseKeys } = useMemo(() => {
+    if (!activeFamily) return { base: games, baseKeys: keys }
+    const b: Game[] = []
     const k: string[] = []
     for (let i = 0; i < games.length; i++) {
-      if (activeFamily && games[i].group !== activeFamily) continue
-      if (q && !keys[i].includes(q)) continue
-      l.push(games[i])
-      k.push(keys[i])
+      if (games[i].group === activeFamily) {
+        b.push(games[i])
+        k.push(keys[i])
+      }
     }
-    return { list: l, listKeys: k }
-  }, [games, keys, query, activeFamily])
+    return { base: b, baseKeys: k }
+  }, [games, keys, activeFamily])
+
+  const { list, listKeys } = useMemo(() => {
+    if (!query.trim()) return { list: base, listKeys: baseKeys }
+    const idx = matchAll(baseKeys, query)
+    return { list: idx.map((i) => base[i]), listKeys: idx.map((i) => baseKeys[i]) }
+  }, [base, baseKeys, query])
 
   const game = list[index]
   selectedId.current = game?.id ?? selectedId.current
@@ -93,6 +91,30 @@ export default function GameList({ system, games, message, onLaunch, onBack, let
     setIndex(i >= 0 ? i : 0)
   }, [list])
 
+  /** Va a un gioco preciso: toglie il filtro di testo e lo seleziona (anche se non è nella famiglia scelta) */
+  const goToGame = (g: Game): void => {
+    selectedId.current = g.id
+    if (activeFamily && g.group !== activeFamily) changeFamily('')
+    setQuery('')
+    setSearchOpen(false)
+    // se la lista non cambia l'effetto sotto non scatta: si seleziona subito
+    const i = base.findIndex((x) => x.id === g.id)
+    if (i >= 0 && !query.trim()) setIndex(i)
+  }
+
+  /** Salta al primo titolo che inizia con quella lettera (# = numeri e simboli) */
+  const jumpInitial = (ch: string): void => {
+    const i = baseKeys.findIndex((k) => initialOf(k) === ch)
+    if (i >= 0) goToGame(base[i])
+    else setSearchOpen(false)
+  }
+
+  const nextFamily = (): void => {
+    if (!groups.length) return
+    const names = ['', ...groups.map(([n]) => n)]
+    changeFamily(names[(names.indexOf(activeFamily) + 1) % names.length])
+  }
+
   const move = (fn: (i: number) => number): void => {
     byMouse.current = false
     setIndex((i) => Math.max(0, Math.min(list.length - 1, fn(i))))
@@ -103,11 +125,9 @@ export default function GameList({ system, games, message, onLaunch, onBack, let
     onPage: (d) => move((i) => i + d * PAGE),
     onConfirm: () => game && onLaunch(game),
     // Tab / Start del pad / Moneta 1: passa alla famiglia successiva (anche senza mouse)
-    onMenu: () => {
-      if (!groups.length) return
-      const names = ['', ...groups.map(([n]) => n)]
-      changeFamily(names[(names.indexOf(activeFamily) + 1) % names.length])
-    },
+    onMenu: nextFamily,
+    // Y / X del pad: apre la ricerca
+    onSearch: () => setSearchOpen(true),
     onBack
   })
 
@@ -134,15 +154,21 @@ export default function GameList({ system, games, message, onLaunch, onBack, let
     else if (top + ROW_H > el.scrollTop + el.clientHeight) el.scrollTop = top + ROW_H - el.clientHeight
   }, [index, list])
 
-  // tastiera: una lettera salta al prossimo titolo che inizia così; "/" o Ctrl+F aprono la ricerca
+  // tastiera: "/" o Ctrl+F aprono la ricerca; una lettera salta al prossimo titolo che inizia così.
+  // Con il pannello arcade (lettere = pulsanti di gioco) la ricerca si apre con il pulsante 4 (Maiusc sinistro).
   useEffect(() => {
-    if (!letterJump) return
     const onKey = (e: KeyboardEvent): void => {
-      const t = e.target as HTMLElement
-      if (t && t.tagName === 'INPUT') return
+      if (searchOpen) return
+      if (!letterJump) {
+        if (e.code === 'ShiftLeft' && !e.repeat) {
+          e.preventDefault()
+          setSearchOpen(true)
+        }
+        return
+      }
       if ((e.key === '/' && !e.ctrlKey) || (e.key.toLowerCase() === 'f' && e.ctrlKey)) {
         e.preventDefault()
-        searchRef.current?.focus()
+        setSearchOpen(true)
         return
       }
       if (e.ctrlKey || e.altKey || e.metaKey || e.key.length !== 1 || !/[a-z]/i.test(e.key)) return
@@ -151,14 +177,14 @@ export default function GameList({ system, games, message, onLaunch, onBack, let
         const n = list.length
         for (let k = 1; k <= n; k++) {
           const j = (i + k) % n
-          if (listKeys[j].replace(/^[^a-z0-9]+/, '').startsWith(ch)) return j
+          if (listKeys[j].startsWith(ch)) return j
         }
         return i
       })
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [list, listKeys, letterJump]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [list, listKeys, letterJump, searchOpen]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // righe da disegnare: solo quelle visibili (+ qualcuna di margine)
   const first = Math.max(0, Math.floor(scrollTop / ROW_H) - OVERSCAN)
@@ -211,24 +237,13 @@ export default function GameList({ system, games, message, onLaunch, onBack, let
             ))}
           </select>
         )}
-        {letterJump && (
-          <input
-            ref={searchRef}
-            className="search"
-            placeholder="🔍 Cerca  ( / )"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Escape') {
-                e.stopPropagation()
-                setQuery('')
-                searchRef.current?.blur()
-              } else if (e.key === 'Enter' || e.key === 'ArrowDown') {
-                e.preventDefault()
-                searchRef.current?.blur()
-              }
-            }}
-          />
+        <button className="chip search-btn" onClick={() => setSearchOpen(true)} title="Cerca un titolo ( / · Y del pad · pulsante 4 del pannello )">
+          🔍 CERCA
+        </button>
+        {query.trim() && (
+          <button className="chip on" onClick={() => setQuery('')} title="Togli il filtro">
+            “{query.trim()}” ✕
+          </button>
         )}
         <span className="counter">
           {list.length ? `${(index + 1).toLocaleString('it')} / ${list.length.toLocaleString('it')}` : ''}
@@ -277,6 +292,24 @@ export default function GameList({ system, games, message, onLaunch, onBack, let
           ) : null}
         </aside>
       </div>
+
+      {searchOpen && (
+        <SearchPanel
+          games={base}
+          keys={baseKeys}
+          initialQuery={query}
+          family={activeFamily}
+          typing={letterJump}
+          onFamily={nextFamily}
+          onPick={goToGame}
+          onApply={(q) => {
+            setQuery(q)
+            setSearchOpen(false)
+          }}
+          onInitial={jumpInitial}
+          onClose={() => setSearchOpen(false)}
+        />
+      )}
 
       {message && <div className="toast">{message}</div>}
     </div>

@@ -282,3 +282,39 @@ kbd { font-family: var(--font); letter-spacing: 1px; min-width: 38px; text-align
 .settings-body::-webkit-scrollbar { width: 8px; } .settings-body::-webkit-scrollbar-thumb { background: rgba(255,255,255,.18); }
 .chip.save { margin-left: auto; background: var(--accent); color: #000; border-color: var(--accent); }
 .chip.save:hover { filter: brightness(1.15); color: #000; }
+
+/* ============ pannello di ricerca (anche senza tastiera) ============ */
+.chip.on { background: var(--accent); color: #000; border-color: var(--accent); }
+.search-btn { white-space: nowrap; }
+.sp .sp-box { width: min(1180px, 96vw); height: min(660px, 92vh); display: grid; grid-template-columns: 1.15fr 1fr; gap: 26px; padding: 26px 30px;
+  background: var(--panel); border: 2px solid var(--accent); clip-path: polygon(22px 0, 100% 0, calc(100% - 22px) 100%, 0 100%); box-shadow: 0 0 60px color-mix(in srgb, var(--accent) 30%, transparent); text-align: left; }
+.sp-left { display: flex; flex-direction: column; min-width: 0; }
+.sp-query { display: flex; align-items: center; gap: 14px; padding: 10px 16px; background: #0b0b12; border: 2px solid rgba(255,255,255,.18); }
+.sp-label { font-family: var(--font); letter-spacing: 2px; color: var(--accent); }
+.sp-text { flex: 1; font-size: 26px; font-weight: 600; min-height: 34px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.sp-text em { color: var(--muted); font-style: normal; font-weight: 400; font-size: 20px; }
+.sp-cursor { display: inline-block; width: 3px; height: 26px; margin-left: 3px; vertical-align: middle; background: var(--accent); animation: blink 1s steps(2) infinite; }
+.sp-x { width: 36px; height: 36px; background: var(--panel); border: 2px solid rgba(255,255,255,.18); font-size: 16px; } .sp-x:hover { border-color: var(--accent); }
+.sp-info { margin: 8px 2px 10px; color: var(--muted); font-size: 14px; letter-spacing: 1px; text-transform: uppercase; }
+.sp-initials { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 12px; }
+.sp-initials button { flex: 1 0 34px; max-width: 42px; padding: 7px 0; font-family: var(--font); background: #14141f; border: 2px solid rgba(255,255,255,.12); }
+.sp-keys { display: flex; flex-direction: column; gap: 6px; }
+.sp-row { display: flex; gap: 6px; }
+.sp-row button { flex: 1; height: 52px; font-family: var(--font); font-size: 20px; background: #14141f; border: 2px solid rgba(255,255,255,.14);
+  clip-path: polygon(8px 0, 100% 0, calc(100% - 8px) 100%, 0 100%); transition: .08s; }
+.sp-row.actions button { font-size: 14px; letter-spacing: 1.5px; }
+.sp-initials button.on, .sp-row button.on { background: var(--accent); color: #000; border-color: #fff; transform: scale(1.06); }
+.sp-hint { margin-top: auto; padding-top: 10px; color: var(--muted); font-size: 12px; line-height: 1.5; }
+.sp-right { overflow-y: auto; display: flex; flex-direction: column; gap: 5px; padding-right: 6px; min-width: 0; }
+.sp-right::-webkit-scrollbar { width: 8px; } .sp-right::-webkit-scrollbar-thumb { background: rgba(255,255,255,.18); }
+.sp-empty { color: var(--muted); line-height: 1.6; padding: 18px 8px; }
+.sp-res { display: flex; align-items: center; justify-content: space-between; gap: 10px; text-align: left; padding: 10px 14px; background: rgba(255,255,255,.05);
+  border-left: 4px solid transparent; flex: 0 0 auto; }
+.sp-res-name { font-size: 16px; font-weight: 600; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sp-res-name small { margin-left: 8px; font-size: 12px; font-weight: 500; opacity: .6; }
+.sp-res-group { flex: none; font-size: 11px; letter-spacing: 1px; text-transform: uppercase; color: var(--accent); }
+.sp-res.active { background: var(--accent); color: #000; border-left-color: #fff; } .sp-res.active .sp-res-group { color: #000; }
+.sp-more { flex: 0 0 auto; text-align: center; padding: 12px; color: var(--accent); font-family: var(--font); letter-spacing: 1.5px; font-size: 13px; border: 2px dashed color-mix(in srgb, var(--accent) 50%, transparent); }
+.sp-more:hover { background: rgba(255,255,255,.06); }
+.light-fx .sp-cursor { animation: none; }
+@media (max-width: 1000px) { .sp .sp-box { grid-template-columns: 1fr; } .sp-right { display: none; } }
