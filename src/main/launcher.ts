@@ -60,9 +60,16 @@ export function launchGame(
 
   try {
     const child = spawn(settings.retroarchPath, args, { cwd: dirname(settings.retroarchPath), stdio: 'ignore' })
+    // 'error' e 'exit' possono scattare entrambi: il ritorno al launcher deve avvenire una volta sola
+    let ended = false
+    const end = (): void => {
+      if (ended) return
+      ended = true
+      onExit()
+    }
     child.once('spawn', onStart)
-    child.once('error', onExit)
-    child.once('exit', onExit)
+    child.once('error', end)
+    child.once('exit', end)
     return { ok: true }
   } catch (e) {
     return { ok: false, error: String(e) }
