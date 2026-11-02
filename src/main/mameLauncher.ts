@@ -9,11 +9,29 @@ import { readZipInfo } from './zipinfo'
 
 /** Se MAME si chiude entro questo tempo, quasi sicuramente non è partito (anche senza messaggi di errore) */
 const QUICK_EXIT_MS = 4000
-/** Un crash entro questo tempo dall'avvio fa riprovare una volta senza effetti video */
+/** Un crash entro questo tempo dall'avvio fa riprovare con un profilo più prudente */
 const RETRY_WITHIN_MS = 20000
+/** Se MAME è ancora in esecuzione dopo questo tempo, quel profilo ha funzionato */
+const SUCCESS_AFTER_MS = 6000
+
+/**
+ * Scala di profili, dal più ricco al più prudente. Se MAME va in crash all'avvio si scende di un gradino;
+ * il livello che funziona viene ricordato per quel gioco e dice dove sta il problema (shader, video, comandi, audio).
+ */
+const LEVELS = [
+  { note: '' },
+  { note: 'senza shader (video predefinito di MAME)' },
+  { note: 'con il video semplice GDI' },
+  { note: 'con video GDI, senza comandi personalizzati e senza audio' }
+]
 
 /** Righe di "traccia dello stack" stampate da MAME quando va in crash: non spiegano la causa */
-const isTrace = (l: string): boolean => /^[0-9a-f]{8,16}: [0-9a-f]{8,16}\b/i.test(l) || /\+0x[0-9a-f]+\)?$/i.test(l)
+const isTrace = (l: string): boolean =>
+  /^[0-9a-f]{8,16}: [0-9a-f]{8,16}\b/i.test(l) ||
+  /\+0x[0-9a-f]+\)?$/i.test(l) ||
+  /^([A-Z][A-Z0-9]{1,3}=[0-9a-f]{4,16}\s*)+$/i.test(l) || // scarico dei registri: "R12=0000… R13=0000…"
+  /^-{5,}$/.test(l) ||
+  /^Stack crawl:?$/i.test(l)
 
 /** Separa i messaggi utili dalla traccia dello stack e riconosce un crash */
 export function analyzeOutput(out: string): { info: string[]; crashed: boolean } {
@@ -40,7 +58,10 @@ export function launchMame(
   onFail: (message: string) => void,
   onNote: (message: string) => void = () => undefined,
   /** Controllo ROM del solo gioco, eseguito dopo un fallimento: restituisce una frase da aggiungere al messaggio */
-  postCheck?: () => Promise<string>
+  postCheck?: () => Promise<string>,
+  /** Livello di partenza (ricordato per i giochi che richiedono un profilo prudente) e funzione per ricordarne uno nuovo */
+  startLevel = 0,
+  onProfile: (level: number) => void = () => undefined
 ): LaunchResult {
   if (game.demo) return { ok: false, error: 'Questo è un gioco di esempio. Imposta la cartella ROM nelle impostazioni.' }
   if (!settings.mamePath || !existsSync(settings.mamePath)) {
@@ -56,7 +77,7 @@ export function launchMame(
   // configurazione di Mr. Emulator: separata da quella eventuale di MAME, così non la tocca
   const dir = join(app.getPath('userData'), 'mame')
   for (const d of ['cfg', 'nvram', 'sta', 'snap', 'diff', 'comments', 'ctrlr']) mkdirSync(join(dir, d), { recursive: true })
-  const writeIni = (safe: boolean): void => {
+  const writeIni = (level: number): void => {
     const full: Record<string, string> = {
       ...ini,
       rompath: paths.join(';'),
@@ -67,20 +88,21 @@ export function launchMame(
       diff_directory: join(dir, 'diff'),
       comment_directory: join(dir, 'comments')
     }
-    if (safe) {
-      // profilo prudente: video predefinito di MAME, nessuno shader
+    if (level >= 1) {
+      // niente shader, video predefinito di MAME
       delete full['video']
       delete full['bgfx_screen_chains']
     }
+    if (level >= 2) full['video'] = 'gdi' // modalità software: la più compatibile
+    if (level >= 3) full['sound'] = 'none'
     writeFileSync(join(dir, 'mame.ini'), toIniText(full), 'utf-8')
   }
-  writeIni(false)
   writeFileSync(join(dir, 'ctrlr', `${ctrlr.name}.cfg`), ctrlr.xml, 'utf-8')
 
-  const args = [machine, '-inipath', dir, '-ctrlrpath', join(dir, 'ctrlr'), '-ctrlr', ctrlr.name]
-  const canRetry = 'video' in ini || 'bgfx_screen_chains' in ini
+  const argsFor = (level: number): string[] =>
+    level >= 3 ? [machine, '-inipath', dir] : [machine, '-inipath', dir, '-ctrlrpath', join(dir, 'ctrlr'), '-ctrlr', ctrlr.name]
 
-  const fail = async (out: string, elapsed: number, code: number | null, safeTried: boolean): Promise<void> => {
+  const fail = async (out: string, elapsed: number, code: number | null, level: number): Promise<void> => {
     // il testo completo di MAME si salva, così si può guardare o mandare a chi aiuta
     const logFile = join(dir, 'last-error.log')
     try {
@@ -88,7 +110,7 @@ export function launchMame(
     } catch {
       // senza file di log il messaggio c'è comunque
     }
-    let msg = await diagnose(out, paths, game.name, code, elapsed, safeTried)
+    let msg = await diagnose(out, paths, game.name, code, elapsed, level)
     if (postCheck) {
       try {
         const extra = await postCheck()
@@ -100,8 +122,9 @@ export function launchMame(
     onFail(msg)
   }
 
-  const run = (safe: boolean): void => {
-    const child = spawn(settings.mamePath, args, { cwd: dirname(settings.mamePath), windowsHide: false, stdio: ['ignore', 'pipe', 'pipe'] })
+  const run = (level: number): void => {
+    writeIni(level)
+    const child = spawn(settings.mamePath, argsFor(level), { cwd: dirname(settings.mamePath), windowsHide: false, stdio: ['ignore', 'pipe', 'pipe'] })
     const started = Date.now()
     let out = ''
     const keep = (b: Buffer): void => {
@@ -109,32 +132,39 @@ export function launchMame(
     }
     child.stdout?.on('data', keep)
     child.stderr?.on('data', keep)
-    if (!safe) child.once('spawn', onStart) // al secondo tentativo la finestra è già nascosta
+    if (level === startLevel) child.once('spawn', onStart) // nei tentativi successivi la finestra è già nascosta
+    // se dopo qualche secondo MAME è ancora in esecuzione, questo profilo ha funzionato: si ricorda per quel gioco
+    const ok = setTimeout(() => {
+      if (level > 0 && level !== startLevel) {
+        onProfile(level)
+        onNote(`Il gioco è partito ${LEVELS[level].note}: ricordo questa scelta per questo gioco.`)
+      }
+    }, SUCCESS_AFTER_MS)
     child.once('error', () => {
+      clearTimeout(ok)
       onExit()
       onFail('MAME non si è avviato. Controlla il percorso di mame.exe nelle impostazioni.')
     })
     child.once('close', (code) => {
+      clearTimeout(ok)
       const elapsed = Date.now() - started
       const failed = (code !== 0 && code !== null && elapsed < 60000) || elapsed < QUICK_EXIT_MS
       if (!failed) return onExit()
       const { crashed } = analyzeOutput(out)
-      // crash subito dopo l'avvio: spesso dipende da shader o scheda video, quindi si riprova una volta con il profilo prudente
       // (con file mancanti o sbagliati riprovare non serve: l'errore sarebbe lo stesso)
       const romProblem = /NOT FOUND|Required files are missing|INCORRECT/.test(out)
-      if (!safe && canRetry && !romProblem && (crashed || code !== 0) && elapsed < RETRY_WITHIN_MS) {
-        onNote('MAME si è chiuso con un errore: riprovo senza effetti video…')
-        writeIni(true)
-        run(true)
+      if (level < LEVELS.length - 1 && !romProblem && (crashed || code !== 0) && elapsed < RETRY_WITHIN_MS) {
+        onNote(`MAME si è chiuso con un errore: riprovo ${LEVELS[level + 1].note}…`)
+        run(level + 1)
         return
       }
       onExit()
-      void fail(out, elapsed, code, safe)
+      void fail(out, elapsed, code, level)
     })
   }
 
   try {
-    run(false)
+    run(startLevel)
     return { ok: true }
   } catch (e) {
     return { ok: false, error: String(e) }
@@ -147,7 +177,7 @@ const fmtSize = (b: number): string => (b >= 1048576 ? `${(b / 1048576).toFixed(
  * Traduce l'errore di MAME in una spiegazione: quale ZIP manca, oppure quale ZIP c'è ma non contiene
  * i file richiesti (copia incompleta o set di un'altra versione).
  */
-export async function diagnose(out: string, paths: string[], gameName: string, code: number | null = 1, elapsed = 0, safeTried = false): Promise<string> {
+export async function diagnose(out: string, paths: string[], gameName: string, code: number | null = 1, elapsed = 0, level = 0): Promise<string> {
   // "xxx NOT FOUND (tried in kof96 neogeo)"
   const missingFiles: Array<{ file: string; sets: string[] }> = []
   for (const m of out.matchAll(/(\S+) NOT FOUND \(tried in ([^)]+)\)/g)) missingFiles.push({ file: m[1], sets: m[2].split(/\s+/).filter(Boolean) })
@@ -200,12 +230,14 @@ export async function diagnose(out: string, paths: string[], gameName: string, c
     )
   }
   const { info, crashed } = analyzeOutput(out)
-  const tail = info.slice(-3).join(' · ').slice(0, 220)
+  // il messaggio più utile: la riga dell'eccezione o dell'errore fatale, altrimenti le ultime righe leggibili
+  const key = info.find((l) => /Exception|ACCESS VIOLATION|Fatal error|error:/i.test(l))
+  const tail = (key ?? info.slice(-3).join(' · ')).slice(0, 220)
   if (crashed) {
     return (
-      `MAME è andato in crash avviando "${gameName}"${safeTried ? ' (anche senza effetti video)' : ''}: è un errore interno di MAME, non di un file mancante.` +
+      `MAME è andato in crash avviando "${gameName}"${level > 0 ? ` (anche ${LEVELS[level].note})` : ''}: è un errore interno di MAME, non di un file mancante.` +
       (tail ? ` Messaggio: ${tail}.` : '') +
-      ' Il testo completo è in last-error.log, nella cartella dei dati del programma.'
+      ' Clicca questo avviso per copiare i dettagli completi.'
     )
   }
   if (!tail && (code === 0 || code === null)) {

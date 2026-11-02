@@ -81,6 +81,8 @@ export interface Settings {
   mameChdDir: string
   /** Nasconde dalla lista i giochi che il controllo ROM ha trovato difettosi */
   hideBadRoms: boolean
+  /** Per i giochi che sono partiti solo con un profilo prudente: livello del profilo (0 = completo) */
+  launchFix: Record<string, number>
   /** Cartella con le immagini locali (pacchetti Multimedia / EXTRAs): schermate, copertine, titoli col nome breve del gioco */
   mediaDir: string
   /** Filmato della partita dietro la lista (da videosnaps) */
@@ -271,6 +273,8 @@ export interface MediaTrack {
 }
 
 export interface MrApi {
+  /** Testo completo dell'ultimo errore di MAME (per copiarlo) */
+  getLastMameLog(): Promise<string>
   /** Filmato della partita del gioco (indirizzo da usare in un video), se esiste */
   getVideo(game: Game): Promise<string | null>
   /** Brani della colonna sonora del gioco */

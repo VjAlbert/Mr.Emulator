@@ -27,9 +27,11 @@ interface Props {
   letterJump: boolean
   /** Apre il controllo ROM (solo per i sistemi MAME) */
   onRomCheck?: () => void
+  /** Se c'è, il clic sull'avviso lo esegue (per copiare i dettagli di un errore) */
+  onToastClick?: () => void
 }
 
-export default function GameList({ system, games, message, onLaunch, onBack, letterJump, onRomCheck }: Props): React.JSX.Element {
+export default function GameList({ system, games, message, onLaunch, onBack, letterJump, onRomCheck, onToastClick }: Props): React.JSX.Element {
   const [index, setIndex] = useState(0)
   const [, setTick] = useState(0)
   const [query, setQuery] = useState('')
@@ -168,6 +170,7 @@ export default function GameList({ system, games, message, onLaunch, onBack, let
   }, [])
   const [video, setVideo] = useState<string | null>(null)
   const [videoReady, setVideoReady] = useState(false)
+  const [mediaNonce, setMediaNonce] = useState(0)
   const [tracks, setTracks] = useState<MediaTrack[]>([])
   useEffect(() => {
     // al cambio di gioco il filmato sparisce subito; ricompare dopo una breve sosta (scorrendo veloce non si carica niente)
@@ -184,7 +187,7 @@ export default function GameList({ system, games, message, onLaunch, onBack, let
       off = true
       window.clearTimeout(t)
     }
-  }, [game?.id, mediaOpts.video, mediaOpts.music]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [game?.id, mediaOpts.video, mediaOpts.music, mediaNonce]) // eslint-disable-line react-hooks/exhaustive-deps
   const firstIndex = useRef(true)
   useEffect(() => {
     if (firstIndex.current) firstIndex.current = false
@@ -226,6 +229,14 @@ export default function GameList({ system, games, message, onLaunch, onBack, let
     changeFamily(names[(names.indexOf(activeFamily) + 1) % names.length])
   }
 
+  /** Avvia un gioco: il filmato dell'anteprima si ferma (non deve girare mentre si gioca) e riparte al ritorno */
+  const launchGame = (g: Game): void => {
+    setVideo(null)
+    setVideoReady(false)
+    window.addEventListener('focus', () => setMediaNonce((n) => n + 1), { once: true })
+    onLaunch(g)
+  }
+
   const move = (fn: (i: number) => number): void => {
     byMouse.current = false
     lastNav.current = performance.now()
@@ -235,7 +246,7 @@ export default function GameList({ system, games, message, onLaunch, onBack, let
   useInput({
     onMove: (dir) => move((i) => (dir === 'up' || dir === 'left' ? i - 1 : i + 1)),
     onPage: (d) => move((i) => i + d * PAGE),
-    onConfirm: () => game && onLaunch(game),
+    onConfirm: () => game && launchGame(game),
     // Tab / Start del pad / Moneta 1: passa alla famiglia successiva (anche senza mouse)
     onMenu: nextFamily,
     // Y / X del pad: apre la ricerca
@@ -329,7 +340,7 @@ export default function GameList({ system, games, message, onLaunch, onBack, let
             setIndex(i)
           }
         }}
-        onClick={() => onLaunch(g)}
+        onClick={() => launchGame(g)}
       >
         <span className="row-num">{String(i + 1).padStart(3, '0')}</span>
         <span className="row-name">
@@ -449,7 +460,7 @@ export default function GameList({ system, games, message, onLaunch, onBack, let
                   <span className="vmon-tag">● PLAY</span>
                 </div>
               )}
-              <CoverCarousel games={list} index={index} onSelect={(i) => move(() => i)} onActivate={() => onLaunch(game)} onLoaded={() => setTick((n) => n + 1)} />
+              <CoverCarousel games={list} index={index} onSelect={(i) => move(() => i)} onActivate={() => launchGame(game)} onLoaded={() => setTick((n) => n + 1)} />
               <div key={game.id} className="preview-card">
                 <div className="preview-name">{title.main}</div>
                 {title.tag && <div className="preview-tag">{title.tag}</div>}
@@ -510,7 +521,11 @@ export default function GameList({ system, games, message, onLaunch, onBack, let
         />
       )}
 
-      {(note || message) && <div className="toast">{note || message}</div>}
+      {(note || message) && (
+        <div className="toast" style={onToastClick && !note ? { cursor: 'pointer', pointerEvents: 'auto' } : undefined} onClick={!note ? onToastClick : undefined}>
+          {note || message}
+        </div>
+      )}
     </div>
   )
 }

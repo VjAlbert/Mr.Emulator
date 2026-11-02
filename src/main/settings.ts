@@ -23,6 +23,7 @@ const DEFAULTS: Settings = {
   mamePath: '',
   mameChdDir: '',
   hideBadRoms: false,
+  launchFix: {},
   mediaDir: '',
   videoPreview: true,
   musicVolume: 0.5,

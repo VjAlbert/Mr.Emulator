@@ -238,6 +238,14 @@ app.whenReady().then(async () => {
     return mediaSrc.src.analyze()
   })
 
+  ipcMain.handle('mame:last-log', () => {
+    try {
+      return readFileSync(join(app.getPath('userData'), 'mame', 'last-error.log'), 'utf-8').slice(-8000)
+    } catch {
+      return ''
+    }
+  })
+
   // ---- controllo ROM ----
   const mameSys = SYSTEMS.find((x) => x.engine === 'mame')!
   /** File di configurazione minimo per la verifica: solo le cartelle dove cercare gli ZIP */
@@ -327,6 +335,8 @@ app.whenReady().then(async () => {
     } catch {
       // cartella non scrivibile: nessun problema, resta quella scelta dall'utente
     }
+    // un MAME diverso può comportarsi diversamente: le scelte prudenti ricordate si azzerano
+    if (before.mamePath !== saved.mamePath && Object.keys(saved.launchFix).length) saveSettings({ ...saved, launchFix: {} })
     if (before.mediaDir !== saved.mediaDir) {
       clearLocalArt()
       mediaSrc = null
@@ -436,6 +446,12 @@ app.whenReady().then(async () => {
           const hit = r.bad.find((b) => b.name === game.machine)
           if (hit) return `Controllo ROM: ⚠ file difettosi (${hit.issues.slice(0, 3).map((i) => `${i.set}.zip → ${i.file}`).join(' · ')}).`
           return r.checked > 0 ? 'Controllo ROM: ✔ i file del gioco sono a posto, il problema è altrove.' : ''
+        },
+        // giochi che sono partiti solo con un profilo prudente: si riparte direttamente da quel livello
+        settings.launchFix[game.machine ?? ''] ?? 0,
+        (level) => {
+          const cur = loadSettings()
+          saveSettings({ ...cur, launchFix: { ...cur.launchFix, [game.machine ?? '']: level } })
         }
       )
     }

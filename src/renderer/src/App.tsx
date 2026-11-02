@@ -29,6 +29,7 @@ export default function App(): React.JSX.Element {
   const [lib, setLib] = useState<LibraryEvent | null>(null)
   const [busy, setBusy] = useState(false)
   const [launching, setLaunching] = useState<Game | null>(null)
+  const [hasLog, setHasLog] = useState(false)
   const launchDone = useRef<() => void>(() => undefined)
   const [attract, setAttract] = useState(false)
   const [opts, setOpts] = useState({ attractSeconds: 90, launchAnimation: true })
@@ -41,7 +42,14 @@ export default function App(): React.JSX.Element {
   useEffect(() => window.mr.onGameEnded(setEnded), [])
 
   // MAME (o altri programmi) non riesce ad avviare un gioco: si mostra il motivo
-  useEffect(() => window.mr.onGameFailed((m) => toastRef.current(m)), [])
+  useEffect(
+    () =>
+      window.mr.onGameFailed((m) => {
+        setHasLog(true)
+        toastRef.current(m)
+      }),
+    []
+  )
   // avvisi non gravi (es. "riprovo senza effetti video"): senza il suono d'errore
   useEffect(() => window.mr.onGameNote((m) => toastRef.current(m, true)), [])
 
@@ -130,6 +138,17 @@ export default function App(): React.JSX.Element {
     if (!res.ok && res.error) toast(res.error)
   }
 
+  // clic sull'avviso di un errore di MAME: copia negli appunti il testo completo
+  const copyLog = async (): Promise<void> => {
+    const log = await window.mr.getLastMameLog()
+    try {
+      await navigator.clipboard.writeText(log || '(nessun dettaglio salvato)')
+      toast('Dettagli dell\'errore copiati negli appunti: incollali dove servono.', true)
+    } catch {
+      toast('Non riesco a copiare negli appunti.')
+    }
+  }
+
   // rotazione a riposo: dopo un po' senza input, solo nelle schermate dei sistemi e dei giochi
   useEffect(() => {
     const bump = (): void => {
@@ -180,7 +199,7 @@ export default function App(): React.JSX.Element {
     )
   } else if (screen.name === 'games') {
     view = (
-      <GameList system={screen.system} games={games} message={message} onLaunch={launch} onBack={() => go({ name: 'systems' })} letterJump={scheme !== 'cabinet'} onRomCheck={() => go({ name: 'romcheck' })} />
+      <GameList system={screen.system} games={games} message={message} onLaunch={launch} onBack={() => go({ name: 'systems' })} letterJump={scheme !== 'cabinet'} onRomCheck={() => go({ name: 'romcheck' })} onToastClick={hasLog ? copyLog : undefined} />
     )
   } else {
     view = <SystemSelect systems={systems} onOpen={openSystem} lib={lib} onSettings={() => go({ name: 'settings' })} onPc={() => go({ name: 'pc' })} onInput={() => go({ name: 'input' })} />
