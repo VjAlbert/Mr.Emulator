@@ -20,6 +20,11 @@ const api: MrApi = {
   setupRoot: (rootDir) => ipcRenderer.invoke('folders:setup-root', rootDir),
   makeMameFolder: () => ipcRenderer.invoke('mame:make-folder'),
   checkMame: () => ipcRenderer.invoke('mame:check'),
+  onGameNote: (cb) => {
+    const handler = (_e: unknown, msg: string): void => cb(msg)
+    ipcRenderer.on('game:note', handler)
+    return () => ipcRenderer.removeListener('game:note', handler)
+  },
   onGameFailed: (cb) => {
     const handler = (_e: unknown, msg: string): void => cb(msg)
     ipcRenderer.on('game:failed', handler)

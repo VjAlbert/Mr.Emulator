@@ -428,7 +428,15 @@ app.whenReady().then(async () => {
           win?.hide()
         },
         onEnd(t),
-        (message) => win?.webContents.send('game:failed', message)
+        (message) => win?.webContents.send('game:failed', message),
+        (note) => win?.webContents.send('game:note', note),
+        // dopo un fallimento si controllano le ROM di quel gioco: dice subito se il problema sono i file
+        async () => {
+          const r = await runVerify(settings.mamePath, ['-verifyroms', game.machine ?? '', '-inipath', verifyIni(settings)]).done
+          const hit = r.bad.find((b) => b.name === game.machine)
+          if (hit) return `Controllo ROM: ⚠ file difettosi (${hit.issues.slice(0, 3).map((i) => `${i.set}.zip → ${i.file}`).join(' · ')}).`
+          return r.checked > 0 ? 'Controllo ROM: ✔ i file del gioco sono a posto, il problema è altrove.' : ''
+        }
       )
     }
 

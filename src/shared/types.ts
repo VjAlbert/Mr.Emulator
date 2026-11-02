@@ -293,6 +293,8 @@ export interface MrApi {
   /** Controlla il mame.exe indicato: versione e numero di macchine che conosce */
   checkMame(): Promise<{ ok: boolean; version: string; machines: number; error?: string; warning?: string }>
   onGameFailed(cb: (message: string) => void): () => void
+  /** Avvisi non gravi durante l'avvio (per esempio "riprovo senza effetti video") */
+  onGameNote(cb: (message: string) => void): () => void
   getLibraryStatus(): Promise<LibraryEvent>
   onLibrary(cb: (e: LibraryEvent) => void): () => void
   getInputMap(): Promise<InputMapReport>

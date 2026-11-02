@@ -7,7 +7,28 @@ import { toIniText } from './profiles'
 import { systemDir } from './paths'
 import { readZipInfo } from './zipinfo'
 
-/** Avvia un gioco con il MAME autonomo dell'utente. Se MAME rifiuta di partire, spiega perché. */
+/** Se MAME si chiude entro questo tempo, quasi sicuramente non è partito (anche senza messaggi di errore) */
+const QUICK_EXIT_MS = 4000
+/** Un crash entro questo tempo dall'avvio fa riprovare una volta senza effetti video */
+const RETRY_WITHIN_MS = 20000
+
+/** Righe di "traccia dello stack" stampate da MAME quando va in crash: non spiegano la causa */
+const isTrace = (l: string): boolean => /^[0-9a-f]{8,16}: [0-9a-f]{8,16}\b/i.test(l) || /\+0x[0-9a-f]+\)?$/i.test(l)
+
+/** Separa i messaggi utili dalla traccia dello stack e riconosce un crash */
+export function analyzeOutput(out: string): { info: string[]; crashed: boolean } {
+  const lines = out.split(/\r?\n/).map((l) => l.trim()).filter(Boolean)
+  const info = lines.filter((l) => !isTrace(l))
+  const traceLines = lines.length - info.length
+  const crashed = /ACCESS VIOLATION|Exception at|unhandled exception|stack overflow|segmentation|illegal instruction|assertion failed/i.test(out) || traceLines >= 3
+  return { info, crashed }
+}
+
+/**
+ * Avvia un gioco con il MAME autonomo dell'utente.
+ * - Se MAME va in crash subito, riprova una volta senza shader né modalità video particolari.
+ * - Se alla fine non parte, spiega perché (ZIP mancanti, set di un'altra versione, crash) e controlla le ROM del gioco.
+ */
 export function launchMame(
   game: Game,
   system: SystemDef,
@@ -16,7 +37,10 @@ export function launchMame(
   ctrlr: { name: string; xml: string },
   onStart: () => void,
   onExit: () => void,
-  onFail: (message: string) => void
+  onFail: (message: string) => void,
+  onNote: (message: string) => void = () => undefined,
+  /** Controllo ROM del solo gioco, eseguito dopo un fallimento: restituisce una frase da aggiungere al messaggio */
+  postCheck?: () => Promise<string>
 ): LaunchResult {
   if (game.demo) return { ok: false, error: 'Questo è un gioco di esempio. Imposta la cartella ROM nelle impostazioni.' }
   if (!settings.mamePath || !existsSync(settings.mamePath)) {
@@ -32,41 +56,85 @@ export function launchMame(
   // configurazione di Mr. Emulator: separata da quella eventuale di MAME, così non la tocca
   const dir = join(app.getPath('userData'), 'mame')
   for (const d of ['cfg', 'nvram', 'sta', 'snap', 'diff', 'comments', 'ctrlr']) mkdirSync(join(dir, d), { recursive: true })
-  const full: Record<string, string> = {
-    ...ini,
-    rompath: paths.join(';'),
-    cfg_directory: join(dir, 'cfg'),
-    nvram_directory: join(dir, 'nvram'),
-    state_directory: join(dir, 'sta'),
-    snapshot_directory: join(dir, 'snap'),
-    diff_directory: join(dir, 'diff'),
-    comment_directory: join(dir, 'comments')
+  const writeIni = (safe: boolean): void => {
+    const full: Record<string, string> = {
+      ...ini,
+      rompath: paths.join(';'),
+      cfg_directory: join(dir, 'cfg'),
+      nvram_directory: join(dir, 'nvram'),
+      state_directory: join(dir, 'sta'),
+      snapshot_directory: join(dir, 'snap'),
+      diff_directory: join(dir, 'diff'),
+      comment_directory: join(dir, 'comments')
+    }
+    if (safe) {
+      // profilo prudente: video predefinito di MAME, nessuno shader
+      delete full['video']
+      delete full['bgfx_screen_chains']
+    }
+    writeFileSync(join(dir, 'mame.ini'), toIniText(full), 'utf-8')
   }
-  writeFileSync(join(dir, 'mame.ini'), toIniText(full), 'utf-8')
+  writeIni(false)
   writeFileSync(join(dir, 'ctrlr', `${ctrlr.name}.cfg`), ctrlr.xml, 'utf-8')
 
   const args = [machine, '-inipath', dir, '-ctrlrpath', join(dir, 'ctrlr'), '-ctrlr', ctrlr.name]
-  try {
+  const canRetry = 'video' in ini || 'bgfx_screen_chains' in ini
+
+  const fail = async (out: string, elapsed: number, code: number | null, safeTried: boolean): Promise<void> => {
+    // il testo completo di MAME si salva, così si può guardare o mandare a chi aiuta
+    const logFile = join(dir, 'last-error.log')
+    try {
+      writeFileSync(logFile, out, 'utf-8')
+    } catch {
+      // senza file di log il messaggio c'è comunque
+    }
+    let msg = await diagnose(out, paths, game.name, code, elapsed, safeTried)
+    if (postCheck) {
+      try {
+        const extra = await postCheck()
+        if (extra) msg += ` ${extra}`
+      } catch {
+        // il controllo delle ROM è un di più: se non riesce si mostra solo il messaggio
+      }
+    }
+    onFail(msg)
+  }
+
+  const run = (safe: boolean): void => {
     const child = spawn(settings.mamePath, args, { cwd: dirname(settings.mamePath), windowsHide: false, stdio: ['ignore', 'pipe', 'pipe'] })
     const started = Date.now()
     let out = ''
     const keep = (b: Buffer): void => {
-      out = (out + b.toString()).slice(-4000)
+      out = (out + b.toString()).slice(-20000)
     }
     child.stdout?.on('data', keep)
     child.stderr?.on('data', keep)
-    child.once('spawn', onStart)
+    if (!safe) child.once('spawn', onStart) // al secondo tentativo la finestra è già nascosta
     child.once('error', () => {
       onExit()
       onFail('MAME non si è avviato. Controlla il percorso di mame.exe nelle impostazioni.')
     })
     child.once('close', (code) => {
-      onExit()
-      // uscita con errore subito dopo l'avvio = il gioco non è partito (file mancanti, versione sbagliata…)
-      if (code !== 0 && code !== null && Date.now() - started < 60000) {
-        void diagnose(out, paths, game.name).then(onFail)
+      const elapsed = Date.now() - started
+      const failed = (code !== 0 && code !== null && elapsed < 60000) || elapsed < QUICK_EXIT_MS
+      if (!failed) return onExit()
+      const { crashed } = analyzeOutput(out)
+      // crash subito dopo l'avvio: spesso dipende da shader o scheda video, quindi si riprova una volta con il profilo prudente
+      // (con file mancanti o sbagliati riprovare non serve: l'errore sarebbe lo stesso)
+      const romProblem = /NOT FOUND|Required files are missing|INCORRECT/.test(out)
+      if (!safe && canRetry && !romProblem && (crashed || code !== 0) && elapsed < RETRY_WITHIN_MS) {
+        onNote('MAME si è chiuso con un errore: riprovo senza effetti video…')
+        writeIni(true)
+        run(true)
+        return
       }
+      onExit()
+      void fail(out, elapsed, code, safe)
     })
+  }
+
+  try {
+    run(false)
     return { ok: true }
   } catch (e) {
     return { ok: false, error: String(e) }
@@ -79,7 +147,7 @@ const fmtSize = (b: number): string => (b >= 1048576 ? `${(b / 1048576).toFixed(
  * Traduce l'errore di MAME in una spiegazione: quale ZIP manca, oppure quale ZIP c'è ma non contiene
  * i file richiesti (copia incompleta o set di un'altra versione).
  */
-async function diagnose(out: string, paths: string[], gameName: string): Promise<string> {
+export async function diagnose(out: string, paths: string[], gameName: string, code: number | null = 1, elapsed = 0, safeTried = false): Promise<string> {
   // "xxx NOT FOUND (tried in kof96 neogeo)"
   const missingFiles: Array<{ file: string; sets: string[] }> = []
   for (const m of out.matchAll(/(\S+) NOT FOUND \(tried in ([^)]+)\)/g)) missingFiles.push({ file: m[1], sets: m[2].split(/\s+/).filter(Boolean) })
@@ -127,10 +195,22 @@ async function diagnose(out: string, paths: string[], gameName: string): Promise
     return (
       `MAME non ha avviato "${gameName}": ${parts.join(' · ')}. ` +
       (lacking.length
-        ? 'Probabile copia incompleta dello ZIP, oppure set di un\'altra versione di MAME: ricopialo dalla sorgente e controlla che sia il set 0.229.'
-        : 'Il set non corrisponde alla versione di MAME in uso (0.229 per 0.229).')
+        ? 'Probabile copia incompleta dello ZIP, oppure set di un\'altra versione di MAME: ricopialo dalla sorgente e controlla che sia il set della versione di MAME in uso.'
+        : 'Il set non corrisponde alla versione di MAME in uso.')
     )
   }
-  const lines = out.split(/\r?\n/).map((l) => l.trim()).filter(Boolean).slice(-4)
-  return `MAME non ha avviato "${gameName}": ${lines.join(' · ').slice(0, 260) || 'errore sconosciuto'}`
+  const { info, crashed } = analyzeOutput(out)
+  const tail = info.slice(-3).join(' · ').slice(0, 220)
+  if (crashed) {
+    return (
+      `MAME è andato in crash avviando "${gameName}"${safeTried ? ' (anche senza effetti video)' : ''}: è un errore interno di MAME, non di un file mancante.` +
+      (tail ? ` Messaggio: ${tail}.` : '') +
+      ' Il testo completo è in last-error.log, nella cartella dei dati del programma.'
+    )
+  }
+  if (!tail && (code === 0 || code === null)) {
+    const sec = Math.max(1, Math.round(elapsed / 1000))
+    return `MAME si è chiuso dopo ${sec} second${sec === 1 ? 'o' : 'i'} senza scrivere errori: il gioco non è partito. Se non l'hai chiuso tu, prova "Controlla questo gioco" e il Controllo ROM.`
+  }
+  return `MAME non ha avviato "${gameName}": ${tail || `uscito con errore ${code}`}`
 }

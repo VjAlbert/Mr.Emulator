@@ -42,6 +42,8 @@ export default function App(): React.JSX.Element {
 
   // MAME (o altri programmi) non riesce ad avviare un gioco: si mostra il motivo
   useEffect(() => window.mr.onGameFailed((m) => toastRef.current(m)), [])
+  // avvisi non gravi (es. "riprovo senza effetti video"): senza il suono d'errore
+  useEffect(() => window.mr.onGameNote((m) => toastRef.current(m, true)), [])
 
   // la libreria si aggiorna in background: contatori e, se serve, la lista aperta
   useEffect(() => {
@@ -92,9 +94,9 @@ export default function App(): React.JSX.Element {
     setScreen(s)
   }
 
-  const toastRef = useRef<(m: string) => void>(() => undefined)
-  const toast = (m: string): void => {
-    sfx.error()
+  const toastRef = useRef<(m: string, silent?: boolean) => void>(() => undefined)
+  const toast = (m: string, silent = false): void => {
+    if (!silent) sfx.error()
     setMessage(m)
     window.clearTimeout(timer.current)
     timer.current = window.setTimeout(() => setMessage(''), m.length > 120 ? 11000 : 4500)
