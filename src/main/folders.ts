@@ -3,6 +3,7 @@ import { join } from 'path'
 import { mkdirSync } from 'fs'
 import type { Settings } from '@shared/types'
 import { SYSTEMS } from './systems'
+import { systemDir } from './paths'
 
 /** Cartella di lavoro predefinita: Documenti\MrEmulator */
 export const defaultRoot = (): string => join(app.getPath('documents'), 'MrEmulator')
@@ -13,6 +14,7 @@ export function ensureFolders(s: Settings): Settings {
   if (!next.romsDir) next.romsDir = join(defaultRoot(), 'roms')
   if (!next.biosDir) next.biosDir = join(defaultRoot(), 'bios')
   mkdirSync(join(next.biosDir, 'fbneo'), { recursive: true }) // dove FBNeo cerca neogeo.zip e simili
-  for (const sys of SYSTEMS) mkdirSync(join(next.romsDir, sys.folder), { recursive: true })
+  for (const sys of SYSTEMS) mkdirSync(systemDir(sys, next), { recursive: true })
+  if (next.mameChdDir) mkdirSync(next.mameChdDir, { recursive: true })
   return next
 }

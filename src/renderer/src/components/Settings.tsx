@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import type { PickKind, Settings } from '@shared/types'
 import { useInput } from '../hooks/useInput'
 
-type PathKey = 'romsDir' | 'biosDir' | 'retroarchPath' | 'coresDir' | 'mamePath' | 'mameChdDir'
+type PathKey = 'romsDir' | 'biosDir' | 'retroarchPath' | 'coresDir' | 'mamePath' | 'mameChdDir' | 'mameRomDir'
 
 interface Props {
   onClose: () => void
@@ -78,6 +78,36 @@ export default function SettingsScreen({ onClose, onSaved, onPc }: Props): React
             VERIFICA MAME
           </button>
           <span className="hint" style={{ margin: 0, alignSelf: 'center' }}>{mameInfo}</span>
+        </div>
+        {field('Cartella ROM di MAME (facoltativa)', 'Vuota = la sottocartella "mame" della cartella ROM. Consigliato: una cartella per versione, es. mame0229', 'mameRomDir', 'dir')}
+        <div className="field-row">
+          <button
+            className="chip"
+            onClick={async () => {
+              const r = await window.mr.makeMameFolder()
+              setMameInfo(r.ok ? `✔ Creata e impostata: ${r.path}` : `⚠ ${r.error ?? 'Non riuscito'}`)
+              setS(await window.mr.getSettings())
+              onSaved()
+            }}
+          >
+            CREA LA CARTELLA DI QUESTA VERSIONE DI MAME
+          </button>
+          <button
+            className="chip"
+            onClick={async () => {
+              const dir = await window.mr.pickPath('dir')
+              if (!dir) return
+              try {
+                setS(await window.mr.setupRoot(dir))
+                setMameInfo(`✔ Tutto impostato dentro ${dir} (roms, bios e la cartella di MAME)`)
+                onSaved()
+              } catch {
+                setMameInfo('⚠ Non riesco a creare le cartelle lì: controlla che il disco sia collegato e scrivibile.')
+              }
+            }}
+          >
+            USA UN ALTRO DISCO PER TUTTO…
+          </button>
         </div>
         {field('Cartella dei dischi CHD per MAME (facoltativa)', 'Se i dischi non stanno già dentro la cartella ROM di MAME', 'mameChdDir', 'dir')}
         <label className="check">

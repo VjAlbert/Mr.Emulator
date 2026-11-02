@@ -18,6 +18,8 @@ import { buildInputConfig, buildInputMap, buildMameCtrlr } from './inputs'
 import { ART_SCHEME, arcadeTitles, getArt, resolveArtUrl, setMameTitleProvider } from './artwork'
 import { loadMameData, type MameData } from './mame'
 import { launchMame } from './mameLauncher'
+import { mameFolderName, systemDir } from './paths'
+import { mkdirSync } from 'fs'
 
 protocol.registerSchemesAsPrivileged([
   { scheme: ART_SCHEME, privileges: { standard: true, secure: true, supportFetchAPI: true } }
@@ -95,7 +97,7 @@ const library = createLibrary({
   signature: (sys) => {
     if (sys.engine !== 'mame') return ''
     const s = loadSettings()
-    return `${s.mamePath}|${s.mameClones}`
+    return `${s.mamePath}|${s.mameClones}|${s.mameRomDir}`
   },
   emit: (e) => win?.webContents.send('library:event', e)
 })
@@ -145,8 +147,8 @@ app.whenReady().then(async () => {
     } catch {
       // cartella non scrivibile: nessun problema, resta quella scelta dall'utente
     }
-    if (before.romsDir !== saved.romsDir || before.showUnsupported !== saved.showUnsupported || before.mamePath !== saved.mamePath || before.mameClones !== saved.mameClones) {
-      library.rescan(before.romsDir !== saved.romsDir)
+    if (before.romsDir !== saved.romsDir || before.showUnsupported !== saved.showUnsupported || before.mamePath !== saved.mamePath || before.mameClones !== saved.mameClones || before.mameRomDir !== saved.mameRomDir) {
+      library.rescan(before.romsDir !== saved.romsDir || before.mameRomDir !== saved.mameRomDir)
     }
     return saved
   })
@@ -155,10 +157,43 @@ app.whenReady().then(async () => {
     library.rescan(false)
     return next
   })
+
+  /** Cartella dedicata alla versione di MAME (es. roms\mame0229), creata accanto alle altre cartelle ROM */
+  async function mameVersionFolder(s: Settings): Promise<{ ok: boolean; path: string; error?: string }> {
+    if (!s.mamePath) return { ok: false, path: '', error: 'Indica prima il percorso di mame.exe e premi VERIFICA MAME.' }
+    const d = await getMame()
+    if (!d) return { ok: false, path: '', error: 'MAME non risponde: controlla il percorso di mame.exe.' }
+    const path = join(s.romsDir, mameFolderName(d.version))
+    mkdirSync(path, { recursive: true })
+    return { ok: true, path }
+  }
+
+  ipcMain.handle('mame:make-folder', async () => {
+    const s = loadSettings()
+    const r = await mameVersionFolder(s)
+    if (r.ok) {
+      saveSettings({ ...s, mameRomDir: r.path })
+      library.rescan(true)
+    }
+    return r
+  })
+
+  // "tutto su un altro disco": ROM, BIOS e cartella MAME di questa versione dentro la cartella scelta
+  ipcMain.handle('folders:setup-root', async (_e, rootDir: string) => {
+    const s = loadSettings()
+    const next: Settings = { ...s, romsDir: join(rootDir, 'roms'), biosDir: join(rootDir, 'bios'), mameRomDir: '' }
+    mkdirSync(next.romsDir, { recursive: true })
+    const r = s.mamePath ? await mameVersionFolder(next) : null
+    if (r?.ok) next.mameRomDir = r.path
+    const saved = saveSettings(ensureFolders(next))
+    void applyGpuPreference(saved)
+    library.rescan(true)
+    return saved
+  })
   ipcMain.handle('folder:open', async (_e, target: string) => {
     const s = ensureFolders(loadSettings())
     const sys = SYSTEMS.find((x) => x.id === target)
-    const dir = target === 'bios' ? s.biosDir : sys ? join(s.romsDir, sys.folder) : s.romsDir
+    const dir = target === 'bios' ? s.biosDir : sys ? systemDir(sys, s) : s.romsDir
     await shell.openPath(dir)
   })
 
@@ -175,7 +210,7 @@ app.whenReady().then(async () => {
     if (!system) return { ok: false, error: 'Sistema sconosciuto.' }
     const settings = loadSettings()
     // la lista contiene percorsi relativi alla cartella del sistema
-    if (!game.demo) game = { ...game, path: join(settings.romsDir, system.folder, game.path) }
+    if (!game.demo) game = { ...game, path: join(systemDir(system, settings), game.path) }
     const hw = await detectHardware(true)
 
     const onEnd = (startedAt: { t: number }) => (): void => {

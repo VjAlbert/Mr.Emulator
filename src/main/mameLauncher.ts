@@ -4,6 +4,7 @@ import { dirname, join, parse } from 'path'
 import { app } from 'electron'
 import type { Game, LaunchResult, Settings, SystemDef } from '@shared/types'
 import { toIniText } from './profiles'
+import { systemDir } from './paths'
 
 /** Avvia un gioco con il MAME autonomo dell'utente. Se MAME rifiuta di partire, spiega perché. */
 export function launchMame(
@@ -22,7 +23,7 @@ export function launchMame(
   }
   const machine = game.machine ?? parse(game.path).name
   // game.path è già assoluto: la cartella dello ZIP può essere una sottocartella
-  const base = join(settings.romsDir, system.folder)
+  const base = systemDir(system, settings)
   const paths = [...new Set([dirname(game.path), base, settings.mameChdDir].filter(Boolean))]
 
   // configurazione di Mr. Emulator: separata da quella eventuale di MAME, così non la tocca

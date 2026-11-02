@@ -47,6 +47,11 @@ export default function SystemSelect({ systems, onOpen, onSettings, onPc, onInpu
           MR. <span>EMULATOR</span>
         </h1>
         <div className="top-actions">
+          {lib?.offline && (
+            <span className="scan warn" title={`Non trovo: ${lib.offline}`}>
+              💾 CARTELLA NON RAGGIUNGIBILE
+            </span>
+          )}
           {lib?.scanning && (
             <span className="scan" title="La libreria si aggiorna in background">
               ⟳ SCANSIONE{lib.found > 0 ? ` · ${lib.found.toLocaleString('it')}` : ''}

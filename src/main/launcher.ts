@@ -5,6 +5,7 @@ import { app } from 'electron'
 import { mkdirSync, writeFileSync } from 'fs'
 import type { Game, LaunchResult, Settings, SystemDef } from '@shared/types'
 import { platform } from './platform'
+import { systemDir } from './paths'
 
 /** Avvia RetroArch con il core giusto. Chiama onExit quando il gioco si chiude. */
 export function launchGame(
@@ -29,7 +30,7 @@ export function launchGame(
   if (!existsSync(game.path)) return { ok: false, error: 'File del gioco non trovato.' }
 
   if (system.id === 'neogeo') {
-    const dirs = [dirname(game.path), join(settings.romsDir, system.folder), settings.biosDir, join(settings.biosDir, 'fbneo')]
+    const dirs = [dirname(game.path), systemDir(system, settings), settings.biosDir, join(settings.biosDir, 'fbneo')]
     if (!dirs.some((d) => d && existsSync(join(d, 'neogeo.zip')))) {
       return {
         ok: false,

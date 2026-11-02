@@ -273,3 +273,5 @@ kbd { font-family: var(--font); letter-spacing: 1px; min-width: 38px; text-align
 .counter { margin-left: auto; }
 .family { flex: 0 1 210px; min-width: 150px; }
 .search { flex: 0 1 190px; min-width: 120px; }
+
+.scan.warn { color: #ffd400; animation: none; }

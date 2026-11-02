@@ -77,6 +77,8 @@ export interface Settings {
   mamePath: string
   /** Cartella dei dischi CHD (facoltativa): si aggiunge a quella delle ROM */
   mameChdDir: string
+  /** Cartella dei giochi di MAME (vuota = "mame" dentro la cartella ROM). Di solito una cartella per versione, es. mame0229 */
+  mameRomDir: string
   /** Mostra anche le varianti (cloni) dei giochi: con i set "merged" stanno dentro lo ZIP del gioco principale */
   mameClones: boolean
 }
@@ -185,6 +187,8 @@ export interface LibraryEvent {
   found: number
   /** Sistema appena aggiornato (la sua lista è cambiata), se c'è */
   updated: string | null
+  /** Cartella dei giochi non raggiungibile (per esempio disco esterno scollegato): le liste restano quelle salvate */
+  offline: string | null
 }
 
 export type ArtKind = 'boxart' | 'snap' | 'title'
@@ -192,6 +196,10 @@ export type ArtKind = 'boxart' | 'snap' | 'title'
 export type PickKind = 'dir' | 'file'
 
 export interface MrApi {
+  /** Sposta tutto (ROM, BIOS, cartella MAME di questa versione) su un'altra cartella o disco */
+  setupRoot(rootDir: string): Promise<Settings>
+  /** Crea la cartella dedicata alla versione di MAME indicata e la imposta */
+  makeMameFolder(): Promise<{ ok: boolean; path: string; error?: string }>
   /** Controlla il mame.exe indicato: versione e numero di macchine che conosce */
   checkMame(): Promise<{ ok: boolean; version: string; machines: number; error?: string }>
   onGameFailed(cb: (message: string) => void): () => void

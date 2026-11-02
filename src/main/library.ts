@@ -2,6 +2,7 @@ import { promises as fsp } from 'fs'
 import { join, parse } from 'path'
 import type { Game, LibraryEvent, Settings, SystemDef } from '@shared/types'
 import { BIOS_SETS, prettyName, scanSystemFiles } from './scanner'
+import { systemDir } from './paths'
 import { familyOf, type MameData } from './mame'
 
 /**
@@ -50,8 +51,9 @@ export interface LibraryDeps {
 export function createLibrary(deps: LibraryDeps) {
   const mem = new Map<string, Game[]>()
   const running = new Map<string, Promise<void>>()
-  let status: LibraryEvent = { scanning: false, systemId: null, found: 0, updated: null }
+  let status: LibraryEvent = { scanning: false, systemId: null, found: 0, updated: null, offline: null }
   let generation = 0
+  let offline: string | null = null
 
   const emit = (patch: Partial<LibraryEvent>): void => {
     status = { ...status, updated: null, ...patch }
@@ -89,7 +91,14 @@ export function createLibrary(deps: LibraryDeps) {
       mem.set(sys.id, [])
       return
     }
-    const files = await scanSystemFiles(settings.romsDir, sys, (found) => {
+    const base = systemDir(sys, settings)
+    // cartella non raggiungibile (disco esterno scollegato, cartella spostata): si tengono le liste salvate
+    // e non si cancella nulla, così al ritorno del disco è tutto com'era
+    if (!(await fsp.stat(base).then((st) => st.isDirectory()).catch(() => false))) {
+      offline = offline ?? base
+      return
+    }
+    const files = await scanSystemFiles(base, sys, (found) => {
       if (gen === generation) emit({ scanning: true, systemId: sys.id, found })
     })
 
@@ -183,14 +192,15 @@ export function createLibrary(deps: LibraryDeps) {
   async function scanAll(): Promise<void> {
     const gen = ++generation
     running.clear()
-    emit({ scanning: true, systemId: null, found: 0 })
+    offline = null
+    emit({ scanning: true, systemId: null, found: 0, offline: null })
     // MAME per ultimo: la prima lettura del suo elenco richiede qualche secondo
     const ordered = [...deps.systems].sort((a, b) => Number(a.engine === 'mame') - Number(b.engine === 'mame'))
     for (const sys of ordered) {
       if (gen !== generation) return
       await scan(sys, gen)
     }
-    if (gen === generation) emit({ scanning: false, systemId: null, found: 0 })
+    if (gen === generation) emit({ scanning: false, systemId: null, found: 0, offline })
   }
 
   return {

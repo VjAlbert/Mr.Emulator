@@ -23,11 +23,10 @@ const tick = (): Promise<void> => new Promise((r) => setImmediate(r))
  * Restituisce i percorsi relativi alla cartella del sistema.
  */
 export async function scanSystemFiles(
-  romsDir: string,
+  base: string,
   system: SystemDef,
   onProgress?: (found: number) => void
 ): Promise<string[]> {
-  const base = join(romsDir, system.folder)
   const exts = new Set(system.extensions)
   const out: string[] = []
   const stack: Array<[string, number]> = [[base, 0]]

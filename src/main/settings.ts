@@ -22,6 +22,7 @@ const DEFAULTS: Settings = {
   showUnsupported: false,
   mamePath: '',
   mameChdDir: '',
+  mameRomDir: '',
   mameClones: false
 }
 

@@ -2,6 +2,8 @@ import { contextBridge, ipcRenderer } from 'electron'
 import type { GameEnded, LibraryEvent, MrApi } from '@shared/types'
 
 const api: MrApi = {
+  setupRoot: (rootDir) => ipcRenderer.invoke('folders:setup-root', rootDir),
+  makeMameFolder: () => ipcRenderer.invoke('mame:make-folder'),
   checkMame: () => ipcRenderer.invoke('mame:check'),
   onGameFailed: (cb) => {
     const handler = (_e: unknown, msg: string): void => cb(msg)
