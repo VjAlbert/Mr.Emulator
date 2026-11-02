@@ -537,3 +537,14 @@ b.warnmark { color: #ffd400; margin-right: 8px; font-weight: 400; } .row.active 
 /* molti sistemi: la griglia scorre dentro il suo spazio (senza finire sotto i suggerimenti) */
 .select-body > .grid { max-height: 100%; overflow-y: auto; padding: 18px 14px; scrollbar-width: none; }
 .select-body > .grid::-webkit-scrollbar { display: none; }
+
+/* diagnostica */
+.diag-list { list-style: none; margin: 16px 0 0; padding: 0; display: grid; gap: 6px; }
+.diag-list li { display: grid; grid-template-columns: 26px 1fr; padding: 8px 12px; background: #14141f; border-left: 5px solid #444; }
+.diag-ok { border-left-color: #17c964 !important; }
+.diag-warn { border-left-color: #ffd400 !important; }
+.diag-bad { border-left-color: #ff2d55 !important; background: #2a1119 !important; }
+.diag-ic { grid-row: 1 / 4; font-size: 16px; }
+.diag-t { font-weight: 600; }
+.diag-d { font-size: 12px; color: var(--muted); word-break: break-all; }
+.diag-f { font-size: 13px; color: #ffd400; }

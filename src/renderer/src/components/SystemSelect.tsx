@@ -49,7 +49,20 @@ export default function SystemSelect({ systems, onOpen, onSettings, onPc, onInpu
     onMenu: onSettings
   })
 
-  if (!sel) return <div className="loading">Caricamento…</div>
+  if (!sel) {
+    // lista vuota: o si sta ancora caricando, o l'utente ha nascosto tutti i sistemi
+    return (
+      <div className="loading" style={{ display: 'flex', flexDirection: 'column', gap: 16, alignItems: 'center', justifyContent: 'center' }}>
+        <div>{lib?.scanning ? 'Caricamento…' : 'Nessun sistema da mostrare.'}</div>
+        {!lib?.scanning && (
+          <>
+            <div className="hint">Puoi sceglierli in Impostazioni → Sistemi in home.</div>
+            <button className="chip" onClick={onSettings}>⚙ IMPOSTAZIONI</button>
+          </>
+        )}
+      </div>
+    )
+  }
 
   return (
     <div className="screen select" style={{ ['--accent' as string]: sel.color }}>

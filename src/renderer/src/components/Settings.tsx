@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import type { PickKind, Settings, SystemInfo } from '@shared/types'
+import type { DiagnosticReport, PickKind, Settings, SystemInfo } from '@shared/types'
 import { useInput } from '../hooks/useInput'
 import { configureSound, sfx } from '../sound'
 
@@ -18,7 +18,9 @@ export default function SettingsScreen({ onClose, onSaved, onPc, onRomCheck }: P
   const [mameInfo, setMameInfo] = useState<string>('')
   const [mediaInfo, setMediaInfo] = useState<string[]>([])
   const bodyRef = useRef<HTMLDivElement>(null)
-  const [tab, setTab] = useState<'general' | 'systems'>('general')
+  const [tab, setTab] = useState<'general' | 'systems' | 'diag'>('general')
+  const [diag, setDiag] = useState<DiagnosticReport | null>(null)
+  const [copied, setCopied] = useState(false)
   const [all, setAll] = useState<SystemInfo[]>([])
 
   useEffect(() => {
@@ -75,8 +77,54 @@ export default function SettingsScreen({ onClose, onSaved, onPc, onRomCheck }: P
         <div className="tabs">
           <button className={`tab ${tab === 'general' ? 'on' : ''}`} onClick={() => setTab('general')}>GENERALE</button>
           <button className={`tab ${tab === 'systems' ? 'on' : ''}`} onClick={() => setTab('systems')}>SISTEMI IN HOME</button>
+          <button
+            className={`tab ${tab === 'diag' ? 'on' : ''}`}
+            onClick={async () => {
+              setTab('diag')
+              await window.mr.saveSettings(s)
+              setDiag(await window.mr.getDiagnostics())
+            }}
+          >
+            DIAGNOSTICA
+          </button>
         </div>
-        {tab === 'systems' ? (
+        {tab === 'diag' ? (
+          <div className="diag">
+            {!diag ? (
+              <p className="hint">Controllo in corso…</p>
+            ) : (
+              <>
+                <p className="hint">
+                  {diag.problems === 0 && diag.warnings === 0 ? '✔ Tutto a posto.' : `${diag.problems} problemi · ${diag.warnings} avvisi.`} Se qualcosa non funziona, premi COPIA e incolla il testo nella chat.
+                </p>
+                <div className="field-row">
+                  <button
+                    className="chip"
+                    onClick={() => {
+                      navigator.clipboard.writeText(diag.text).then(() => {
+                        setCopied(true)
+                        setTimeout(() => setCopied(false), 1800)
+                      }, () => undefined)
+                    }}
+                  >
+                    {copied ? '✔ COPIATO' : '📋 COPIA IL TESTO'}
+                  </button>
+                  <button className="chip" onClick={() => window.mr.getDiagnostics().then(setDiag)}>⟳ RICONTROLLA</button>
+                </div>
+                <ul className="diag-list">
+                  {diag.checks.map((k, i) => (
+                    <li key={i} className={`diag-${k.level}`}>
+                      <span className="diag-ic">{k.level === 'ok' ? '✔' : k.level === 'warn' ? '⚠' : '✖'}</span>
+                      <span className="diag-t">{k.title}</span>
+                      {k.detail && <span className="diag-d">{k.detail}</span>}
+                      {k.fix && <span className="diag-f">→ {k.fix}</span>}
+                    </li>
+                  ))}
+                </ul>
+              </>
+            )}
+          </div>
+        ) : tab === 'systems' ? (
           <div className="sysopts">
             <p className="hint">Scegli quali sistemi mostrare nella griglia della home. Le ROM restano dove sono: nascondere un sistema non cancella nulla. Ricorda di premere SALVA.</p>
             <div className="field-row">

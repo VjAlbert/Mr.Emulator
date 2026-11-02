@@ -31,6 +31,22 @@ export interface SystemDef {
   softlist?: string[]
 }
 
+export interface DiagnosticCheck {
+  level: 'ok' | 'warn' | 'bad'
+  title: string
+  detail: string
+  /** Cosa fare per risolvere */
+  fix: string
+}
+
+export interface DiagnosticReport {
+  checks: DiagnosticCheck[]
+  /** Testo completo, da copiare e mandare */
+  text: string
+  problems: number
+  warnings: number
+}
+
 export interface SystemInfo extends SystemDef {
   gameCount: number
   /** Nascosto dalla griglia della home (scelta dell'utente) */
@@ -313,6 +329,7 @@ export interface MrApi {
   onLibrary(cb: (e: LibraryEvent) => void): () => void
   getInputMap(): Promise<InputMapReport>
   getReport(): Promise<OptimizationReport>
+  getDiagnostics(): Promise<DiagnosticReport>
   sendFeedback(systemId: string, answer: Feedback): Promise<void>
   /** Si attiva quando un gioco si chiude; restituisce la funzione per smettere di ascoltare */
   onGameEnded(cb: (e: GameEnded) => void): () => void

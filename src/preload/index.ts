@@ -39,6 +39,7 @@ const api: MrApi = {
   },
   getInputMap: () => ipcRenderer.invoke('input:map'),
   getReport: () => ipcRenderer.invoke('report:get'),
+  getDiagnostics: () => ipcRenderer.invoke('diagnostics:get'),
   sendFeedback: (systemId, answer) => ipcRenderer.invoke('feedback:send', systemId, answer),
   onGameEnded: (cb) => {
     const handler = (_e: unknown, data: GameEnded): void => cb(data)

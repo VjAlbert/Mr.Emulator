@@ -25,6 +25,7 @@ import { MediaSource } from './media'
 import { runVerify, type VerifyBad } from './verify'
 import { existsSync, readFileSync, writeFileSync } from 'fs'
 import { loadMameData, type MameData } from './mame'
+import { buildDiagnostics } from './diagnostics'
 import { writeFileAtomic } from './atomic'
 import { softTitles } from './softlist'
 import { datTitles } from './datfiles'
@@ -553,6 +554,16 @@ app.whenReady().then(async () => {
     return { ok: true, version: d.version, machines: d.machines.size, warning }
   })
 
+  ipcMain.handle('diagnostics:get', () =>
+    buildDiagnostics({
+      settings: loadSettings(),
+      systems: SYSTEMS,
+      gameCount: (id) => library.count(id),
+      userData: app.getPath('userData'),
+      version: app.getVersion(),
+      os: `${process.platform} ${process.getSystemVersion()}`
+    })
+  )
   ipcMain.handle('report:get', async () => buildReport(loadSettings(), await detectHardware(true), win, gpuPref))
 
   // risposte dell'utente: correggono il livello di quel sistema (-2 .. +1)
