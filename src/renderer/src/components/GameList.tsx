@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import type { Game, SystemInfo } from '@shared/types'
 import { useInput } from '../hooks/useInput'
 import CoverCarousel from './CoverCarousel'
@@ -38,6 +38,15 @@ export default function GameList({ system, games, message, onLaunch, onBack, let
   const listRef = useRef<HTMLDivElement>(null)
   const [searchOpen, setSearchOpen] = useState(false)
   const byMouse = useRef(false)
+  // il puntatore fermo sulla lista non deve "rubare" la selezione quando le righe scorrono sotto di lui:
+  // il mouse conta solo se si muove davvero e non subito dopo un comando da tastiera o pad
+  const lastMouse = useRef({ x: -1, y: -1 })
+  const lastNav = useRef(0)
+  const mouseMoved = (e: React.MouseEvent): boolean => {
+    const moved = Math.abs(e.clientX - lastMouse.current.x) + Math.abs(e.clientY - lastMouse.current.y) > 2
+    lastMouse.current = { x: e.clientX, y: e.clientY }
+    return moved && performance.now() - lastNav.current > 250
+  }
   const selectedId = useRef<string | null>(null)
 
   // titoli normalizzati una volta sola (con 40.000 giochi non si può rifare a ogni tasto)
@@ -219,6 +228,7 @@ export default function GameList({ system, games, message, onLaunch, onBack, let
 
   const move = (fn: (i: number) => number): void => {
     byMouse.current = false
+    lastNav.current = performance.now()
     setIndex((i) => Math.max(0, Math.min(list.length - 1, fn(i))))
   }
 
@@ -247,8 +257,9 @@ export default function GameList({ system, games, message, onLaunch, onBack, let
     return () => ro.disconnect()
   }, [])
 
-  // la riga selezionata resta visibile (non quando è il mouse a cambiarla)
-  useEffect(() => {
+  // la riga selezionata resta visibile (non quando è il mouse a cambiarla). Si fa prima del disegno e lo stato
+  // dello scorrimento si aggiorna subito: altrimenti le righe da disegnare restano indietro di un'istante e la selezione "balla"
+  useLayoutEffect(() => {
     const el = listRef.current
     if (!el) return
     if (byMouse.current) {
@@ -256,8 +267,13 @@ export default function GameList({ system, games, message, onLaunch, onBack, let
       return
     }
     const top = index * ROW_H
-    if (top < el.scrollTop) el.scrollTop = top
-    else if (top + ROW_H > el.scrollTop + el.clientHeight) el.scrollTop = top + ROW_H - el.clientHeight
+    let next = el.scrollTop
+    if (top < next) next = top
+    else if (top + ROW_H > next + el.clientHeight) next = top + ROW_H - el.clientHeight
+    if (next !== el.scrollTop) {
+      el.scrollTop = next
+      setScrollTop(el.scrollTop)
+    }
   }, [index, list])
 
   // tastiera: "/" o Ctrl+F aprono la ricerca; una lettera salta al prossimo titolo che inizia così.
@@ -307,9 +323,11 @@ export default function GameList({ system, games, message, onLaunch, onBack, let
         key={g.id}
         className={`row ${i === index ? 'active' : ''}`}
         style={{ top: i * ROW_H, height: ROW_H - 6 }}
-        onMouseEnter={() => {
-          byMouse.current = true
-          setIndex(i)
+        onMouseMove={(e) => {
+          if (i !== index && mouseMoved(e)) {
+            byMouse.current = true
+            setIndex(i)
+          }
         }}
         onClick={() => onLaunch(g)}
       >

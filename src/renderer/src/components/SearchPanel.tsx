@@ -93,6 +93,14 @@ export default function SearchPanel(p: Props): React.JSX.Element {
     }
     return p.typing ? 'qwerty' : 'alfa'
   })
+  // il puntatore fermo non deve rubare la selezione quando i risultati scorrono sotto di lui
+  const lastMouse = useRef({ x: -1, y: -1 })
+  const lastNav = useRef(0)
+  const mouseMoved = (e: React.MouseEvent): boolean => {
+    const moved = Math.abs(e.clientX - lastMouse.current.x) + Math.abs(e.clientY - lastMouse.current.y) > 2
+    lastMouse.current = { x: e.clientX, y: e.clientY }
+    return moved && performance.now() - lastNav.current > 250
+  }
   const typed = useRef(false) // l'ultimo input veniva dalla tastiera fisica
   const paneRef = useRef<HTMLDivElement>(null)
   const rows = LAYOUTS[layout]
@@ -218,6 +226,7 @@ export default function SearchPanel(p: Props): React.JSX.Element {
 
   const move = (d: 'up' | 'down' | 'left' | 'right'): void => {
     typed.current = false
+    lastNav.current = performance.now()
     if (zone === 'initials') {
       const step = d === 'left' ? -1 : d === 'right' ? 1 : 0
       if (step) {
@@ -497,9 +506,11 @@ export default function SearchPanel(p: Props): React.JSX.Element {
                     key={t.id}
                     className={`sp-tile ${zone === 'pane' && tile === i ? 'active' : ''}`}
                     style={{ animationDelay: `${i * 22}ms` }}
-                    onMouseEnter={() => {
-                      setZone('pane')
-                      setTile(i)
+                    onMouseMove={(e) => {
+                      if (mouseMoved(e)) {
+                        setZone('pane')
+                        setTile(i)
+                      }
                     }}
                     onClick={t.run}
                   >
@@ -521,9 +532,11 @@ export default function SearchPanel(p: Props): React.JSX.Element {
                     key={g.id}
                     className={`sp-res ${zone === 'pane' && res === i ? 'active' : ''}`}
                     style={{ animationDelay: `${Math.min(i, 12) * 18}ms` }}
-                    onMouseEnter={() => {
-                      setZone('pane')
-                      setRes(i)
+                    onMouseMove={(e) => {
+                      if (mouseMoved(e)) {
+                        setZone('pane')
+                        setRes(i)
+                      }
                     }}
                     onClick={() => p.onPick(g)}
                   >

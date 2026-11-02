@@ -19,6 +19,12 @@ export interface InputHandlers {
 
 const REPEAT_FIRST = 380
 const REPEAT_NEXT = 110
+
+/**
+ * Intervallo tra due ripetizioni tenendo premuto. Per le liste (su/giù) accelera gradualmente
+ * (110 ms, poi 70, poi 45), sempre di UNA riga alla volta: così si può rilasciare e fermarsi dove si vuole.
+ */
+const repeatEvery = (held: number, accel: boolean): number => (!accel ? REPEAT_NEXT : held < 900 ? REPEAT_NEXT : held < 1800 ? 70 : 45)
 const DEADZONE = 0.55
 
 /**
@@ -134,16 +140,9 @@ export function useInput(handlers: InputHandlers, opts: { modal?: boolean; keybo
       if (!st) {
         held.set(key, { since: now, last: now, n: 0 })
         fire()
-      } else if (now - st.since > REPEAT_FIRST && now - st.last > REPEAT_NEXT) {
+      } else if (now - st.since > REPEAT_FIRST && now - st.last > repeatEvery(now - st.since, accel)) {
         st.last = now
-        st.n++
         fire()
-        // tenendo premuto a lungo, la lista scorre sempre più veloce (utile con migliaia di titoli)
-        if (accel && st.n > 10) {
-          fire()
-          fire()
-          if (st.n > 25) for (let i = 0; i < 6; i++) fire()
-        }
       }
     }
 
