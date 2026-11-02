@@ -204,11 +204,26 @@ export interface LibraryEvent {
   offline: string | null
 }
 
+/** Cosa ha trovato la scansione di MAME nella cartella dei giochi (serve a spiegare perché la lista è vuota) */
+export interface LibraryStats {
+  /** ZIP trovati in totale */
+  total: number
+  /** Giochi mostrati in lista */
+  shown: number
+  /** ZIP di BIOS e dispositivi (non sono giochi) */
+  bios: number
+  device: number
+  /** ZIP che questo MAME non conosce (di solito: set di un'altra versione) */
+  unknown: number
+  version: string
+}
+
 export type ArtKind = 'boxart' | 'snap' | 'title'
 
 export type PickKind = 'dir' | 'file'
 
 export interface MrApi {
+  getLibraryStats(systemId: string): Promise<LibraryStats | null>
   getPrefs(): Promise<{ favorites: string[]; recents: string[] }>
   toggleFavorite(gameId: string): Promise<string[]>
   /** Sposta tutto (ROM, BIOS, cartella MAME di questa versione) su un'altra cartella o disco */
@@ -216,7 +231,7 @@ export interface MrApi {
   /** Crea la cartella dedicata alla versione di MAME indicata e la imposta */
   makeMameFolder(): Promise<{ ok: boolean; path: string; error?: string }>
   /** Controlla il mame.exe indicato: versione e numero di macchine che conosce */
-  checkMame(): Promise<{ ok: boolean; version: string; machines: number; error?: string }>
+  checkMame(): Promise<{ ok: boolean; version: string; machines: number; error?: string; warning?: string }>
   onGameFailed(cb: (message: string) => void): () => void
   getLibraryStatus(): Promise<LibraryEvent>
   onLibrary(cb: (e: LibraryEvent) => void): () => void

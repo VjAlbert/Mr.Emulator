@@ -1,7 +1,7 @@
 import { app, BrowserWindow, dialog, ipcMain, Menu, net, protocol, shell } from 'electron'
 import { pathToFileURL } from 'url'
 import { tmpdir } from 'os'
-import { join } from 'path'
+import { basename, join } from 'path'
 import type { ArtKind, Feedback, Game, GameEnded, OptimizationReport, PickKind, Settings, SystemInfo } from '@shared/types'
 import { SYSTEMS } from './systems'
 import { loadSettings, saveSettings } from './settings'
@@ -139,6 +139,7 @@ app.whenReady().then(async () => {
   }
 
   ipcMain.handle('library:status', () => library.status())
+  ipcMain.handle('library:stats', (_e, systemId: string) => library.stats(systemId))
 
   // preferiti e ultimi giochi: si salvano insieme alle impostazioni
   ipcMain.handle('prefs:get', () => {
@@ -291,7 +292,11 @@ app.whenReady().then(async () => {
     const d = await getMame(undefined, true)
     if (!d) return { ok: false, version: '', machines: 0, error: 'MAME non risponde: controlla che il file sia mame.exe e che si avvii.' }
     library.rescan(false)
-    return { ok: true, version: d.version, machines: d.machines.size }
+    // la cartella dei giochi porta spesso il nome della versione (mame0229): se non coincide con MAME, si avvisa
+    const folder = /^mame(\d+)$/i.exec(basename(s.mameRomDir || ''))
+    const exeNum = /\(mame(\d+)\)/i.exec(d.version)
+    const warning = folder && exeNum && folder[1] !== exeNum[1] ? `La cartella dei giochi si chiama ${basename(s.mameRomDir)} ma questo MAME è ${d.version}: i set ROM valgono solo per la loro versione.` : undefined
+    return { ok: true, version: d.version, machines: d.machines.size, warning }
   })
 
   ipcMain.handle('report:get', async () => buildReport(loadSettings(), await detectHardware(true), win, gpuPref))

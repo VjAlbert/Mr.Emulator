@@ -2,6 +2,7 @@ import { contextBridge, ipcRenderer } from 'electron'
 import type { GameEnded, LibraryEvent, MrApi } from '@shared/types'
 
 const api: MrApi = {
+  getLibraryStats: (systemId) => ipcRenderer.invoke('library:stats', systemId),
   getPrefs: () => ipcRenderer.invoke('prefs:get'),
   toggleFavorite: (id) => ipcRenderer.invoke('prefs:toggle-favorite', id),
   setupRoot: (rootDir) => ipcRenderer.invoke('folders:setup-root', rootDir),

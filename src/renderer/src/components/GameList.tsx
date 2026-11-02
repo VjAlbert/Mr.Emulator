@@ -7,6 +7,7 @@ import FadeBackdrop from './FadeBackdrop'
 import SearchPanel from './SearchPanel'
 import { pickArt } from '../hooks/useArt'
 import { sfx } from '../sound'
+import type { LibraryStats } from '@shared/types'
 import { decadeLabel, decadeOf, initialOf, matchAll, norm, splitTitle } from '../search'
 
 /** Altezza di una riga (compreso lo spazio): la lista disegna solo quelle visibili */
@@ -70,6 +71,11 @@ export default function GameList({ system, games, message, onLaunch, onBack, let
       // vedi sopra
     }
   }
+  // se la lista di MAME è vuota si spiega perché (solo BIOS? set di un'altra versione?)
+  const [stats, setStats] = useState<LibraryStats | null>(null)
+  useEffect(() => {
+    if (system.engine === 'mame' && games.length === 0) window.mr.getLibraryStats(system.id).then(setStats)
+  }, [system.id, system.engine, games.length])
   const [prefs, setPrefs] = useState<{ favorites: string[]; recents: string[] }>({ favorites: [], recents: [] })
   useEffect(() => {
     window.mr.getPrefs().then(setPrefs)
@@ -315,9 +321,25 @@ export default function GameList({ system, games, message, onLaunch, onBack, let
             <div className="empty">
               {games.length === 0 ? (
                 <>
-                  Nessun gioco trovato in <b>{system.folder}</b>.
-                  <br />
-                  Copia qui le tue ROM e riapri questo sistema.
+                  {stats && stats.total > 0 && stats.bios + stats.device >= Math.ceil(stats.total * 0.8) ? (
+                    <>
+                      Nella cartella ci sono <b>{stats.total.toLocaleString('it')} ZIP, ma solo BIOS e dispositivi</b>: mancano gli ZIP dei <b>giochi</b>.
+                      <br />
+                      Serve anche il pacchetto delle ROM dei giochi della stessa versione di MAME ({stats.version || 'quella in uso'}).
+                    </>
+                  ) : stats && stats.total > 0 && stats.unknown > 0 ? (
+                    <>
+                      Nella cartella ci sono {stats.total.toLocaleString('it')} ZIP, ma <b>{stats.unknown.toLocaleString('it')} non sono riconosciuti da questo MAME</b> ({stats.version}).
+                      <br />
+                      Di solito vuol dire che il set ROM è di un'altra versione di MAME.
+                    </>
+                  ) : (
+                    <>
+                      Nessun gioco trovato in <b>{system.folder}</b>.
+                      <br />
+                      Copia qui le tue ROM e riapri questo sistema.
+                    </>
+                  )}
                   <br />
                   <button className="chip" onClick={() => window.mr.openFolder(system.id)}>
                     APRI LA CARTELLA

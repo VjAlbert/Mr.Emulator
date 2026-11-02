@@ -83,7 +83,7 @@ export default function SettingsScreen({ onClose, onSaved, onPc }: Props): React
               setMameInfo('Controllo in corso… (la prima volta può richiedere qualche secondo)')
               await window.mr.saveSettings(s)
               const r = await window.mr.checkMame()
-              setMameInfo(r.ok ? `✔ MAME ${r.version} · ${r.machines.toLocaleString('it')} macchine riconosciute` : `⚠ ${r.error ?? 'MAME non risponde'}`)
+              setMameInfo(r.ok ? `✔ MAME ${r.version} · ${r.machines.toLocaleString('it')} macchine riconosciute${r.warning ? ` — ⚠ ${r.warning}` : ''}` : `⚠ ${r.error ?? 'MAME non risponde'}`)
             }}
           >
             VERIFICA MAME

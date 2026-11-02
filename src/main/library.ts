@@ -1,6 +1,6 @@
 import { promises as fsp } from 'fs'
 import { join, parse } from 'path'
-import type { Game, LibraryEvent, Settings, SystemDef } from '@shared/types'
+import type { Game, LibraryEvent, LibraryStats, Settings, SystemDef } from '@shared/types'
 import { BIOS_SETS, prettyName, scanSystemFiles } from './scanner'
 import { systemDir } from './paths'
 import { familyOf, type MameData } from './mame'
@@ -51,6 +51,7 @@ export interface LibraryDeps {
 export function createLibrary(deps: LibraryDeps) {
   const mem = new Map<string, Game[]>()
   const running = new Map<string, Promise<void>>()
+  const stats = new Map<string, LibraryStats>()
   let status: LibraryEvent = { scanning: false, systemId: null, found: 0, updated: null, offline: null }
   let generation = 0
   let offline: string | null = null
@@ -110,6 +111,7 @@ export function createLibrary(deps: LibraryDeps) {
 
     const list: Array<[string, string, string?, string?, string?]> = []
     const seen = new Set<string>()
+    const st: LibraryStats = { total: files.length, shown: 0, bios: 0, device: 0, unknown: 0, version: mame?.version ?? '' }
     let n = 0
     for (const rel of files) {
       if (++n % 3000 === 0) await tick()
@@ -127,6 +129,9 @@ export function createLibrary(deps: LibraryDeps) {
           list.push([rel, m.description, m.name, familyOf(m, mame!.machines), m.year || undefined])
         }
         const m = mame.machines.get(stem.toLowerCase())
+        if (!m) st.unknown++
+        else if (m.device) st.device++
+        else if (m.bios) st.bios++
         if (!m || m.device || m.bios || m.mechanical || !m.runnable) continue
         add(m)
         // set "merged": le varianti stanno dentro lo ZIP del gioco principale
@@ -146,6 +151,11 @@ export function createLibrary(deps: LibraryDeps) {
         list.push([rel, prettyName(rel)])
       }
     }
+    if (sys.engine === 'mame' && mame) {
+      st.shown = list.length
+      stats.set(sys.id, st)
+    } else stats.delete(sys.id)
+
     // ordinamento: si calcola una chiave per titolo e poi si confrontano solo stringhe semplici
     const keyed: Array<[string, [string, string, string?, string?, string?]]> = []
     for (let i = 0; i < list.length; i++) {
@@ -230,6 +240,8 @@ export function createLibrary(deps: LibraryDeps) {
       await scan(sys, generation || ++generation)
       return mem.get(systemId) ?? []
     },
+    /** Statistiche dell'ultima scansione di MAME (null se non disponibili) */
+    stats: (systemId: string): LibraryStats | null => stats.get(systemId) ?? null,
     count(systemId: string): number {
       return mem.get(systemId)?.length ?? 0
     },
