@@ -63,6 +63,17 @@ export function launchMame(
       onExit()
       // uscita con errore subito dopo l'avvio = il gioco non è partito (file mancanti, versione sbagliata…)
       if (code !== 0 && code !== null && Date.now() - started < 60000) {
+        // "xxx NOT FOUND (tried in kof2001 neogeo)": se uno di quegli ZIP non esiste da nessuna parte, lo si dice chiaramente
+        const tried = new Set<string>()
+        for (const m of out.matchAll(/\(tried in ([^)]+)\)/g)) m[1].split(/\s+/).forEach((n) => n && tried.add(n))
+        const missing = [...tried].filter((n) => !paths.some((d) => existsSync(join(d, `${n}.zip`)) || existsSync(join(d, `${n}.7z`))))
+        if (missing.length) {
+          onFail(
+            `Manca ${missing.map((n) => `${n}.zip`).join(' e ')} (serve a "${game.name}"). Non lo trovo in: ${paths.join(' · ')}. ` +
+              'Copialo direttamente in una di queste cartelle, non in una sottocartella.'
+          )
+          return
+        }
         const lines = out.split(/\r?\n/).map((l) => l.trim()).filter(Boolean).slice(-4)
         onFail(`MAME non ha avviato "${game.name}": ${lines.join(' · ').slice(0, 260) || `errore ${code}`}`)
       }
