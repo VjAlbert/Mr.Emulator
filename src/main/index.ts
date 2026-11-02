@@ -6,7 +6,7 @@ import { extname } from 'path'
 import { MEDIA_MIME, parseRange } from './rangeFile'
 import { tmpdir } from 'os'
 import { basename, join } from 'path'
-import type { ArtKind, Feedback, Game, GameEnded, OptimizationReport, PickKind, Settings, SystemInfo, VerifyState } from '@shared/types'
+import type { ArtKind, Feedback, Game, GameEnded, OptimizationReport, PickKind, Settings, SystemDef, SystemInfo, VerifyState } from '@shared/types'
 import { mkdirSync } from 'fs'
 import { SYSTEMS } from './systems'
 import { loadSettings, saveSettings } from './settings'
@@ -20,12 +20,13 @@ import { buildReport, mameProfileFor, profileFor } from './optimize'
 import { toConfigText } from './profiles'
 import { setHighPerformanceGpu } from './gpuPref'
 import { buildInputConfig, buildInputMap, buildMameCtrlr } from './inputs'
-import { ART_SCHEME, arcadeTitles, clearLocalArt, getArt, resolveArtUrl, setMameTitleProvider, setMediaProvider, setSoftTitleProvider } from './artwork'
+import { ART_SCHEME, arcadeTitles, clearArtMisses, clearLocalArt, getArt, resolveArtUrl, setMameTitleProvider, setMediaProvider, setSoftTitleProvider } from './artwork'
 import { MediaSource } from './media'
 import { runVerify, type VerifyBad } from './verify'
 import { existsSync, readFileSync, writeFileSync } from 'fs'
 import { loadMameData, type MameData } from './mame'
 import { softTitles } from './softlist'
+import { datTitles } from './datfiles'
 import { launchMame } from './mameLauncher'
 import { mameFolderName, systemDir } from './paths'
 
@@ -115,7 +116,15 @@ function getMedia(): MediaSource | null {
   return mediaSrc.src
 }
 setMediaProvider(getMedia)
-setSoftTitleProvider((sys) => softTitles(loadSettings().mamePath, sys.softlist ?? [], join(app.getPath('userData'), 'artwork', '_dat')))
+const consoleTitles = async (sys: SystemDef): Promise<Map<string, string> | null> => {
+  const s = loadSettings()
+  const dat = datTitles(s.datDir, sys.id)
+  const soft = await softTitles(s.mamePath, sys.softlist ?? [], join(app.getPath('userData'), 'artwork', '_dat'))
+  if (!dat) return soft
+  if (soft) for (const [k, v] of soft) if (!dat.has(k)) dat.set(k, v)
+  return dat
+}
+setSoftTitleProvider(consoleTitles)
 
 setMameTitleProvider(async () => {
   const d = await getMame()
@@ -160,10 +169,10 @@ const library = createLibrary({
   systems: SYSTEMS,
   getSettings: loadSettings,
   titles: arcadeTitles,
-  softTitles: (sys) => softTitles(loadSettings().mamePath, sys.softlist ?? [], join(app.getPath('userData'), 'artwork', '_dat')),
+  softTitles: consoleTitles,
   mame: (onProgress) => getMame(onProgress),
   signature: (sys) => {
-    if (sys.softlist) return loadSettings().mamePath
+    if (sys.softlist) return `${loadSettings().mamePath}|${loadSettings().datDir}`
     if (sys.engine !== 'mame') return ''
     const s = loadSettings()
     return `${s.mamePath}|${s.mameClones}|${s.mameRomDir}|${s.hideBadRoms}`
@@ -354,7 +363,8 @@ app.whenReady().then(async () => {
       clearLocalArt()
       mediaSrc = null
     }
-    if (before.romsDir !== saved.romsDir || before.showUnsupported !== saved.showUnsupported || before.mamePath !== saved.mamePath || before.mameClones !== saved.mameClones || before.mameRomDir !== saved.mameRomDir || before.hideBadRoms !== saved.hideBadRoms) {
+    if (before.datDir !== saved.datDir) clearArtMisses()
+    if (before.romsDir !== saved.romsDir || before.datDir !== saved.datDir || before.showUnsupported !== saved.showUnsupported || before.mamePath !== saved.mamePath || before.mameClones !== saved.mameClones || before.mameRomDir !== saved.mameRomDir || before.hideBadRoms !== saved.hideBadRoms) {
       library.rescan(before.romsDir !== saved.romsDir || before.mameRomDir !== saved.mameRomDir)
     }
     return saved

@@ -50,6 +50,17 @@ export function clearLocalArt(): void {
   }
 }
 
+/** Toglie i segni "copertina mancante" (cambiati i DAT, i titoli trovati possono essere diversi) */
+export function clearArtMisses(): void {
+  try {
+    for (const sys of readdirSync(artRoot())) {
+      for (const f of readdirSync(join(artRoot(), sys))) if (f.endsWith('.miss')) rmSync(join(artRoot(), sys, f), { force: true })
+    }
+  } catch {
+    // niente cache: niente da togliere
+  }
+}
+
 export interface MameTitles {
   /** Titoli delle versioni sorelle dello stesso gioco (altre regioni), dalla più comune: serve quando la propria non ha immagini */
   siblingTitles(name: string): string[]

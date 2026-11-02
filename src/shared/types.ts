@@ -89,6 +89,8 @@ export interface Settings {
   launchFloor: number
   /** Cartella con le immagini locali (pacchetti Multimedia / EXTRAs): schermate, copertine, titoli col nome breve del gioco */
   mediaDir: string
+  /** Cartella con i DAT (FinalBurn Neo, Kawaks, MAME…): nome breve -> titolo, hanno la precedenza */
+  datDir: string
   /** Filmato della partita dietro la lista (da videosnaps) */
   videoPreview: boolean
   /** Volume del lettore di musica (colonna sonora) */

@@ -26,6 +26,7 @@ const DEFAULTS: Settings = {
   launchFix: {},
   launchFloor: 0,
   mediaDir: '',
+  datDir: '',
   videoPreview: true,
   musicVolume: 0.5,
   mameRomDir: '',

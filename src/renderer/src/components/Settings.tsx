@@ -3,7 +3,7 @@ import type { PickKind, Settings } from '@shared/types'
 import { useInput } from '../hooks/useInput'
 import { configureSound, sfx } from '../sound'
 
-type PathKey = 'romsDir' | 'biosDir' | 'retroarchPath' | 'coresDir' | 'mamePath' | 'mameChdDir' | 'mameRomDir' | 'mediaDir'
+type PathKey = 'romsDir' | 'biosDir' | 'retroarchPath' | 'coresDir' | 'mamePath' | 'mameChdDir' | 'mameRomDir' | 'mediaDir' | 'datDir'
 
 interface Props {
   onClose: () => void
@@ -122,6 +122,7 @@ export default function SettingsScreen({ onClose, onSaved, onPc, onRomCheck }: P
             USA UN ALTRO DISCO PER TUTTO…
           </button>
         </div>
+        {field('Cartella DAT (FinalBurn Neo, Kawaks, MAME…)', 'File .dat o .xml con nome breve e titolo dei giochi: servono a dare il nome giusto e a trovare le copertine delle console. Hanno la precedenza sulle Software List di MAME', 'datDir', 'dir')}
         {field('Cartella immagini locali (Multimedia / EXTRAs)', 'Cartella con snap, titles, flyers… (file col nome breve del gioco). Ha la precedenza sul download', 'mediaDir', 'dir')}
         <div className="field-row">
           <button

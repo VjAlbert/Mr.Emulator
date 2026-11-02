@@ -48,6 +48,7 @@ Sistemi: Arcade (MAME, FBNeo), Neo Geo, Master System, Mega Drive, NES, SNES, Ga
 - [x] Pacchetto Multimedia: monitor video con cornice sul gioco selezionato (videosnaps) e lettore della colonna sonora (soundtrack), con pausa da tastiera e pad (da verificare dentro Electron: codec e riproduzione)
 - [x] Copertine sempre presenti: ricerca in altre regioni e nel repository FBNeo; se manca tutto, copertina fumettistica generata (titolo, sistema, anno, screenshot)
 - [x] Sistemi FBNeo aggiuntivi: Game Gear, PC Engine/TurboGrafx-16, SuperGrafx, SG-1000, FDS, Neo Geo Pocket, ColecoVision, MSX, ZX Spectrum, Channel F, Astrocade (da provare con le ROM reali)
+- [x] Cartella DAT nelle impostazioni (FinalBurn Neo, Kawaks, MAME): nome breve → titolo per le console, con precedenza sulle Software List di MAME (da provare con i DAT reali)
 - [ ] Nintendo 64, Nintendo DS, Mega CD, Famicom Disk System
 - [ ] GameCube e Wii (da verificare sulle prestazioni)
 
