@@ -27,6 +27,8 @@ export interface SystemDef {
   thumbs?: string
   /** I file hanno nomi brevi (es. pbobblen.zip): il titolo si ricava dal DAT di FBNeo */
   titleDat?: boolean
+  /** Software List di MAME da cui ricavare i titoli dei file con nome breve (console FBNeo) */
+  softlist?: string[]
 }
 
 export interface SystemInfo extends SystemDef {

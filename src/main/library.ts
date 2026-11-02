@@ -12,7 +12,7 @@ import { familyOf, type MameData } from './mame'
  * La lista contiene percorsi relativi alla cartella del sistema.
  */
 
-const CACHE_VERSION = 5
+const CACHE_VERSION = 6
 const tick = (): Promise<void> => new Promise((r) => setImmediate(r))
 
 /** Chiave di ordinamento: minuscolo, senza accenti né simboli iniziali (molto più veloce di localeCompare) */
@@ -42,6 +42,8 @@ export interface LibraryDeps {
   /** Elenco "nome file -> titolo completo" dei giochi arcade FBNeo (null se non disponibile) */
   titles: () => Promise<Map<string, string> | null>
   /** Elenco delle macchine del MAME dell'utente (null se mame.exe non è indicato o non risponde) */
+  /** Titoli completi dalle Software List di MAME (null se mame.exe non è disponibile) */
+  softTitles?: (sys: SystemDef) => Promise<Map<string, string> | null>
   mame: (onProgress?: (n: number) => void) => Promise<MameData | null>
   /** true se il controllo ROM ha trovato difettoso questo gioco (nome breve) */
   isBad?: (name: string) => boolean
@@ -108,6 +110,8 @@ export function createLibrary(deps: LibraryDeps) {
 
     let titles: Map<string, string> | null = null
     if (sys.titleDat) titles = await deps.titles()
+    let soft: Map<string, string> | null = null
+    if (sys.softlist && deps.softTitles) soft = await deps.softTitles(sys)
     let mame: MameData | null = null
     if (sys.engine === 'mame') mame = await deps.mame((found) => gen === generation && emit({ scanning: true, systemId: sys.id, found }))
 
@@ -150,6 +154,8 @@ export function createLibrary(deps: LibraryDeps) {
         // senza l'elenco ufficiale non si può sapere cosa è giocabile: si mostra tutto
         if (titles && !title && !settings.showUnsupported) continue
         list.push([rel, title ?? prettyName(stem)])
+      } else if (soft) {
+        list.push([rel, soft.get(stem.toLowerCase()) ?? prettyName(rel)])
       } else {
         list.push([rel, prettyName(rel)])
       }

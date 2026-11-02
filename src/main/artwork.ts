@@ -63,6 +63,12 @@ export const setMameTitleProvider = (fn: () => Promise<MameTitles | null>): void
   mameProvider = fn
 }
 
+/** Titoli delle console (Software List di MAME), forniti dal programma */
+let softProvider: ((sys: SystemDef) => Promise<Map<string, string> | null>) | null = null
+export const setSoftTitleProvider = (fn: (sys: SystemDef) => Promise<Map<string, string> | null>): void => {
+  softProvider = fn
+}
+
 let datMap: Map<string, string> | null = null
 let titleIndex: TitleIndex = new Map()
 
@@ -103,7 +109,7 @@ function candidates(fileName: string): string[] {
 const localPath = (systemId: string, kind: string, name: string): string =>
   join(artRoot(), systemId, kind, `${name}.png`)
 
-const missPath = (systemId: string, stem: string, kind: ArtKind): string => join(artRoot(), systemId, `${stem}.${kind}.v3.miss`)
+const missPath = (systemId: string, stem: string, kind: ArtKind): string => join(artRoot(), systemId, `${stem}.${kind}.v4.miss`)
 
 const toUrl = (systemId: string, kind: string, name: string): string =>
   `${ART_SCHEME}://art/${encodeURIComponent(systemId)}/${kind}/${encodeURIComponent(name)}.png`
@@ -223,6 +229,15 @@ async function resolveArt(game: Game, system: SystemDef, enabled: boolean, stem:
     names = title ? [clean(title)] : []
     // hack, bootleg e versioni di altre regioni: si ripiega su quelle del gioco originale o delle versioni sorelle
     if (title) fallbacks = parentCandidates(titleIndex, title).map(clean)
+  } else if (system.softlist && softProvider) {
+    // console FBNeo: nome breve -> titolo dalla Software List di MAME; senza elenco si prova il nome del file
+    const soft = await softProvider(system)
+    const title = soft?.get(stem.toLowerCase())
+    names = title ? [clean(title)] : candidates(game.fileName)
+    if (title) {
+      const base = title.replace(/\s*\(.*$/, '').trim()
+      fallbacks = ['USA', 'USA, Europe', 'Europe', 'World', 'Japan'].map((r) => clean(`${base} (${r})`)).filter((n) => n !== names[0])
+    }
   } else {
     names = candidates(game.fileName)
   }

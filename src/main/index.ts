@@ -20,11 +20,12 @@ import { buildReport, mameProfileFor, profileFor } from './optimize'
 import { toConfigText } from './profiles'
 import { setHighPerformanceGpu } from './gpuPref'
 import { buildInputConfig, buildInputMap, buildMameCtrlr } from './inputs'
-import { ART_SCHEME, arcadeTitles, clearLocalArt, getArt, resolveArtUrl, setMameTitleProvider, setMediaProvider } from './artwork'
+import { ART_SCHEME, arcadeTitles, clearLocalArt, getArt, resolveArtUrl, setMameTitleProvider, setMediaProvider, setSoftTitleProvider } from './artwork'
 import { MediaSource } from './media'
 import { runVerify, type VerifyBad } from './verify'
 import { existsSync, readFileSync, writeFileSync } from 'fs'
 import { loadMameData, type MameData } from './mame'
+import { softTitles } from './softlist'
 import { launchMame } from './mameLauncher'
 import { mameFolderName, systemDir } from './paths'
 
@@ -114,6 +115,7 @@ function getMedia(): MediaSource | null {
   return mediaSrc.src
 }
 setMediaProvider(getMedia)
+setSoftTitleProvider((sys) => softTitles(loadSettings().mamePath, sys.softlist ?? [], join(app.getPath('userData'), 'artwork', '_dat')))
 
 setMameTitleProvider(async () => {
   const d = await getMame()
@@ -158,8 +160,10 @@ const library = createLibrary({
   systems: SYSTEMS,
   getSettings: loadSettings,
   titles: arcadeTitles,
+  softTitles: (sys) => softTitles(loadSettings().mamePath, sys.softlist ?? [], join(app.getPath('userData'), 'artwork', '_dat')),
   mame: (onProgress) => getMame(onProgress),
   signature: (sys) => {
+    if (sys.softlist) return loadSettings().mamePath
     if (sys.engine !== 'mame') return ''
     const s = loadSettings()
     return `${s.mamePath}|${s.mameClones}|${s.mameRomDir}|${s.hideBadRoms}`
