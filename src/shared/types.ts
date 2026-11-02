@@ -62,6 +62,8 @@ export interface Settings {
   dedicatedGpu: boolean
   inputScheme: InputScheme
   arcadeLayout: ArcadeLayout
+  /** Arcade/Neo Geo: mostra anche i giochi che il motore FBNeo non supporta (set MAME completi) */
+  showUnsupported: boolean
 }
 
 /** laptop = tastiera del portatile (WASD + J/K/L); cabinet = pannello arcade con encoder tipo I-PAC */
@@ -159,11 +161,24 @@ export interface LaunchResult {
   error?: string
 }
 
+/** Stato della scansione della libreria, che avviene in background */
+export interface LibraryEvent {
+  scanning: boolean
+  /** Sistema in scansione in questo momento */
+  systemId: string | null
+  /** File trovati finora nel sistema in scansione */
+  found: number
+  /** Sistema appena aggiornato (la sua lista è cambiata), se c'è */
+  updated: string | null
+}
+
 export type ArtKind = 'boxart' | 'snap' | 'title'
 
 export type PickKind = 'dir' | 'file'
 
 export interface MrApi {
+  getLibraryStatus(): Promise<LibraryEvent>
+  onLibrary(cb: (e: LibraryEvent) => void): () => void
   getInputMap(): Promise<InputMapReport>
   getReport(): Promise<OptimizationReport>
   sendFeedback(systemId: string, answer: Feedback): Promise<void>

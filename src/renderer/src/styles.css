@@ -250,3 +250,12 @@ kbd { font-family: var(--font); letter-spacing: 1px; min-width: 38px; text-align
 .padbtns { display: flex; flex-wrap: wrap; gap: 6px; }
 .padbtns i { font-style: normal; font-family: var(--font); min-width: 34px; text-align: center; padding: 6px 4px; background: #0b0b12; border: 2px solid rgba(255,255,255,.16); }
 .padbtns i.on { background: var(--accent); color: #000; border-color: #fff; }
+
+/* ---- lista virtuale e ricerca ---- */
+.list { display: block; position: relative; }
+.list-inner { position: relative; width: 100%; }
+.list-inner .row { position: absolute; left: 0; right: 0; }
+.search { flex: 0 1 260px; padding: 10px 14px; background: var(--panel); border: 2px solid rgba(255,255,255,.14); color: var(--text); font: inherit; font-size: 14px; user-select: text; }
+.search:focus { outline: none; border-color: var(--accent); }
+.scan { font-family: var(--font); letter-spacing: 2px; font-size: 13px; color: var(--accent); align-self: center; animation: blink 1.2s steps(2) infinite; }
+.light-fx .scan { animation: none; }

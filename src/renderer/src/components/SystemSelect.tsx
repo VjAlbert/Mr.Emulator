@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import type { SystemInfo } from '@shared/types'
+import type { LibraryEvent, SystemInfo } from '@shared/types'
 import { useInput } from '../hooks/useInput'
 import ArtShowcase from './ArtShowcase'
 import Orbs from './Orbs'
@@ -12,9 +12,10 @@ interface Props {
   onSettings: () => void
   onPc: () => void
   onInput: () => void
+  lib: LibraryEvent | null
 }
 
-export default function SystemSelect({ systems, onOpen, onSettings, onPc, onInput }: Props): React.JSX.Element {
+export default function SystemSelect({ systems, onOpen, onSettings, onPc, onInput, lib }: Props): React.JSX.Element {
   const [index, setIndex] = useState(0)
   const sel = systems[index]
 
@@ -46,6 +47,11 @@ export default function SystemSelect({ systems, onOpen, onSettings, onPc, onInpu
           MR. <span>EMULATOR</span>
         </h1>
         <div className="top-actions">
+          {lib?.scanning && (
+            <span className="scan" title="La libreria si aggiorna in background">
+              ⟳ SCANSIONE{lib.found > 0 ? ` · ${lib.found.toLocaleString('it')}` : ''}
+            </span>
+          )}
           <button className="chip" onClick={onInput}>
             🎮 COMANDI
           </button>
@@ -63,7 +69,7 @@ export default function SystemSelect({ systems, onOpen, onSettings, onPc, onInpu
           <div className="hero-short">{sel.short}</div>
           <div className="hero-name">{sel.name}</div>
           <div className="hero-count">
-            {sel.phase !== 1 ? 'IN ARRIVO' : `${sel.gameCount} ${sel.gameCount === 1 ? 'GIOCO' : 'GIOCHI'}`}
+            {sel.phase !== 1 ? 'IN ARRIVO' : `${sel.gameCount.toLocaleString('it')} ${sel.gameCount === 1 ? 'GIOCO' : 'GIOCHI'}`}
           </div>
         </section>
 

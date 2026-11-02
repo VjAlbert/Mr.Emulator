@@ -71,6 +71,10 @@ export default function SettingsScreen({ onClose, onSaved, onPc }: Props): React
           Scarica automaticamente copertine e immagini (gratuito, senza account)
         </label>
         <label className="check">
+          <input type="checkbox" checked={s.showUnsupported} onChange={(e) => setS({ ...s, showUnsupported: e.target.checked })} />
+          Arcade e Neo Geo: mostra anche i giochi che il motore (FBNeo) non supporta, come i set MAME completi
+        </label>
+        <label className="check">
           <input type="checkbox" checked={s.lightEffects} onChange={(e) => setS({ ...s, lightEffects: e.target.checked })} />
           Effetti ridotti (consigliato per PC lenti: meno animazioni e luci)
         </label>

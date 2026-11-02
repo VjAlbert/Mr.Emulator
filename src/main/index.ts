@@ -5,7 +5,8 @@ import { join } from 'path'
 import type { ArtKind, Feedback, Game, GameEnded, OptimizationReport, PickKind, Settings, SystemInfo } from '@shared/types'
 import { SYSTEMS } from './systems'
 import { loadSettings, saveSettings } from './settings'
-import { demoGames, scanSystem } from './scanner'
+import { demoGames } from './scanner'
+import { createLibrary } from './library'
 import { launchGame } from './launcher'
 import { platform } from './platform'
 import { ensureFolders } from './folders'
@@ -14,7 +15,7 @@ import { buildReport, profileFor } from './optimize'
 import { toConfigText } from './profiles'
 import { setHighPerformanceGpu } from './gpuPref'
 import { buildInputConfig, buildInputMap } from './inputs'
-import { ART_SCHEME, getArt, resolveArtUrl, withFullTitles } from './artwork'
+import { ART_SCHEME, arcadeTitles, getArt, resolveArtUrl } from './artwork'
 
 protocol.registerSchemesAsPrivileged([
   { scheme: ART_SCHEME, privileges: { standard: true, secure: true, supportFetchAPI: true } }
@@ -62,12 +63,13 @@ function createWindow(): void {
   else win.loadFile(join(__dirname, '../renderer/index.html'))
 }
 
-function gamesFor(systemId: string, settings: Settings): Game[] {
-  const system = SYSTEMS.find((s) => s.id === systemId)
-  if (!system) return []
-  if (!settings.romsDir) return demoGames(system)
-  return scanSystem(settings.romsDir, system)
-}
+const library = createLibrary({
+  cacheDir: join(app.getPath('userData'), 'library'),
+  systems: SYSTEMS,
+  getSettings: loadSettings,
+  titles: arcadeTitles,
+  emit: (e) => win?.webContents.send('library:event', e)
+})
 
 app.whenReady().then(async () => {
   protocol.handle(ART_SCHEME, (req) => {
@@ -82,12 +84,14 @@ app.whenReady().then(async () => {
 
   ipcMain.handle('systems:get', (): SystemInfo[] => {
     const settings = loadSettings()
-    return SYSTEMS.map((s) => ({ ...s, gameCount: gamesFor(s.id, settings).length }))
+    return SYSTEMS.map((s) => ({ ...s, gameCount: settings.romsDir ? library.count(s.id) : demoGames(s).length }))
   })
 
   ipcMain.handle('games:get', async (_e, systemId: string) => {
-    const games = gamesFor(systemId, loadSettings())
-    return SYSTEMS.find((s) => s.id === systemId)?.titleDat ? withFullTitles(games) : games
+    const settings = loadSettings()
+    const system = SYSTEMS.find((s) => s.id === systemId)
+    if (!system) return []
+    return settings.romsDir ? library.games(systemId) : demoGames(system)
   })
 
   // Primo avvio: prepara Documenti\MrEmulator con ROM e BIOS
@@ -101,8 +105,10 @@ app.whenReady().then(async () => {
     await applyGpuPreference(loadSettings())
   }
 
+  ipcMain.handle('library:status', () => library.status())
   ipcMain.handle('settings:get', () => loadSettings())
   ipcMain.handle('settings:save', (_e, s: Settings) => {
+    const before = loadSettings()
     const saved = saveSettings(s)
     void applyGpuPreference(saved)
     try {
@@ -110,9 +116,16 @@ app.whenReady().then(async () => {
     } catch {
       // cartella non scrivibile: nessun problema, resta quella scelta dall'utente
     }
+    if (before.romsDir !== saved.romsDir || before.showUnsupported !== saved.showUnsupported) {
+      library.rescan(before.romsDir !== saved.romsDir)
+    }
     return saved
   })
-  ipcMain.handle('folder:setup', () => saveSettings(ensureFolders(loadSettings())))
+  ipcMain.handle('folder:setup', () => {
+    const next = saveSettings(ensureFolders(loadSettings()))
+    library.rescan(false)
+    return next
+  })
   ipcMain.handle('folder:open', async (_e, target: string) => {
     const s = ensureFolders(loadSettings())
     const sys = SYSTEMS.find((x) => x.id === target)
@@ -132,6 +145,8 @@ app.whenReady().then(async () => {
     const system = SYSTEMS.find((s) => s.id === game.systemId)
     if (!system) return { ok: false, error: 'Sistema sconosciuto.' }
     const settings = loadSettings()
+    // la lista contiene percorsi relativi alla cartella del sistema
+    if (!game.demo) game = { ...game, path: join(settings.romsDir, system.folder, game.path) }
     const hw = await detectHardware(true)
     await applyGpuPreference(settings)
     const { profile } = profileFor(system, settings, hw, win)
@@ -176,6 +191,8 @@ app.whenReady().then(async () => {
   })
 
   createWindow()
+  // la libreria si carica dopo che la finestra è aperta: l'interfaccia è subito utilizzabile
+  void library.init()
   app.on('activate', () => BrowserWindow.getAllWindows().length === 0 && createWindow())
 })
 

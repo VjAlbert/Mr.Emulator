@@ -1,7 +1,13 @@
 import { contextBridge, ipcRenderer } from 'electron'
-import type { GameEnded, MrApi } from '@shared/types'
+import type { GameEnded, LibraryEvent, MrApi } from '@shared/types'
 
 const api: MrApi = {
+  getLibraryStatus: () => ipcRenderer.invoke('library:status'),
+  onLibrary: (cb) => {
+    const handler = (_e: unknown, data: LibraryEvent): void => cb(data)
+    ipcRenderer.on('library:event', handler)
+    return () => ipcRenderer.removeListener('library:event', handler)
+  },
   getInputMap: () => ipcRenderer.invoke('input:map'),
   getReport: () => ipcRenderer.invoke('report:get'),
   sendFeedback: (systemId, answer) => ipcRenderer.invoke('feedback:send', systemId, answer),

@@ -18,7 +18,8 @@ Sistemi: Arcade (MAME, FBNeo), Neo Geo, Master System, Mega Drive, NES, SNES, Ga
 - [x] Copertine per Arcade e Neo Geo (titolo ricavato dal DAT di FBNeo, 7718 giochi)
 - [x] File BIOS (es. neogeo.zip) nascosti dalla lista
 - [x] Carosello 3D di copertine, sfondo a rotazione, tendine ed effetti luce (con modalità "effetti ridotti")
-- [ ] Download in blocco delle copertine di un intero sistema
+- [x] Archivi completi: scansione in background, indice salvato su disco, lista virtuale, ricerca e salti di pagina (provato su 54.000 file finti)
+- [ ] Download in blocco delle copertine di un intero sistema (opzionale: occupa molto spazio)
 - [x] Schermata di selezione sistema in stile "character select"
 - [x] Avvio dei giochi tramite RetroArch e ritorno al launcher (da verificare con RetroArch reale)
 - [x] Navigazione con tastiera, mouse e gamepad (da verificare con pad reali ed encoder arcade)

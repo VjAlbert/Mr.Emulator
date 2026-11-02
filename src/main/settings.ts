@@ -18,7 +18,8 @@ const DEFAULTS: Settings = {
   gameMonitor: 0,
   dedicatedGpu: true,
   inputScheme: 'laptop',
-  arcadeLayout: 'standard'
+  arcadeLayout: 'standard',
+  showUnsupported: false
 }
 
 const file = (): string => join(app.getPath('userData'), 'settings.json')

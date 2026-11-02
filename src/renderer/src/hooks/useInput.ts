@@ -7,6 +7,8 @@ export interface InputHandlers {
   onConfirm?: () => void
   onBack?: () => void
   onMenu?: () => void
+  /** Salto di pagina: tasti PageUp/PageDown o pulsanti dorsali del pad (LB/RB) */
+  onPage?: (dir: -1 | 1) => void
 }
 
 const REPEAT_FIRST = 380
@@ -56,6 +58,8 @@ export function useInput(handlers: InputHandlers, opts: { modal?: boolean; keybo
         ArrowRight: () => h.onMove?.('right'),
         Enter: () => h.onConfirm?.(),
         ' ': () => h.onConfirm?.(),
+        PageUp: () => h.onPage?.(-1),
+        PageDown: () => h.onPage?.(1),
         Escape: () => h.onBack?.(),
         Backspace: () => h.onBack?.(),
         Tab: () => h.onMenu?.()
@@ -69,21 +73,28 @@ export function useInput(handlers: InputHandlers, opts: { modal?: boolean; keybo
     window.addEventListener('keydown', onKey)
 
     // Gamepad: polling con ripetizione per i tasti tenuti premuti
-    const held = new Map<string, { since: number; last: number }>()
+    const held = new Map<string, { since: number; last: number; n: number }>()
     let raf = 0
 
-    const press = (key: string, down: boolean, now: number, fire: () => void): void => {
+    const press = (key: string, down: boolean, now: number, fire: () => void, accel = false): void => {
       if (!down) {
         held.delete(key)
         return
       }
       const st = held.get(key)
       if (!st) {
-        held.set(key, { since: now, last: now })
+        held.set(key, { since: now, last: now, n: 0 })
         fire()
       } else if (now - st.since > REPEAT_FIRST && now - st.last > REPEAT_NEXT) {
         st.last = now
+        st.n++
         fire()
+        // tenendo premuto a lungo, la lista scorre sempre più veloce (utile con migliaia di titoli)
+        if (accel && st.n > 10) {
+          fire()
+          fire()
+          if (st.n > 25) for (let i = 0; i < 6; i++) fire()
+        }
       }
     }
 
@@ -99,10 +110,12 @@ export function useInput(handlers: InputHandlers, opts: { modal?: boolean; keybo
         const ax = pad.axes[0] ?? 0
         const ay = pad.axes[1] ?? 0
         const id = pad.index
-        press(`${id}u`, !!b[12]?.pressed || ay < -DEADZONE, now, () => h.onMove?.('up'))
-        press(`${id}d`, !!b[13]?.pressed || ay > DEADZONE, now, () => h.onMove?.('down'))
+        press(`${id}u`, !!b[12]?.pressed || ay < -DEADZONE, now, () => h.onMove?.('up'), true)
+        press(`${id}d`, !!b[13]?.pressed || ay > DEADZONE, now, () => h.onMove?.('down'), true)
         press(`${id}l`, !!b[14]?.pressed || ax < -DEADZONE, now, () => h.onMove?.('left'))
         press(`${id}r`, !!b[15]?.pressed || ax > DEADZONE, now, () => h.onMove?.('right'))
+        press(`${id}pl`, !!b[4]?.pressed, now, () => h.onPage?.(-1))
+        press(`${id}pr`, !!b[5]?.pressed, now, () => h.onPage?.(1))
         press(`${id}a`, !!b[0]?.pressed, now, () => h.onConfirm?.())
         press(`${id}b`, !!b[1]?.pressed, now, () => h.onBack?.())
         press(`${id}s`, !!b[9]?.pressed, now, () => h.onMenu?.())
