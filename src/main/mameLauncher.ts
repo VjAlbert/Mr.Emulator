@@ -5,6 +5,7 @@ import { app } from 'electron'
 import type { Game, LaunchResult, Settings, SystemDef } from '@shared/types'
 import { toIniText } from './profiles'
 import { systemDir } from './paths'
+import { readZipInfo } from './zipinfo'
 
 /** Avvia un gioco con il MAME autonomo dell'utente. Se MAME rifiuta di partire, spiega perché. */
 export function launchMame(
@@ -63,23 +64,73 @@ export function launchMame(
       onExit()
       // uscita con errore subito dopo l'avvio = il gioco non è partito (file mancanti, versione sbagliata…)
       if (code !== 0 && code !== null && Date.now() - started < 60000) {
-        // "xxx NOT FOUND (tried in kof2001 neogeo)": se uno di quegli ZIP non esiste da nessuna parte, lo si dice chiaramente
-        const tried = new Set<string>()
-        for (const m of out.matchAll(/\(tried in ([^)]+)\)/g)) m[1].split(/\s+/).forEach((n) => n && tried.add(n))
-        const missing = [...tried].filter((n) => !paths.some((d) => existsSync(join(d, `${n}.zip`)) || existsSync(join(d, `${n}.7z`))))
-        if (missing.length) {
-          onFail(
-            `Manca ${missing.map((n) => `${n}.zip`).join(' e ')} (serve a "${game.name}"). Non lo trovo in: ${paths.join(' · ')}. ` +
-              'Copialo direttamente in una di queste cartelle, non in una sottocartella.'
-          )
-          return
-        }
-        const lines = out.split(/\r?\n/).map((l) => l.trim()).filter(Boolean).slice(-4)
-        onFail(`MAME non ha avviato "${game.name}": ${lines.join(' · ').slice(0, 260) || `errore ${code}`}`)
+        void diagnose(out, paths, game.name).then(onFail)
       }
     })
     return { ok: true }
   } catch (e) {
     return { ok: false, error: String(e) }
   }
+}
+
+const fmtSize = (b: number): string => (b >= 1048576 ? `${(b / 1048576).toFixed(1)} MB` : `${Math.max(1, Math.round(b / 1024))} KB`)
+
+/**
+ * Traduce l'errore di MAME in una spiegazione: quale ZIP manca, oppure quale ZIP c'è ma non contiene
+ * i file richiesti (copia incompleta o set di un'altra versione).
+ */
+async function diagnose(out: string, paths: string[], gameName: string): Promise<string> {
+  // "xxx NOT FOUND (tried in kof96 neogeo)"
+  const missingFiles: Array<{ file: string; sets: string[] }> = []
+  for (const m of out.matchAll(/(\S+) NOT FOUND \(tried in ([^)]+)\)/g)) missingFiles.push({ file: m[1], sets: m[2].split(/\s+/).filter(Boolean) })
+  const tried = new Set(missingFiles.flatMap((f) => f.sets))
+
+  const locate = (name: string): string | null => {
+    for (const d of paths) for (const ext of ['zip', '7z']) if (existsSync(join(d, `${name}.${ext}`))) return join(d, `${name}.${ext}`)
+    return null
+  }
+  const absent = [...tried].filter((n) => !locate(n))
+  if (absent.length) {
+    return (
+      `Manca ${absent.map((n) => `${n}.zip`).join(' e ')} (serve a "${gameName}"). Non lo trovo in: ${paths.join(' · ')}. ` +
+      'Copialo direttamente in una di queste cartelle, non in una sottocartella.'
+    )
+  }
+
+  // gli ZIP ci sono: si guarda cosa contengono davvero
+  const infos = new Map<string, Awaited<ReturnType<typeof readZipInfo>>>()
+  const unreadable: string[] = []
+  for (const set of tried) {
+    const file = locate(set)
+    if (!file || !file.endsWith('.zip')) continue
+    const info = await readZipInfo(file)
+    infos.set(set, info)
+    if (!info) unreadable.push(`${set}.zip`)
+  }
+  if (unreadable.length) {
+    return `MAME non ha avviato "${gameName}": ${unreadable.join(', ')} non si riesce a leggere come ZIP (file danneggiato o copia interrotta). Ricopialo dalla sorgente.`
+  }
+
+  const lacking: string[] = []
+  const different: string[] = []
+  for (const f of missingFiles) {
+    const lower = f.file.toLowerCase()
+    const present = f.sets.some((set) => infos.get(set)?.names.some((n) => n.toLowerCase() === lower))
+    if (present) different.push(f.file)
+    else lacking.push(f.file)
+  }
+  if (lacking.length || different.length) {
+    const where = [...infos.entries()].map(([set, i]) => (i ? `${set}.zip ${fmtSize(i.size)}, ${i.names.length} file` : set)).join(' · ')
+    const parts: string[] = []
+    if (lacking.length) parts.push(`dentro agli ZIP (${where}) mancano: ${lacking.join(', ')}`)
+    if (different.length) parts.push(`questi file ci sono ma con contenuto diverso da quello atteso: ${different.join(', ')}`)
+    return (
+      `MAME non ha avviato "${gameName}": ${parts.join(' · ')}. ` +
+      (lacking.length
+        ? 'Probabile copia incompleta dello ZIP, oppure set di un\'altra versione di MAME: ricopialo dalla sorgente e controlla che sia il set 0.229.'
+        : 'Il set non corrisponde alla versione di MAME in uso (0.229 per 0.229).')
+    )
+  }
+  const lines = out.split(/\r?\n/).map((l) => l.trim()).filter(Boolean).slice(-4)
+  return `MAME non ha avviato "${gameName}": ${lines.join(' · ').slice(0, 260) || 'errore sconosciuto'}`
 }
