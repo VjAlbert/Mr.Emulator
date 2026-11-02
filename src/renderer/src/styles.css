@@ -499,3 +499,12 @@ b.warnmark { color: #ffd400; margin-right: 8px; font-weight: 400; } .row.active 
 /* l'avviso sta sopra ai pulsanti della scheda del gioco e non viene tagliato */
 .toast { z-index: 60; max-width: min(760px, 92vw); max-height: 46vh; overflow-y: auto; line-height: 1.45; box-shadow: 0 8px 0 rgba(0,0,0,.45); }
 .toast::-webkit-scrollbar { width: 6px; } .toast::-webkit-scrollbar-thumb { background: rgba(0,0,0,.4); }
+
+/* copertina in primo piano davanti al monitor video */
+.vcover { position: absolute; left: calc(50% - 262px); top: calc(min(46vh, 340px) - 168px); height: 176px; z-index: 5; pointer-events: none; transform: rotate(-5deg); border-radius: 3px;
+  filter: drop-shadow(6px 8px 0 rgba(0,0,0,.65)) drop-shadow(0 0 16px color-mix(in srgb, var(--accent) 55%, transparent)); animation: enter .4s; }
+.light-fx .vcover { animation: none; }
+@media (max-width: 1000px) { .vcover { display: none; } }
+
+/* copertina generata: riempie lo spazio della copertina vera */
+.cv-inner svg, .ls-cover svg, .sp-cover svg { width: 100%; height: 100%; display: block; }

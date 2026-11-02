@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import type { CSSProperties } from 'react'
 import type { Game } from '@shared/types'
+import GeneratedCover from './GeneratedCover'
 import { loadAll, loadCover, pickArt } from '../hooks/useArt'
 
 const RANGE = 3
@@ -9,6 +10,8 @@ const ORDER = [0, 1, -1, 2, -2, 3, -3]
 
 interface Props {
   games: Game[]
+  systemName: string
+  color: string
   index: number
   onSelect: (i: number) => void
   onActivate: () => void
@@ -17,7 +20,7 @@ interface Props {
 }
 
 /** Carosello 3D: le copertine ruotano attorno a quella selezionata */
-export default function CoverCarousel({ games, index, onSelect, onActivate, onLoaded }: Props): React.JSX.Element {
+export default function CoverCarousel({ games, systemName, color, index, onSelect, onActivate, onLoaded }: Props): React.JSX.Element {
   const [, bump] = useState(0)
 
   useEffect(() => {
@@ -61,7 +64,7 @@ export default function CoverCarousel({ games, index, onSelect, onActivate, onLo
         onClick={() => (o === 0 ? onActivate() : onSelect(index + o))}
       >
         <div className="cv-inner">
-          {url ? <img src={url} alt={g.name} draggable={false} /> : <div className="cv-ph">{g.name.slice(0, 1)}</div>}
+          {url ? <img src={url} alt={g.name} draggable={false} /> : <GeneratedCover id={g.id} name={g.name} system={systemName} color={color} year={g.year} shot={pickArt(g.id).back} />}
         </div>
       </div>
     )

@@ -1,3 +1,4 @@
+import GeneratedCover from './GeneratedCover'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { Game } from '@shared/types'
 import { setModalOpen, useInput } from '../hooks/useInput'
@@ -32,6 +33,8 @@ interface Tile {
 }
 
 interface Props {
+  systemName: string
+  color: string
   /** Titoli tra cui cercare (già ristretti ai filtri attivi) e le loro chiavi normalizzate */
   games: Game[]
   keys: string[]
@@ -479,7 +482,7 @@ export default function SearchPanel(p: Props): React.JSX.Element {
           {hi && (
             <div className="sp-preview" key={hi.id}>
               <div className="sp-cover">
-                {art?.cover ? <img src={art.cover} alt={hi.name} draggable={false} /> : <div className="sp-cover-ph">{hi.name.slice(0, 1)}</div>}
+                {art?.cover ? <img src={art.cover} alt={hi.name} draggable={false} /> : <GeneratedCover id={hi.id} name={hi.name} system={p.systemName} color={p.color} year={hi.year} shot={art?.back} />}
               </div>
               <div className="sp-pinfo">
                 <div className="sp-pname">{splitTitle(hi.name).main}</div>

@@ -120,6 +120,15 @@ setMameTitleProvider(async () => {
   if (!d) return null
   return {
     parentOf: (n) => d.machines.get(n)?.cloneof ?? undefined,
+    siblingTitles: (n) => {
+      const m = d.machines.get(n)
+      const root = m?.cloneof ?? n
+      const rank = (t: string): number => (/\((USA|US)\b/.test(t) ? 0 : /World/.test(t) ? 1 : /Euro/.test(t) ? 2 : /Japan/.test(t) ? 3 : 4)
+      return [d.machines.get(root), ...(d.children.get(root) ?? [])]
+        .filter((x): x is NonNullable<typeof x> => !!x && x.name !== n && !/bootleg|hack/i.test(`${x.description} ${x.manufacturer}`))
+        .map((x) => x.description)
+        .sort((a, b) => rank(a) - rank(b))
+    },
     titleOf: (n) => d.machines.get(n)?.description,
     parentTitleOf: (n) => {
       const p = d.machines.get(n)?.cloneof

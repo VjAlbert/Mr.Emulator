@@ -59,7 +59,7 @@ export async function loadCover(game: Game): Promise<void> {
 }
 
 export interface PickedArt {
-  /** Immagine per il carosello: preferibilmente verticale (copertina) */
+  /** Copertina vera (immagine verticale); null se non esiste: allora si usa quella generata */
   cover: string | null
   /** Immagine per lo sfondo: preferibilmente orizzontale (schermata di gioco) */
   back: string | null
@@ -73,9 +73,10 @@ export function pickArt(id: string): PickedArt {
   }).filter((x): x is { kind: ArtKind; url: string; r: number } => !!x.url)
 
   const portrait = items.filter((x) => x.r <= 0.95)
-  const cover = (portrait.find((x) => x.kind === 'boxart') ?? portrait[0] ?? items[0])?.url ?? null
+  // la copertina è solo un'immagine verticale: se non c'è, il programma ne genera una (con la schermata dentro, se esiste)
+  const cover = (portrait.find((x) => x.kind === 'boxart') ?? portrait[0])?.url ?? null
 
-  const landscape = items.filter((x) => x.r >= 1.15 && x.url !== cover)
+  const landscape = items.filter((x) => x.r > 0.95 && x.url !== cover)
   const back = (landscape.find((x) => x.kind === 'snap') ?? landscape.find((x) => x.kind === 'title') ?? landscape[0])?.url ?? null
   return { cover, back }
 }

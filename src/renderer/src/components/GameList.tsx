@@ -460,7 +460,9 @@ export default function GameList({ system, games, message, onLaunch, onBack, let
                   <span className="vmon-tag">● PLAY</span>
                 </div>
               )}
-              <CoverCarousel games={list} index={index} onSelect={(i) => move(() => i)} onActivate={() => launchGame(game)} onLoaded={() => setTick((n) => n + 1)} />
+              {/* con il filmato in primo piano la copertina resta visibile, come una custodia davanti allo schermo */}
+              {video && videoReady && pickArt(game.id).cover && <img className="vcover" src={pickArt(game.id).cover!} alt="" draggable={false} />}
+              <CoverCarousel games={list} systemName={system.name} color={system.color} index={index} onSelect={(i) => move(() => i)} onActivate={() => launchGame(game)} onLoaded={() => setTick((n) => n + 1)} />
               <div key={game.id} className="preview-card">
                 <div className="preview-name">{title.main}</div>
                 {title.tag && <div className="preview-tag">{title.tag}</div>}
@@ -491,6 +493,8 @@ export default function GameList({ system, games, message, onLaunch, onBack, let
 
       {searchOpen && (
         <SearchPanel
+          systemName={system.name}
+          color={system.color}
           games={base}
           keys={baseKeys}
           initialQuery={query}

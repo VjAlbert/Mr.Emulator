@@ -51,6 +51,8 @@ export function clearLocalArt(): void {
 }
 
 export interface MameTitles {
+  /** Titoli delle versioni sorelle dello stesso gioco (altre regioni), dalla più comune: serve quando la propria non ha immagini */
+  siblingTitles(name: string): string[]
   /** Nome breve del gioco principale, se questa è una variante */
   parentOf(name: string): string | undefined
   titleOf(name: string): string | undefined
@@ -101,7 +103,7 @@ function candidates(fileName: string): string[] {
 const localPath = (systemId: string, kind: string, name: string): string =>
   join(artRoot(), systemId, kind, `${name}.png`)
 
-const missPath = (systemId: string, stem: string, kind: ArtKind): string => join(artRoot(), systemId, `${stem}.${kind}.v2.miss`)
+const missPath = (systemId: string, stem: string, kind: ArtKind): string => join(artRoot(), systemId, `${stem}.${kind}.v3.miss`)
 
 const toUrl = (systemId: string, kind: string, name: string): string =>
   `${ART_SCHEME}://art/${encodeURIComponent(systemId)}/${kind}/${encodeURIComponent(name)}.png`
@@ -192,22 +194,35 @@ async function resolveArt(game: Game, system: SystemDef, enabled: boolean, stem:
 
   let names: string[]
   let fallbacks: string[] = []
+  /** Altri indirizzi da provare: (archivio, nome) */
+  let extra: Array<{ repo: string; name: string }> = []
   if (system.titleSource === 'mame') {
     const titles = mameProvider ? await mameProvider() : null
     if (!titles) return null // mame.exe non disponibile: nessun titolo, nessun segno di "mancante"
     const title = titles.titleOf(stem.toLowerCase())
     names = title ? [clean(title)] : []
+    const key = stem.toLowerCase()
     // le varianti spesso non hanno la copertina: si ripiega su quella del gioco principale
-    const parent = titles.parentTitleOf(stem.toLowerCase())
-    if (kind === 'boxart' && parent) fallbacks = [clean(parent)]
+    const parent = titles.parentTitleOf(key)
+    if (parent) fallbacks = [clean(parent)]
+    // l'archivio di FBNeo usa titoli leggermente diversi e a volte ha ciò che manca in quello di MAME:
+    // il nome breve del gioco permette di ricavare il suo titolo FBNeo (stesso elenco usato per Arcade e Neo Geo)
+    const dat = await arcadeTitles()
+    const fbOwn = dat?.get(key)
+    if (fbOwn) extra.push({ repo: 'FBNeo - Arcade Games', name: clean(fbOwn) })
+    // le versioni di un'altra regione (USA, Giappone…) hanno la stessa copertina
+    for (const sib of titles.siblingTitles(key).slice(0, 4)) extra.push({ repo: system.thumbs!, name: clean(sib) })
+    const parentKey = titles.parentOf(key)
+    const fbParent = parentKey ? dat?.get(parentKey) : undefined
+    if (fbParent) extra.push({ repo: 'FBNeo - Arcade Games', name: clean(fbParent) })
   } else if (system.titleDat) {
     // Arcade / Neo Geo: dal nome breve del file si ricava il titolo completo
     const titles = await arcadeTitles()
     if (!titles) return null // DAT non disponibile (offline): nessun segno di "mancante"
     const title = titles.get(stem.toLowerCase())
     names = title ? [clean(title)] : []
-    // hack e bootleg spesso non hanno la copertina verticale: si ripiega su quella del gioco originale
-    if (title && kind === 'boxart') fallbacks = parentCandidates(titleIndex, title).map(clean)
+    // hack, bootleg e versioni di altre regioni: si ripiega su quelle del gioco originale o delle versioni sorelle
+    if (title) fallbacks = parentCandidates(titleIndex, title).map(clean)
   } else {
     names = candidates(game.fileName)
   }
@@ -220,8 +235,9 @@ async function resolveArt(game: Game, system: SystemDef, enabled: boolean, stem:
   // 2) da scaricare (prima il titolo esatto, poi i giochi originali); il file si salva col nome del gioco richiesto
   return slot(async () => {
     let networkProblem = false
-    for (const n of [...names, ...fallbacks]) {
-      const res = await download(system.thumbs!, dir, n)
+    const attempts = [...names, ...fallbacks].map((name) => ({ repo: system.thumbs!, name })).concat(extra)
+    for (const { repo, name: n } of attempts) {
+      const res = await download(repo, dir, n)
       if (res === 'error') networkProblem = true
       else if (res !== 'notfound') {
         const saveAs = names[0] ?? n

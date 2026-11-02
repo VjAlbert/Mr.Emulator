@@ -3,6 +3,7 @@ import type { Game } from '@shared/types'
 import { setModalOpen, useInput } from '../hooks/useInput'
 import { pickArt } from '../hooks/useArt'
 import { sfx } from '../sound'
+import GeneratedCover from './GeneratedCover'
 import { splitTitle } from '../search'
 
 interface Props {
@@ -34,7 +35,7 @@ export default function LaunchSequence({ game, systemName, color, onDone }: Prop
   return (
     <div className="ls" style={{ ['--accent' as string]: color }} onClick={onDone}>
       <div className="ls-slash" />
-      <div className="ls-cover">{cover ? <img src={cover} alt="" draggable={false} /> : <div className="ls-ph">{title.slice(0, 1)}</div>}</div>
+      <div className="ls-cover">{cover ? <img src={cover} alt="" draggable={false} /> : <GeneratedCover id={game.id} name={game.name} system={systemName} color={color} year={game.year} shot={pickArt(game.id).back} />}</div>
       <div className="ls-text">
         <div className="ls-sys">{systemName}</div>
         <div className="ls-title">{title}</div>
