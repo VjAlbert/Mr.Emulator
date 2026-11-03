@@ -68,3 +68,13 @@ test('MAME: modalità immagine e rotazione per monitor verticale', () => {
   assert.deepEqual([m('fit', 'ccw').autoror, m('fit', 'ccw').autorol], ['0', '1'])
   assert.deepEqual([m('fit').autoror, m('fit').autorol], ['0', '0'])
 })
+
+test('bordi: se attivi ma assenti per un sistema, RetroArch viene spento; se spenti nel programma, non si tocca nulla', () => {
+  const none = buildProfile({ ...base, imageStyle: 'fit', overlay: null }).config
+  assert.equal(none.input_overlay_enable, 'false')
+  assert.equal(none.input_overlay, undefined)
+  const off = buildProfile({ ...base, imageStyle: 'fit' }).config
+  assert.equal(off.input_overlay_enable, undefined)
+  const on = buildProfile({ ...base, imageStyle: 'fit', overlay: 'C:/x/b.cfg' }).config
+  assert.deepEqual([on.input_overlay_enable, on.input_overlay], ['true', 'C:/x/b.cfg'])
+})

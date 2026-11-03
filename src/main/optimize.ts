@@ -65,7 +65,7 @@ export function profileFor(
     shadersAvailable: shaders.names,
     monitorIndex: monitorIndexFor(s, hw.screens, cur),
     crtChoice: s.crtShader,
-    overlay: resolveOverlay(s, system.id)
+    overlay: s.overlayEnabled ? resolveOverlay(s, system.id) : undefined
   })
   return { profile, level, delta }
 }

@@ -75,6 +75,9 @@ export function buildProfile(i: ProfileInput): Profile {
     c['input_overlay_enable'] = 'true'
     c['input_overlay'] = i.overlay.replace(/\\/g, '/')
     c['input_overlay_opacity'] = '1.0'
+  } else if (i.overlay === null) {
+    // bordi attivi nel programma ma nessuno per questo sistema: si spegne esplicitamente, altrimenti RetroArch può tenere quello usato in precedenza
+    c['input_overlay_enable'] = 'false'
   }
   c['video_threaded'] = String(i.level === 'light')
   c['video_max_swapchain_images'] = i.level === 'light' ? '3' : '2'

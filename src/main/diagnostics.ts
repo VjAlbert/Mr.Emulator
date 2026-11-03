@@ -3,6 +3,7 @@ import { createHash } from 'crypto'
 import { dirname, join } from 'path'
 import type { DiagnosticCheck, DiagnosticReport, Settings, SystemDef } from '@shared/types'
 import { BIOS_RULES, type BiosRule } from '@shared/bios'
+import { resolveOverlay } from './overlays'
 import { platform } from './platform'
 import { systemDir } from './paths'
 
@@ -104,6 +105,13 @@ export function buildDiagnostics(c: DiagContext): DiagnosticReport {
       const n = c.gameCount(sys.id)
       add(n > 0 ? 'ok' : 'warn', `${sys.name}: ${n.toLocaleString('it')} giochi`, dir, n > 0 ? '' : 'Cartella vuota o senza file con le estensioni giuste.')
     }
+  }
+  // bordi grafici: quale file userà ogni sistema (utile quando "non cambia")
+  if (s.overlayEnabled) {
+    const list = c.systems.filter((x) => x.phase === 1 && x.core && c.gameCount(x.id) > 0)
+    const lines = list.map((x) => `${x.name} → ${resolveOverlay(s, x.id)?.replace(/^.*[\\/]/, '') ?? '(nessuno)'}`)
+    const any = list.some((x) => resolveOverlay(s, x.id))
+    add(any ? 'ok' : 'warn', 'Bordi grafici attivi', lines.join(' · ') || '(nessun sistema con giochi)', any ? '' : 'Indica la cartella dei bordi o un bordo comune in Impostazioni → Aspetto.')
   }
   const hidden = s.hiddenSystems ?? []
   if (hidden.length) add('ok', `Sistemi nascosti: ${hidden.length}`, hidden.join(', '))

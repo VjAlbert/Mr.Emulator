@@ -66,3 +66,16 @@ test('BIOS: assente, riconosciuto, non riconosciuto, senza controllo', async () 
   assert.deepEqual(r.map((x) => x.verified), ['ok', 'unknown', 'unchecked', null])
   assert.deepEqual(r.map((x) => x.found), ['giusto.bin', 'sbagliato.bin', 'libero.zip', null])
 })
+
+test('diagnostica: mostra il bordo che userà ogni sistema', async () => {
+  const root = mkdtempSync(join(tmpdir(), 'mr-dgo-'))
+  for (const d of ['roms', 'bios', 'cores', 'bordi']) mkdirSync(join(root, d))
+  writeFileSync(join(root, 'bordi', 'SegaMegaDrive-nyny77.cfg'), '')
+  const ra = join(root, 'retroarch.exe')
+  writeFileSync(ra, '')
+  const s = base({ romsDir: join(root, 'roms'), biosDir: join(root, 'bios'), retroarchPath: ra, coresDir: join(root, 'cores'), overlayEnabled: true, overlayDir: join(root, 'bordi'), overlayBySystem: {} } as Partial<Settings>)
+  const r = buildDiagnostics({ settings: s, systems: SYSTEMS, gameCount: (id) => (id === 'megadrive' || id === 'nes' ? 4 : 0), userData: root, version: 't', os: 't' })
+  const k = r.checks.find((x) => x.title === 'Bordi grafici attivi')!
+  assert.match(k.detail, /Mega Drive → SegaMegaDrive-nyny77\.cfg/)
+  assert.match(k.detail, /NES → \(nessuno\)/)
+})

@@ -1,8 +1,9 @@
-## Mr. Emulator 0.1.1
+## Mr. Emulator 0.1.3
 
 **Download:** `Mr-Emulator-Setup-<version>.exe` below. Windows may warn that the app is unsigned: **More info → Run anyway**.
 
 ### New and fixed
+- 🔧 **Borders**: when borders are on but a system has none, the previous border no longer sticks (RetroArch is told to switch it off). Diagnostics now lists the border each system will use.
 - 🕹️ **Exit and game menu without a keyboard**: gamepad **Select + Start** to exit, hold **Start** for the menu; arcade panel **Coin 1 + Start 1** to exit, **Coin 1 + Button 1** for the menu. Configurable in *Controls*.
 - 🖼️ **Border (overlay) for each system**: automatic search in a borders folder, manual choice or no border, per system.
 - 🛠️ **Xbox gamepads in MAME**: Start and Coin now use the real Start/Back buttons (they were mapped to the stick clicks).
