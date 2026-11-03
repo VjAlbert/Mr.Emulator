@@ -1,0 +1,41 @@
+﻿MR. EMULATOR — LEGGI PRIMA DI INSTALLARE (2 minuti)
+
+Mr. Emulator è il menu a tutto schermo da cui scegli i giochi. Per farli partire servono alcune cose che il programma NON include e NON scarica di nascosto: ROM e BIOS sono file tuoi.
+
+Non preoccuparti: al primo avvio una procedura guidata ti accompagna passo per passo. Qui sotto trovi un riassunto di cosa ti servirà.
+
+1) I TUOI GIOCHI (ROM)
+   Nessuna ROM è inclusa. Usa i file che possiedi legalmente.
+   Il programma crea da solo una cartella per ogni sistema (nes, snes, megadrive, psx...) in Documenti\MrEmulator, oppure su un altro disco a tua scelta.
+
+2) RETROARCH (per le console)
+   Scaricalo gratis dal sito ufficiale: retroarch.com (versione Windows a 64 bit). Si estrae in una cartella, non si installa.
+   Poi il programma scarica per te i "core" (uno per ogni console) dall'archivio ufficiale.
+
+3) MAME (facoltativo, per i giochi arcade)
+   Gratis dal sito ufficiale: mamedev.org. Usa la stessa versione dei tuoi set di ROM.
+
+4) BIOS (solo per alcuni sistemi)
+   Servono solo se hai giochi per quel sistema. Vanno messi nella cartella "bios":
+   - Neo Geo: neogeo.zip (in bios\fbneo)
+   - PlayStation: uno tra scph5501.bin, scph5500.bin, scph5502.bin
+   - Dreamcast: dc_boot.bin e dc_flash.bin (in bios\dc)
+   - Naomi / Atomiswave: naomi.zip e awbios.zip (in bios\dc)
+   - Famicom Disk System: disksys.rom
+   - 3DO: panafz10.bin
+   Il programma controlla da solo cosa manca e ti dice dove metterlo.
+
+5) AVVISO DI WINDOWS
+   Al primo avvio Windows può mostrare "Windows ha protetto il PC" perché il programma non ha una firma digitale a pagamento. Premi "Ulteriori informazioni" e poi "Esegui comunque".
+
+6) COME UN VERO CABINATO
+   In Impostazioni > Modalità cabinato puoi far partire Mr. Emulator da solo all'accensione di Windows, a tutto schermo e senza cursore.
+
+7) SE QUALCOSA NON FUNZIONA
+   Impostazioni > Diagnostica controlla tutto e ti dice cosa fare.
+
+Premi "Accetto" per continuare con l'installazione.
+
+------------------------------------------------------------
+LICENZA (MIT) — Copyright (c) VjAlbert
+Il permesso è concesso gratuitamente a chiunque ottenga una copia di questo software di usarlo, copiarlo, modificarlo e distribuirlo senza restrizioni, a condizione di mantenere questo avviso. Il software è fornito "così com'è", senza alcuna garanzia. Mr. Emulator non include né distribuisce ROM o BIOS.
