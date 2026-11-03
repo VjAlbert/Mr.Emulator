@@ -93,6 +93,8 @@ export interface Settings {
   dedicatedGpu: boolean
   inputScheme: InputScheme
   arcadeLayout: ArcadeLayout
+  /** Comandi assegnati a mano (valgono quando lo schema è "custom") */
+  customControls: CustomControls | null
   /** Arcade/Neo Geo: mostra anche i giochi che il motore FBNeo non supporta (set MAME completi) */
   showUnsupported: boolean
   /** MAME autonomo (mame.exe), usato dal sistema "Arcade (MAME)" */
@@ -133,7 +135,23 @@ export interface Settings {
 }
 
 /** laptop = tastiera del portatile (WASD + J/K/L); cabinet = pannello arcade con encoder tipo I-PAC */
-export type InputScheme = 'laptop' | 'cabinet'
+export type InputScheme = 'laptop' | 'cabinet' | 'custom'
+
+/** Azioni di un giocatore che si possono assegnare a mano */
+export type ActionId = 'up' | 'down' | 'left' | 'right' | 'b1' | 'b2' | 'b3' | 'b4' | 'b5' | 'b6' | 'start' | 'select'
+
+/** A cosa è collegata un'azione: un tasto (nome RetroArch), un pulsante del pad (indice) o un asse ("+0", "-1") */
+export interface Binding {
+  key?: string
+  btn?: number
+  axis?: string
+}
+
+export type PlayerControls = Record<ActionId, Binding>
+export interface CustomControls {
+  p1: PlayerControls
+  p2: PlayerControls
+}
 /** standard = pulsanti 1..6 in ordine; capcom = pugni in alto e calci in basso (solo sistema Arcade) */
 export type ArcadeLayout = 'standard' | 'capcom'
 
@@ -328,6 +346,8 @@ export interface MrApi {
   getLibraryStatus(): Promise<LibraryEvent>
   onLibrary(cb: (e: LibraryEvent) => void): () => void
   getInputMap(): Promise<InputMapReport>
+  /** Punti di partenza per i comandi manuali */
+  getControlPresets(): Promise<{ laptop: CustomControls; cabinet: CustomControls }>
   getReport(): Promise<OptimizationReport>
   getDiagnostics(): Promise<DiagnosticReport>
   sendFeedback(systemId: string, answer: Feedback): Promise<void>

@@ -35,7 +35,7 @@ Sistemi: Arcade (MAME, FBNeo), Neo Geo, Master System, Mega Drive, NES, SNES, Ga
 - [ ] Verifica delle impostazioni con RetroArch e schermi reali (portatile, PC desktop, TV/proiettore)
 - [x] Comandi da tastiera (WASD + J/K/L) e preset pannello arcade I-PAC a 2 giocatori e 6 pulsanti, con uscita da gioco tramite combinazione sul pannello
 - [x] Schermata "Comandi" per provare in tempo reale tastiera, encoder e pad
-- [ ] Procedura guidata per pad sconosciuti (es. encoder Zero Delay): da fare e provare con l'hardware reale
+- [x] Comandi manuali: assegnazione a mano di tasti, pulsanti e assi (tastiera, pad, encoder) per due giocatori, in sequenza guidata, con controllo dei conflitti; valgono per RetroArch, MAME e per il menu (da provare con hardware reale)
 - [ ] Verifica dei comandi con un pannello arcade e un pad reali
 - [x] Sistema "Arcade (MAME)" con MAME autonomo (testato con 0.229): elenco letto da MAME stesso, varianti, comandi, effetti, supporto ai dischi CHD (da verificare con un MAME vero)
 - [x] Filtro per famiglia in Arcade (MAME): Neo Geo, Capcom CPS, Sega, Taito, Namco, Konami e altre, con conteggi e scelta ricordata

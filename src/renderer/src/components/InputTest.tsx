@@ -2,6 +2,8 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import type { ArcadeLayout, InputMapReport, InputScheme, Settings } from '@shared/types'
 import { useInput } from '../hooks/useInput'
 import Orbs from './Orbs'
+import ControlsEditor from './ControlsEditor'
+import type { CustomControls } from '@shared/types'
 
 /** Da tasto fisico (event.code) al nome usato da RetroArch */
 function codeToKey(code: string): string {
@@ -45,6 +47,7 @@ export default function InputTest({ onBack, onChanged }: { onBack: () => void; o
   const [last, setLast] = useState<string>('')
   const [pads, setPads] = useState<PadState[]>([])
   const bodyRef = useRef<HTMLDivElement>(null)
+  const [editor, setEditor] = useState<{ start: CustomControls; presets: { laptop: CustomControls; cabinet: CustomControls } } | null>(null)
 
   const load = useCallback(async () => {
     const [m, st] = await Promise.all([window.mr.getInputMap(), window.mr.getSettings()])
@@ -130,6 +133,13 @@ export default function InputTest({ onBack, onChanged }: { onBack: () => void; o
     setMap(await window.mr.getInputMap())
   }
 
+  const openEditor = async (): Promise<void> => {
+    if (!s) return
+    const presets = await window.mr.getControlPresets()
+    // si parte dai comandi personalizzati già salvati, altrimenti da una copia dello schema in uso
+    setEditor({ start: s.customControls ?? (s.inputScheme === 'laptop' ? presets.laptop : presets.cabinet), presets })
+  }
+
   if (!map || !s) return <div className="loading">Caricamento…</div>
 
   return (
@@ -148,8 +158,8 @@ export default function InputTest({ onBack, onChanged }: { onBack: () => void; o
           <h3>Che comandi usi?</h3>
           <Seg<InputScheme>
             value={s.inputScheme}
-            options={[['laptop', 'TASTIERA DEL PORTATILE'], ['cabinet', 'PANNELLO ARCADE (I-PAC)']]}
-            onChange={(v) => patch({ inputScheme: v })}
+            options={[['laptop', 'TASTIERA DEL PORTATILE'], ['cabinet', 'PANNELLO ARCADE (I-PAC)'], ['custom', 'PERSONALIZZATI']]}
+            onChange={(v) => (v === 'custom' && !s.customControls ? openEditor() : patch({ inputScheme: v }))}
           />
           <div className="opt-row">
             <span>Sistema Arcade: disposizione a 6 pulsanti</span>
@@ -162,8 +172,16 @@ export default function InputTest({ onBack, onChanged }: { onBack: () => void; o
           <p className="hint">
             {s.inputScheme === 'laptop'
               ? 'Giocatore 1: WASD per muoversi, J K L U I O per i pulsanti. Giocatore 2: frecce e tastierino numerico.'
-              : 'Preset standard degli encoder I-PAC (gli stessi tasti di MAME). Si esce da un gioco tenendo premuta Moneta 1 e premendo Start 1.'}
+              : s.inputScheme === 'cabinet'
+                ? 'Preset standard degli encoder I-PAC (gli stessi tasti di MAME). Si esce da un gioco tenendo premuta Moneta 1 e premendo Start 1.'
+                : 'Comandi assegnati da te (tastiera, pad o encoder). Si esce da un gioco tenendo premuta Moneta 1 e premendo Start 1.'}
           </p>
+          <div className="field-row">
+            <button className="chip" onClick={openEditor}>🎛 ASSEGNA I PULSANTI A MANO</button>
+            {s.inputScheme === 'custom' && (
+              <button className="chip" onClick={() => patch({ inputScheme: 'cabinet' })}>↩ TORNA AL PRESET AUTOMATICO</button>
+            )}
+          </div>
         </section>
 
         {map.players.map((p) => (
@@ -226,6 +244,17 @@ export default function InputTest({ onBack, onChanged }: { onBack: () => void; o
           <p className="hint">Per i pad più comuni (Xbox, PlayStation, 8BitDo) RetroArch riconosce i pulsanti da solo.</p>
         </section>
       </div>
+      {editor && (
+        <ControlsEditor
+          start={editor.start}
+          presets={editor.presets}
+          onCancel={() => setEditor(null)}
+          onSave={async (c) => {
+            setEditor(null)
+            await patch({ inputScheme: 'custom', customControls: c })
+          }}
+        />
+      )}
     </div>
   )
 }

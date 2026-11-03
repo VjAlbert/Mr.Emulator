@@ -1,4 +1,6 @@
 import { useEffect, useRef } from 'react'
+import type { CustomControls } from '@shared/types'
+import { retroToCode } from '@shared/keys'
 
 export type Dir = 'up' | 'down' | 'left' | 'right'
 
@@ -36,6 +38,30 @@ let modalOpen = false
 let cabinetKeys = false
 export function setCabinetKeys(on: boolean): void {
   cabinetKeys = on
+}
+/** Tasti scelti dall'utente (comandi manuali): codice del tasto -> cosa fa nel menu del launcher */
+let customCodes: Record<string, 'up' | 'down' | 'left' | 'right' | 'confirm' | 'back' | 'menu'> | null = null
+export function setCustomKeys(c: CustomControls | null): void {
+  if (!c) {
+    customCodes = null
+    return
+  }
+  const m: NonNullable<typeof customCodes> = {}
+  for (const pc of [c.p2, c.p1]) {
+    const add = (k: string | undefined, a: NonNullable<typeof customCodes>[string]): void => {
+      const code = k ? retroToCode(k) : null
+      if (code) m[code] = a
+    }
+    add(pc.up?.key, 'up')
+    add(pc.down?.key, 'down')
+    add(pc.left?.key, 'left')
+    add(pc.right?.key, 'right')
+    add(pc.b1?.key, 'confirm')
+    add(pc.start?.key, 'confirm')
+    add(pc.b2?.key, 'back')
+    add(pc.select?.key, 'menu')
+  }
+  customCodes = m
 }
 /** Vero se è aperta una finestra che si prende tutti i comandi (ricerca, domanda dopo il gioco…) */
 export const isModalOpen = (): boolean => modalOpen
@@ -93,6 +119,15 @@ export function useInput(handlers: InputHandlers, opts: { modal?: boolean; keybo
         AltLeft: () => h.onBack?.(),
         Digit1: () => h.onConfirm?.(),
         Digit5: () => h.onMenu?.()
+      }
+      const mine = customCodes?.[e.code]
+      if (mine) {
+        e.preventDefault()
+        if (mine === 'confirm') h.onConfirm?.()
+        else if (mine === 'back') h.onBack?.()
+        else if (mine === 'menu') h.onMenu?.()
+        else h.onMove?.(mine)
+        return
       }
       if (cabinetKeys && byCode[e.code]) {
         e.preventDefault()

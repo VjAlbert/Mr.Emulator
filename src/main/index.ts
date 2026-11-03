@@ -19,7 +19,7 @@ import { detectHardware } from './hardware'
 import { buildReport, mameProfileFor, profileFor } from './optimize'
 import { toConfigText } from './profiles'
 import { setHighPerformanceGpu } from './gpuPref'
-import { buildInputConfig, buildInputMap, buildMameCtrlr } from './inputs'
+import { buildInputConfig, buildInputMap, buildMameCtrlr, presetControls } from './inputs'
 import { ART_SCHEME, arcadeTitles, clearArtMisses, clearLocalArt, getArt, resolveArtUrl, setMameTitleProvider, setMediaProvider, setSoftTitleProvider } from './artwork'
 import { MediaSource } from './media'
 import { runVerify, type VerifyBad } from './verify'
@@ -489,7 +489,7 @@ app.whenReady().then(async () => {
         system,
         settings,
         profile.ini,
-        buildMameCtrlr(settings.inputScheme, settings.arcadeLayout),
+        buildMameCtrlr(settings.inputScheme, settings.arcadeLayout, settings.customControls),
         () => {
           t.t = Date.now()
           win?.hide()
@@ -520,7 +520,7 @@ app.whenReady().then(async () => {
 
     await applyGpuPreference(settings)
     const { profile } = profileFor(system, settings, hw, win)
-    const input = buildInputConfig(settings.inputScheme, settings.arcadeLayout, system.id === 'arcade')
+    const input = buildInputConfig(settings.inputScheme, settings.arcadeLayout, system.id === 'arcade', settings.customControls)
     const t = { t: 0 }
     return launchGame(
       game,
@@ -537,7 +537,7 @@ app.whenReady().then(async () => {
 
   ipcMain.handle('input:map', () => {
     const s = loadSettings()
-    return buildInputMap(s.inputScheme, s.arcadeLayout)
+    return buildInputMap(s.inputScheme, s.arcadeLayout, s.customControls)
   })
 
   // controllo di mame.exe: versione e quante macchine conosce (rilegge l'elenco da capo)
@@ -554,6 +554,7 @@ app.whenReady().then(async () => {
     return { ok: true, version: d.version, machines: d.machines.size, warning }
   })
 
+  ipcMain.handle('controls:presets', () => ({ laptop: presetControls('laptop'), cabinet: presetControls('cabinet') }))
   ipcMain.handle('diagnostics:get', () =>
     buildDiagnostics({
       settings: loadSettings(),

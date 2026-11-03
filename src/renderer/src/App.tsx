@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import type { Feedback, Game, GameEnded, LibraryEvent, SystemInfo } from '@shared/types'
+import type { Feedback, Game, GameEnded, InputScheme, LibraryEvent, SystemInfo } from '@shared/types'
 import SystemSelect from './components/SystemSelect'
 import GameList from './components/GameList'
 import SettingsScreen from './components/Settings'
@@ -13,7 +13,7 @@ import { configureSound, sfx } from './sound'
 import { music } from './music'
 import MiniPlayer from './components/MiniPlayer'
 import { clearArtCache } from './hooks/useArt'
-import { isModalOpen, setCabinetKeys } from './hooks/useInput'
+import { isModalOpen, setCabinetKeys, setCustomKeys } from './hooks/useInput'
 
 type Screen = { name: 'systems' } | { name: 'games'; system: SystemInfo } | { name: 'settings' } | { name: 'pc' } | { name: 'input' } | { name: 'romcheck' }
 
@@ -25,7 +25,7 @@ export default function App(): React.JSX.Element {
   const timer = useRef<number | undefined>(undefined)
 
   const [wipe, setWipe] = useState(0)
-  const [scheme, setScheme] = useState<'laptop' | 'cabinet'>('laptop')
+  const [scheme, setScheme] = useState<InputScheme>('laptop')
   const [lib, setLib] = useState<LibraryEvent | null>(null)
   const [busy, setBusy] = useState(false)
   const [launching, setLaunching] = useState<Game | null>(null)
@@ -78,6 +78,7 @@ export default function App(): React.JSX.Element {
     window.mr.getSettings().then((st) => {
       document.documentElement.classList.toggle('light-fx', !!st.lightEffects)
       setScheme(st.inputScheme)
+      setCustomKeys(st.inputScheme === 'custom' ? st.customControls : null)
       configureSound(st.soundOn, st.soundVolume)
       music.setVolume(st.musicVolume)
       setOpts({ attractSeconds: st.attractSeconds, launchAnimation: st.launchAnimation })
@@ -181,7 +182,10 @@ export default function App(): React.JSX.Element {
   if (screen.name === 'romcheck') {
     view = <RomCheck onBack={() => go({ name: 'systems' })} />
   } else if (screen.name === 'input') {
-    view = <InputTest onBack={() => go({ name: 'systems' })} onChanged={(st) => setScheme(st.inputScheme)} />
+    view = <InputTest onBack={() => go({ name: 'systems' })} onChanged={(st) => {
+          setScheme(st.inputScheme)
+          setCustomKeys(st.inputScheme === 'custom' ? st.customControls : null)
+        }} />
   } else if (screen.name === 'pc') {
     view = <SystemReport onBack={() => go({ name: 'systems' })} />
   } else if (screen.name === 'settings') {
