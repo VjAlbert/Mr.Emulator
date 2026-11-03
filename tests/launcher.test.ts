@@ -56,7 +56,8 @@ test('PS1 senza BIOS: dice cosa manca; con BIOS parte e il ritorno avviene una v
   const r = launchGame(game, sys('psx'), settings, '# cfg', () => started++, () => ended++)
   assert.equal(r.ok, true)
   await new Promise((res) => setTimeout(res, 600))
-  assert.equal(started, 1)
+  // il RetroArch finto è uno script di shell: su Windows non parte, ma il ritorno deve comunque avvenire una volta sola
+  if (process.platform !== 'win32') assert.equal(started, 1)
   assert.equal(ended, 1)
 })
 

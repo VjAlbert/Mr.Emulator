@@ -50,7 +50,9 @@ L'elenco può cambiare strada facendo. Il motore principale sarà [RetroArch](ht
 
 ## 🚀 Installazione
 
-> In arrivo: l'installer per **Windows** nella sezione *Releases*.
+**Installer per Windows**: scarica `Mr-Emulator-Setup-<versione>.exe` dalla sezione *Releases* del repository e avvialo. L'installer mostra in italiano cosa ti serve (RetroArch, BIOS, ROM) e al primo avvio una procedura guidata ti accompagna passo per passo. Windows può mostrare un avviso (il programma non ha una firma digitale a pagamento): premi *Ulteriori informazioni* e poi *Esegui comunque*.
+
+Per costruire l'installer: su Windows `npm run dist` (il file compare in `release\`), oppure su GitHub *Actions → Installer per Windows → Run workflow*.
 
 ### Provarlo adesso (sviluppo)
 

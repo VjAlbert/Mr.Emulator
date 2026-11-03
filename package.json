@@ -12,21 +12,64 @@
     "build": "electron-vite build",
     "start": "electron-vite preview",
     "typecheck": "tsc -p tsconfig.node.json --noEmit && tsc -p tsconfig.web.json --noEmit",
-    "test": "node tests/run.cjs"
+    "test": "node tests/run.cjs",
+    "dist": "electron-vite build && electron-builder --win nsis --x64 --publish never",
+    "pack": "electron-vite build && electron-builder --win --dir --x64 --publish never"
   },
   "devDependencies": {
+    "@fontsource/anton": "^5.3.0",
     "@types/node": "^26.6.6",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
     "@vitejs/plugin-react": "^6.1.2",
     "electron": "^45.2.1",
+    "electron-builder": "^26.18.0",
     "electron-vite": "^6.0.0",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
     "typescript": "^7.0.2",
     "vite": "^8.3.5"
   },
-  "dependencies": {
-    "@fontsource/anton": "^5.3.0",
-    "react": "^19.3.1",
-    "react-dom": "^19.3.1"
+  "dependencies": {},
+  "build": {
+    "appId": "it.vjalbert.mremulator",
+    "productName": "Mr. Emulator",
+    "copyright": "Licenza MIT",
+    "directories": {
+      "output": "release",
+      "buildResources": "build"
+    },
+    "files": [
+      "out/**/*",
+      "package.json"
+    ],
+    "asar": true,
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "build/icon.png"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Mr. Emulator",
+      "language": "1040",
+      "installerLanguages": [
+        "it_IT"
+      ],
+      "license": "build/istruzioni.txt",
+      "runAfterFinish": true,
+      "deleteAppDataOnUninstall": false,
+      "artifactName": "Mr-Emulator-Setup-${version}.exe"
+    }
   }
 }

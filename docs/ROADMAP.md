@@ -63,7 +63,7 @@ Sistemi: Arcade (MAME, FBNeo), Neo Geo, Master System, Mega Drive, NES, SNES, Ga
 - [ ] Filtri avanzati, preferiti e statistiche di gioco
 - [ ] Shader CRT preconfigurati e overlay
 - [ ] Temi grafici alternativi
-- [ ] Installer per Windows distribuito nelle Releases
+- [x] Installer per Windows (electron-builder + flusso automatico su GitHub; da provare su Windows)
 
 ## Principi del progetto
 - Nessun costo e nessuna API a pagamento: i dati devono funzionare offline o da fonti gratuite.
