@@ -4,6 +4,11 @@ name: Installer per Windows
 # Costruisce l'installer su una macchina Windows di GitHub (gratuita) e lo allega alla release.
 on:
   workflow_dispatch:
+    inputs:
+      publish:
+        description: 'Publish a GitHub Release with the installer (tag vX.Y.Z taken from package.json)'
+        type: boolean
+        default: false
   push:
     tags: ['v*']
 
@@ -27,9 +32,15 @@ jobs:
         with:
           name: Mr-Emulator-Setup
           path: release/Mr-Emulator-Setup-*.exe
-      - name: Allega l'installer alla release
-        if: startsWith(github.ref, 'refs/tags/v')
+      - name: Read the version
+        id: v
+        shell: bash
+        run: echo "version=$(node -p "require('./package.json').version")" >> "$GITHUB_OUTPUT"
+      - name: Publish the release with the installer
+        if: startsWith(github.ref, 'refs/tags/v') || inputs.publish
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: ${{ startsWith(github.ref, 'refs/tags/v') && github.ref_name || format('v{0}', steps.v.outputs.version) }}
+          name: Mr. Emulator ${{ steps.v.outputs.version }}
           files: release/Mr-Emulator-Setup-*.exe
           body_path: docs/RELEASE_NOTES.md
