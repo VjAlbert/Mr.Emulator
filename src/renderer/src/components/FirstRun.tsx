@@ -14,6 +14,10 @@ export default function FirstRun({ onDone }: { onDone: () => void }): React.JSX.
   const [bios, setBios] = useState<Bios>([])
   const [diag, setDiag] = useState<DiagnosticReport | null>(null)
   const [msg, setMsg] = useState('')
+  const [cores, setCores] = useState<Array<{ core: string; systems: string[]; installed: boolean; games: number }>>([])
+  const [pickedCores, setPickedCores] = useState<Set<string>>(new Set())
+  const [coreBusy, setCoreBusy] = useState('')
+  const [coreLog, setCoreLog] = useState<string[]>([])
 
   const reload = useCallback(async () => {
     setS(await window.mr.getSettings())
@@ -34,6 +38,7 @@ export default function FirstRun({ onDone }: { onDone: () => void }): React.JSX.
   useEffect(() => {
     if (step === STEPS.length - 1) window.mr.getDiagnostics().then(setDiag)
     if (step === 3) window.mr.getBiosStatus().then(setBios)
+    if (step === 2) window.mr.getCoreList().then(setCores)
   }, [step])
 
   useInput({ onConfirm: () => (step === STEPS.length - 1 ? finish() : next()), onBack: back })
@@ -45,6 +50,7 @@ export default function FirstRun({ onDone }: { onDone: () => void }): React.JSX.
     if (!p) return
     await window.mr.saveSettings({ ...s, [key]: p })
     await reload()
+    if (key === 'retroarchPath') setCores(await window.mr.getCoreList())
   }
 
   return (
@@ -116,7 +122,65 @@ export default function FirstRun({ onDone }: { onDone: () => void }): React.JSX.
               <button className="chip big" onClick={() => pick('retroarchPath', 'file')}>🔎 INDICA retroarch.exe</button>
             </div>
             <p className={s.retroarchPath ? 'fr-ok' : 'fr-warn'}>{s.retroarchPath ? `✔ ${s.retroarchPath}` : 'Non ancora indicato (puoi farlo anche dopo)'}</p>
-            <p className="hint">I &quot;core&quot; (uno per ogni console) si installano da RetroArch: Carica core → Scarica un core. Se non vuoi giocare alle console ma solo ad arcade con MAME, puoi saltare questo passo.</p>
+            {s.retroarchPath && (
+              <>
+                <p>Ogni console ha bisogno del suo <b>core</b>. Scegli quelli che ti servono: il programma li scarica dall&apos;archivio ufficiale di RetroArch.</p>
+                <div className="fr-cores">
+                  {cores.map((c) => (
+                    <label key={c.core} className={`fr-core ${c.installed ? 'ok' : ''}`}>
+                      <input
+                        type="checkbox"
+                        disabled={c.installed || !!coreBusy}
+                        checked={c.installed || pickedCores.has(c.core)}
+                        onChange={() =>
+                          setPickedCores((p) => {
+                            const n = new Set(p)
+                            if (n.has(c.core)) n.delete(c.core)
+                            else n.add(c.core)
+                            return n
+                          })
+                        }
+                      />
+                      <span className="fr-core-n">{c.systems.join(', ')}</span>
+                      <span className="fr-core-s">{c.installed ? '✔ già installato' : c.games ? `${c.games} giochi` : c.core}</span>
+                    </label>
+                  ))}
+                </div>
+                <div className="fr-actions">
+                  <button
+                    className="chip"
+                    disabled={!!coreBusy}
+                    onClick={() => setPickedCores(new Set(cores.filter((c) => !c.installed).map((c) => c.core)))}
+                  >
+                    SELEZIONA TUTTI
+                  </button>
+                  <button
+                    className="chip big"
+                    disabled={!!coreBusy || pickedCores.size === 0}
+                    onClick={async () => {
+                      const todo = [...pickedCores]
+                      const log: string[] = []
+                      for (let i = 0; i < todo.length; i++) {
+                        setCoreBusy(`Scarico ${todo[i]} (${i + 1} di ${todo.length})… può richiedere un minuto`)
+                        const r = await window.mr.installCore(todo[i])
+                        log.push(r.ok ? `✔ ${todo[i]}` : `⚠ ${todo[i]}: ${r.error}`)
+                        setCoreLog([...log])
+                      }
+                      setCoreBusy('')
+                      setPickedCores(new Set())
+                      setCores(await window.mr.getCoreList())
+                    }}
+                  >
+                    ⬇ INSTALLA I CORE SCELTI
+                  </button>
+                </div>
+                {coreBusy && <p className="fr-warn">{coreBusy}</p>}
+                {coreLog.map((l, i) => (
+                  <p key={i} className={l.startsWith('✔') ? 'fr-ok' : 'fr-warn'}>{l}</p>
+                ))}
+              </>
+            )}
+            <p className="hint">Se vuoi giocare solo ad arcade con MAME, puoi saltare questo passo.</p>
           </>
         )}
 

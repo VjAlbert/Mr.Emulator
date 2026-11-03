@@ -25,6 +25,7 @@ import { MediaSource } from './media'
 import { runVerify, type VerifyBad } from './verify'
 import { existsSync, readFileSync, writeFileSync } from 'fs'
 import { loadMameData, type MameData } from './mame'
+import { coreList, coresDirOf, installCore } from './cores'
 import { biosStatus, buildDiagnostics } from './diagnostics'
 import { writeFileAtomic } from './atomic'
 import { softTitles } from './softlist'
@@ -555,6 +556,11 @@ app.whenReady().then(async () => {
   })
 
   ipcMain.handle('controls:presets', () => ({ laptop: presetControls('laptop'), cabinet: presetControls('cabinet') }))
+  ipcMain.handle('cores:list', () => coreList(loadSettings(), SYSTEMS, (id) => library.count(id)))
+  ipcMain.handle('cores:install', (_e, core: string) => {
+    const dir = coresDirOf(loadSettings())
+    return dir ? installCore(core, dir) : { core, ok: false, error: 'Indica prima retroarch.exe' }
+  })
   ipcMain.handle('bios:status', () => biosStatus(loadSettings()).map(({ rule, found }) => ({ systemId: rule.systemId, name: rule.name, files: rule.anyOf, where: rule.where, note: rule.note, found })))
   ipcMain.handle('diagnostics:get', () =>
     buildDiagnostics({

@@ -353,6 +353,10 @@ export interface MrApi {
   getReport(): Promise<OptimizationReport>
   getDiagnostics(): Promise<DiagnosticReport>
   /** Elenco dei BIOS richiesti e se sono stati trovati */
+  /** Core di RetroArch usati dai sistemi, con lo stato di installazione */
+  getCoreList(): Promise<Array<{ core: string; systems: string[]; installed: boolean; games: number }>>
+  /** Scarica un core dall'archivio ufficiale di RetroArch */
+  installCore(core: string): Promise<{ core: string; ok: boolean; error?: string }>
   getBiosStatus(): Promise<Array<{ systemId: string; name: string; files: string[]; where: string; note: string; found: string | null }>>
   sendFeedback(systemId: string, answer: Feedback): Promise<void>
   /** Si attiva quando un gioco si chiude; restituisce la funzione per smettere di ascoltare */
