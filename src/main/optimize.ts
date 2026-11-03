@@ -1,3 +1,4 @@
+import { resolveOverlay } from './overlays'
 import { existsSync, readdirSync } from 'fs'
 import { dirname, join } from 'path'
 import type { BrowserWindow } from 'electron'
@@ -64,7 +65,7 @@ export function profileFor(
     shadersAvailable: shaders.names,
     monitorIndex: monitorIndexFor(s, hw.screens, cur),
     crtChoice: s.crtShader,
-    overlay: s.overlayEnabled && s.overlayPath && existsSync(s.overlayPath) ? s.overlayPath : null
+    overlay: resolveOverlay(s, system.id)
   })
   return { profile, level, delta }
 }

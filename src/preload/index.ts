@@ -43,6 +43,7 @@ const api: MrApi = {
   getDiagnostics: () => ipcRenderer.invoke('diagnostics:get'),
   getCoreList: () => ipcRenderer.invoke('cores:list'),
   installCore: (core: string) => ipcRenderer.invoke('cores:install', core),
+  findOverlays: (dir: string) => ipcRenderer.invoke('overlays:find', dir),
   getAppVersion: () => ipcRenderer.invoke('app:version'),
   quitApp: () => ipcRenderer.invoke('app:quit'),
   getBiosStatus: () => ipcRenderer.invoke('bios:status'),

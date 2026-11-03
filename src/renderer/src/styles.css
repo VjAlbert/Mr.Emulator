@@ -645,3 +645,5 @@ b.warnmark { color: #ffd400; margin-right: 8px; font-weight: 400; } .row.active 
 .tt-art { width: 92px; height: auto; transform: rotate(-5deg); filter: drop-shadow(3px 4px 0 rgba(0,0,0,.6)); }
 .tt-foot { display: flex; justify-content: space-between; padding: 12px 34px 16px; font-size: 13px; letter-spacing: 2px; color: var(--muted); text-transform: uppercase; }
 .light-fx .tt-rays, .light-fx .tt-em, .light-fx .tt-track { animation: none; }
+.persys-row { grid-template-columns: minmax(70px, .8fr) minmax(0, 1.6fr); }
+.persys-row select { width: 100%; min-width: 0; text-overflow: ellipsis; }

@@ -5,7 +5,7 @@ import { useInput } from '../hooks/useInput'
 import { configureSound, sfx } from '../sound'
 import { setLang, t } from '../i18n'
 
-type PathKey = 'romsDir' | 'biosDir' | 'retroarchPath' | 'coresDir' | 'mamePath' | 'mameChdDir' | 'mameRomDir' | 'mediaDir' | 'datDir' | 'overlayPath'
+type PathKey = 'romsDir' | 'biosDir' | 'retroarchPath' | 'coresDir' | 'mamePath' | 'mameChdDir' | 'mameRomDir' | 'mediaDir' | 'datDir' | 'overlayPath' | 'overlayDir'
 
 interface Props {
   onClose: () => void
@@ -25,6 +25,7 @@ export default function SettingsScreen({ onClose, onSaved, onPc, onRomCheck, onG
   const [diag, setDiag] = useState<DiagnosticReport | null>(null)
   const [copied, setCopied] = useState(false)
   const [all, setAll] = useState<SystemInfo[]>([])
+  const [ovFound, setOvFound] = useState<Record<string, string | null>>({})
 
   useEffect(() => {
     window.mr.getSettings().then(setS)
@@ -38,6 +39,17 @@ export default function SettingsScreen({ onClose, onSaved, onPc, onRomCheck, onG
       if (d === 'up' || d === 'down') bodyRef.current?.scrollBy({ top: d === 'up' ? -160 : 160, behavior: 'smooth' })
     }
   })
+
+  // bordi trovati da soli nella cartella indicata (si aggiornano quando cambia la cartella)
+  const ovDir = s?.overlayDir ?? ''
+  useEffect(() => {
+    if (tab !== 'look' || !ovDir) {
+      setOvFound({})
+      return
+    }
+    const h = window.setTimeout(() => window.mr.findOverlays(ovDir).then(setOvFound), 300)
+    return () => window.clearTimeout(h)
+  }, [tab, ovDir])
 
   if (!s) return <div className="loading">{t('Caricamento…')}</div>
 
@@ -149,7 +161,41 @@ export default function SettingsScreen({ onClose, onSaved, onPc, onRomCheck, onG
               <input type="checkbox" checked={s.overlayEnabled} onChange={(e) => setS({ ...s, overlayEnabled: e.target.checked })} />
               {t('Riempi le strisce laterali con un bordo grafico')}
             </label>
-            {field('File del bordo (.cfg)', 'Es. C:\\RetroArch\\overlays\\borders\\... .cfg — da RetroArch: Aggiornamenti online → Aggiorna overlay', 'overlayPath', 'cfg')}
+            {field('Cartella dei bordi (.cfg)', 'Cartella con i bordi scaricati (si cerca anche nelle sottocartelle): per ogni sistema il programma sceglie da solo il file giusto', 'overlayDir', 'dir')}
+            {field('Bordo comune a tutti gli altri sistemi (facoltativo)', 'Usato dai sistemi per cui non si trova un bordo', 'overlayPath', 'cfg')}
+            <h3 className="sub-h">{t('Bordo per ogni sistema')}</h3>
+            <div className="persys">
+              {all.filter((x) => x.phase === 1 && x.core).map((x) => {
+                const manual = s.overlayBySystem?.[x.id] ?? ''
+                const found = ovFound[x.id]
+                const file = (p: string): string => p.replace(/^.*[\\/]/, '')
+                return (
+                  <label key={x.id} className="persys-row" style={{ ['--tile' as string]: x.color }}>
+                    <span className="persys-n">{x.name}</span>
+                    <select
+                      value={manual}
+                      onChange={async (e) => {
+                        const next = { ...(s.overlayBySystem ?? {}) }
+                        let v = e.target.value
+                        if (v === '__pick__') {
+                          const p = await window.mr.pickPath('cfg')
+                          if (!p) return
+                          v = p
+                        }
+                        if (v) next[x.id] = v
+                        else delete next[x.id]
+                        setS({ ...s, overlayBySystem: next })
+                      }}
+                    >
+                      <option value="">{found ? t('Automatico: {f}', { f: file(found) }) : t('Automatico (nessun bordo trovato)')}</option>
+                      <option value="-">{t('Nessun bordo')}</option>
+                      {manual && manual !== '-' && <option value={manual}>{file(manual)}</option>}
+                      <option value="__pick__">{t('Scegli un file…')}</option>
+                    </select>
+                  </label>
+                )
+              })}
+            </div>
             <h3 className="sub-h">{t('Effetto schermo a tubo (CRT) nei giochi')}</h3>
             <div className="field">
               <select value={s.crtShader} onChange={(e) => setS({ ...s, crtShader: e.target.value as Settings['crtShader'] })}>

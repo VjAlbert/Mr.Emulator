@@ -4,6 +4,7 @@
 
 ### New and fixed
 - 🕹️ **Exit and game menu without a keyboard**: gamepad **Select + Start** to exit, hold **Start** for the menu; arcade panel **Coin 1 + Start 1** to exit, **Coin 1 + Button 1** for the menu. Configurable in *Controls*.
+- 🖼️ **Border (overlay) for each system**: automatic search in a borders folder, manual choice or no border, per system.
 - 🛠️ **Xbox gamepads in MAME**: Start and Coin now use the real Start/Back buttons (they were mapped to the stick clicks).
 - 🧭 Menu of MAME (DIP switches, input mapping, reset) reachable from gamepad and arcade panel.
 

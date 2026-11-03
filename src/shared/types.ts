@@ -114,6 +114,10 @@ export interface Settings {
   /** Bordo grafico (overlay) di RetroArch per riempire le strisce ai lati */
   overlayEnabled: boolean
   overlayPath: string
+  /** Cartella con i bordi (.cfg): per ogni sistema si cerca da sola quello giusto */
+  overlayDir: string
+  /** Bordo scelto a mano per un sistema ("-" = nessun bordo per quel sistema) */
+  overlayBySystem: Record<string, string>
   /** Tema grafico del launcher */
   theme: 'fighter' | 'neon' | 'retro' | 'mono'
   /** Effetto schermo a tubo catodico nei giochi RetroArch: auto = scelto dal programma in base al PC */
@@ -396,6 +400,8 @@ export interface MrApi {
   /** Chiude il programma (anche con la chiusura bloccata) */
   quitApp(): Promise<void>
   getAppVersion(): Promise<string>
+  /** Bordo (.cfg) trovato in una cartella per ogni sistema */
+  findOverlays(dir: string): Promise<Record<string, string | null>>
   getBiosStatus(): Promise<Array<{ systemId: string; name: string; files: string[]; where: string; note: string; found: string | null; verified: 'ok' | 'unknown' | 'unchecked' | null }>>
   sendFeedback(systemId: string, answer: Feedback): Promise<void>
   /** Si attiva quando un gioco si chiude; restituisce la funzione per smettere di ascoltare */

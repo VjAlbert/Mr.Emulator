@@ -45,6 +45,7 @@ A fast, flashy launcher for arcade and classic console games, built for people w
 - 🧭 **First-run guide**: folders, RetroArch, **one-click core download**, BIOS checklist (with known-file verification) and MAME.
 - 🕹️ **Exit and game menu without a keyboard**: Select + Start on a gamepad, Coin + Start on an arcade panel; fixed Start/Coin on Xbox gamepads in MAME.
 - 🎛️ **Manual button mapping** for keyboards, pads and arcade encoders, for two players, with conflict detection. It applies to RetroArch, MAME and the launcher menu.
+- 🖼️ **Border (overlay) for each system**: point the program to a folder of RetroArch borders and it picks the right one for every console by itself, or choose one by hand.
 - 🖥️ **Screen modes** (full height, pixel perfect, pixel perfect in height, stretched) with a live preview using your real screen size, per-system overrides, vertical-monitor mode for MAME and RetroArch overlays.
 - 🕹️ **New systems**: Dreamcast, Sega Naomi, Atomiswave, PlayStation, Nintendo 64, Nintendo DS, Atari Jaguar, 3DO, PC Engine/TurboGrafx-16, SuperGrafx, Game Gear, SG-1000, Famicom Disk System, Neo Geo Pocket, ColecoVision, MSX, ZX Spectrum, Channel F and Astrocade.
 - 🎨 **Themes** (Fighter, Neon, Green phosphor, Night) and a manual **CRT shader** choice.

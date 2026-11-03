@@ -25,6 +25,7 @@ import { MediaSource } from './media'
 import { runVerify, type VerifyBad } from './verify'
 import { existsSync, readFileSync, writeFileSync } from 'fs'
 import { loadMameData, type MameData } from './mame'
+import { findOverlays } from './overlays'
 import { coreList, coresDirOf, installCore } from './cores'
 import { biosStatus, buildDiagnostics } from './diagnostics'
 import { writeFileAtomic } from './atomic'
@@ -585,6 +586,7 @@ app.whenReady().then(async () => {
   })
 
   ipcMain.handle('controls:presets', () => ({ laptop: presetControls('laptop'), cabinet: presetControls('cabinet') }))
+  ipcMain.handle('overlays:find', (_e, dir: string) => findOverlays(dir, SYSTEMS.map((x) => x.id)))
   ipcMain.handle('app:version', () => app.getVersion())
   ipcMain.handle('app:quit', () => {
     allowQuit = true

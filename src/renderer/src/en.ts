@@ -1,5 +1,14 @@
 // Traduzioni inglesi: la chiave è il testo italiano usato nel programma
 export const EN: Record<string, string> = {
+  "Cartella dei bordi (.cfg)": "Borders folder (.cfg)",
+  "Cartella con i bordi scaricati (si cerca anche nelle sottocartelle): per ogni sistema il programma sceglie da solo il file giusto": "Folder with the downloaded borders (subfolders are searched too): for each system the program picks the right file by itself",
+  "Bordo comune a tutti gli altri sistemi (facoltativo)": "Shared border for all other systems (optional)",
+  "Usato dai sistemi per cui non si trova un bordo": "Used by systems for which no border is found",
+  "Bordo per ogni sistema": "Border for each system",
+  "Automatico: {f}": "Automatic: {f}",
+  "Automatico (nessun bordo trovato)": "Automatic (no border found)",
+  "Nessun bordo": "No border",
+  "Scegli un file…": "Choose a file…",
   "Uscire dal gioco e aprire il menu": "Exit the game and open the menu",
   "Mentre giochi non serve la tastiera: queste combinazioni funzionano con il joypad e con il pannello arcade.": "You do not need a keyboard while playing: these combinations work with a gamepad and an arcade panel.",
   "Joypad: per uscire dal gioco": "Gamepad: to exit the game",

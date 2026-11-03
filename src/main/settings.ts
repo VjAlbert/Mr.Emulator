@@ -40,6 +40,8 @@ const DEFAULTS: Settings = {
   tate: 'off',
   overlayEnabled: false,
   overlayPath: '',
+  overlayDir: '',
+  overlayBySystem: {},
   theme: 'fighter',
   crtShader: 'auto',
   cabinetAutostart: false,
