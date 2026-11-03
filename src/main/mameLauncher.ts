@@ -62,7 +62,9 @@ export function launchMame(
   postCheck?: () => Promise<string>,
   /** Livello di partenza (ricordato per i giochi che richiedono un profilo prudente) e funzione per ricordarne uno nuovo */
   startLevel = 0,
-  onProfile: (level: number) => void = () => undefined
+  onProfile: (level: number) => void = () => undefined,
+  /** Impostazioni aggiuntive di mame.ini (salvataggi, ripresa automatica, record) */
+  extraIni: Record<string, string> = {}
 ): LaunchResult {
   if (game.demo) return { ok: false, error: 'Questo è un gioco di esempio. Imposta la cartella ROM nelle impostazioni.' }
   if (!settings.mamePath || !existsSync(settings.mamePath)) {
@@ -87,12 +89,14 @@ export function launchMame(
       state_directory: join(dir, 'sta'),
       snapshot_directory: join(dir, 'snap'),
       diff_directory: join(dir, 'diff'),
-      comment_directory: join(dir, 'comments')
+      comment_directory: join(dir, 'comments'),
+      ...extraIni
     }
     if (level >= 1) {
-      // niente shader, video predefinito di MAME
+      // niente shader, video predefinito di MAME; e senza il plugin dei record (se fosse lui a dare problemi)
       delete full['video']
       delete full['bgfx_screen_chains']
+      delete full['plugin']
     }
     if (level === 2) {
       // stessa scheda video ma con OpenGL al posto di Direct3D: aggira i crash del driver Direct3D

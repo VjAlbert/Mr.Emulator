@@ -35,6 +35,7 @@ Sistemi: Arcade (MAME, FBNeo), Neo Geo, Master System, Mega Drive, NES, SNES, Ga
 - [ ] Verifica delle impostazioni con RetroArch e schermi reali (portatile, PC desktop, TV/proiettore)
 - [x] Comandi da tastiera (WASD + J/K/L) e preset pannello arcade I-PAC a 2 giocatori e 6 pulsanti, con uscita da gioco tramite combinazione sul pannello
 - [x] Schermata "Comandi" per provare in tempo reale tastiera, encoder e pad
+- [x] Salvataggi: cartella unica, salvataggio automatico ogni 10 s, "continua / nuova partita" prima di avviare le console (al posto della Memory Card), ripresa per gioco negli arcade, record di MAME, backup e ripristino in ZIP (da provare con RetroArch e MAME reali)
 - [x] Bordo grafico (overlay) per ogni sistema: ricerca automatica in una cartella, scelta a mano o nessuno
 - [x] Uscita dal gioco e menu senza tastiera (joypad: Select + Start e tieni Start; pannello: Moneta + Start e Moneta + Pulsante 1), configurabili
 - [x] Comandi manuali: assegnazione a mano di tasti, pulsanti e assi (tastiera, pad, encoder) per due giocatori, in sequenza guidata, con controllo dei conflitti; valgono per RetroArch, MAME e per il menu (da provare con hardware reale)

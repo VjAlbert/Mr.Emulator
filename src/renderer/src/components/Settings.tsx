@@ -3,9 +3,9 @@ import { IMAGE_MODES } from './ScreenPreview'
 import type { DiagnosticReport, ImageStyle, PickKind, Settings, SystemInfo } from '@shared/types'
 import { useInput } from '../hooks/useInput'
 import { configureSound, sfx } from '../sound'
-import { setLang, t } from '../i18n'
+import { getLang, setLang, t } from '../i18n'
 
-type PathKey = 'romsDir' | 'biosDir' | 'retroarchPath' | 'coresDir' | 'mamePath' | 'mameChdDir' | 'mameRomDir' | 'mediaDir' | 'datDir' | 'overlayPath' | 'overlayDir'
+type PathKey = 'romsDir' | 'biosDir' | 'retroarchPath' | 'coresDir' | 'mamePath' | 'mameChdDir' | 'mameRomDir' | 'mediaDir' | 'datDir' | 'overlayPath' | 'overlayDir' | 'savesDir'
 
 interface Props {
   onClose: () => void
@@ -21,10 +21,13 @@ export default function SettingsScreen({ onClose, onSaved, onPc, onRomCheck, onG
   const [mameInfo, setMameInfo] = useState<string>('')
   const [mediaInfo, setMediaInfo] = useState<string[]>([])
   const bodyRef = useRef<HTMLDivElement>(null)
-  const [tab, setTab] = useState<'general' | 'systems' | 'look' | 'cabinet' | 'diag'>('general')
+  const [tab, setTab] = useState<'general' | 'systems' | 'look' | 'saves' | 'cabinet' | 'diag'>('general')
   const [diag, setDiag] = useState<DiagnosticReport | null>(null)
   const [copied, setCopied] = useState(false)
   const [all, setAll] = useState<SystemInfo[]>([])
+  const [saveStats, setSaveStats] = useState<{ dir: string; files: number; bytes: number } | null>(null)
+  const [saveMsg, setSaveMsg] = useState('')
+  const [confirmRestore, setConfirmRestore] = useState(false)
   const [ovFound, setOvFound] = useState<Record<string, string | null>>({})
 
   useEffect(() => {
@@ -50,6 +53,11 @@ export default function SettingsScreen({ onClose, onSaved, onPc, onRomCheck, onG
     const h = window.setTimeout(() => window.mr.findOverlays(ovDir).then(setOvFound), 300)
     return () => window.clearTimeout(h)
   }, [tab, ovDir])
+
+  // scheda Salvataggi: cartella, numero di file e spazio
+  useEffect(() => {
+    if (tab === 'saves') window.mr.getSaveStats().then(setSaveStats, () => undefined)
+  }, [tab])
 
   if (!s) return <div className="loading">{t('Caricamento…')}</div>
 
@@ -94,6 +102,7 @@ export default function SettingsScreen({ onClose, onSaved, onPc, onRomCheck, onG
           {onGuide && <button className="tab" onClick={onGuide}>{t('▶ RIFAI LA GUIDA')}</button>}
           <button className={`tab ${tab === 'systems' ? 'on' : ''}`} onClick={() => setTab('systems')}>{t('SISTEMI IN HOME')}</button>
           <button className={`tab ${tab === 'look' ? 'on' : ''}`} onClick={() => setTab('look')}>{t('ASPETTO')}</button>
+          <button className={`tab ${tab === 'saves' ? 'on' : ''}`} onClick={() => setTab('saves')}>{t('SALVATAGGI')}</button>
           <button className={`tab ${tab === 'cabinet' ? 'on' : ''}`} onClick={() => setTab('cabinet')}>{t('MODALITÀ CABINATO')}</button>
           <button
             className={`tab ${tab === 'diag' ? 'on' : ''}`}
@@ -106,7 +115,76 @@ export default function SettingsScreen({ onClose, onSaved, onPc, onRomCheck, onG
             {t('DIAGNOSTICA')}
           </button>
         </div>
-        {tab === 'look' ? (
+        {tab === 'saves' ? (
+          <div className="sysopts saves">
+            <p className="hint">{t('Qui sta tutto ciò che si salva giocando: partite delle console, memory card, stati e punteggi record. Una cartella sola, facile da copiare o da salvare altrove.')}</p>
+            <div className="savedir">
+              <span className="savedir-p">{saveStats?.dir ?? '…'}</span>
+              <span className="savedir-n">
+                {saveStats ? t('{n} file · {m} MB', { n: saveStats.files.toLocaleString(getLang() === 'it' ? 'it' : 'en'), m: (saveStats.bytes / 1048576).toFixed(1) }) : ''}
+              </span>
+            </div>
+            {field('Cartella dei salvataggi', 'Vuota = la cartella «saves» accanto alle ROM (sullo stesso disco)', 'savesDir', 'dir')}
+            <label className="check">
+              <input type="checkbox" checked={s.resumeConsoles} onChange={(e) => setS({ ...s, resumeConsoles: e.target.checked })} />
+              {t('Console: continua da dove eri (sostituisce la Memory Card). Salva da solo quando esci e, se trova un salvataggio, ti chiede se continuare o iniziare una nuova partita')}
+            </label>
+            <label className="check">
+              <input type="checkbox" checked={s.hiscore} onChange={(e) => setS({ ...s, hiscore: e.target.checked })} />
+              {t('Arcade (MAME): salva i punteggi record dei giochi che lo permettono')}
+            </label>
+            <p className="hint">{t('Per i giochi arcade la scelta "nuova partita / riprendi" si fa nell\'anteprima del gioco (frecce sinistra e destra). Il salvataggio delle console si scrive su disco ogni 10 secondi: se il cabinato si spegne di colpo, si perde pochissimo. Ricorda di premere SALVA.')}</p>
+            <div className="field-row">
+              <button className="chip" onClick={() => window.mr.openSaves()}>{t('📂 APRI LA CARTELLA')}</button>
+              <button
+                className="chip"
+                onClick={async () => {
+                  setSaveMsg(t('Backup in corso…'))
+                  await window.mr.saveSettings(s)
+                  const r = await window.mr.backupSaves()
+                  setSaveMsg(r.ok ? t('✔ Backup creato: {n} file in {p}', { n: r.files ?? 0, p: r.path ?? '' }) : r.error ? `⚠ ${r.error}` : '')
+                }}
+              >
+                {t('📦 BACKUP IN UNO ZIP…')}
+              </button>
+              <button className="chip" onClick={() => setConfirmRestore(true)}>{t('♻ RIPRISTINA DA UNO ZIP…')}</button>
+              <button
+                className="chip"
+                onClick={async () => {
+                  setSaveMsg(t('Importazione in corso…'))
+                  await window.mr.saveSettings(s)
+                  const r = await window.mr.importSaves()
+                  setSaveMsg(t('✔ Importati {n} file (quelli già presenti non sono stati toccati)', { n: r.copied }))
+                  window.mr.getSaveStats().then(setSaveStats, () => undefined)
+                }}
+              >
+                {t('⬇ IMPORTA I SALVATAGGI ESISTENTI')}
+              </button>
+            </div>
+            {confirmRestore && (
+              <div className="warnbox">
+                <b>{t('Ripristinare un backup?')}</b> {t('I file con lo stesso nome nella cartella dei salvataggi saranno sostituiti da quelli del backup.')}
+                <div className="field-row">
+                  <button
+                    className="chip save"
+                    onClick={async () => {
+                      setConfirmRestore(false)
+                      await window.mr.saveSettings(s)
+                      const r = await window.mr.restoreSaves()
+                      setSaveMsg(r.ok ? t('✔ Ripristinati {n} file', { n: r.files ?? 0 }) : r.error ? `⚠ ${r.error}` : '')
+                      window.mr.getSaveStats().then(setSaveStats, () => undefined)
+                    }}
+                  >
+                    {t('SÌ, RIPRISTINA')}
+                  </button>
+                  <button className="chip" onClick={() => setConfirmRestore(false)}>{t('ANNULLA')}</button>
+                </div>
+              </div>
+            )}
+            {saveMsg && <p className="hint">{saveMsg}</p>}
+            <p className="hint">{t('"Importa" porta qui i salvataggi di RetroArch (dalla sua cartella saves e states) e quelli di MAME usati finora, senza sovrascrivere nulla. Quelli che RetroArch teneva accanto alle ROM vanno copiati a mano.')}</p>
+          </div>
+        ) : tab === 'look' ? (
           <div className="sysopts">
             <h3 className="sub-h">{t('Tema del launcher')}</h3>
             <div className="themes">

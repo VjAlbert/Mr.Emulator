@@ -7,6 +7,7 @@ import SystemReport from './components/SystemReport'
 import InputTest from './components/InputTest'
 import FirstRun from './components/FirstRun'
 import TitleScreen from './components/TitleScreen'
+import ResumeDialog, { type ResumeChoice } from './components/ResumeDialog'
 import { getLang, setLang, useLangVersion, type LangSetting, t } from './i18n'
 import RomCheck from './components/RomCheck'
 import FeedbackPrompt from './components/FeedbackPrompt'
@@ -161,7 +162,21 @@ export default function App(): React.JSX.Element {
     go({ name: 'games', system })
   }
 
+  // salvataggio trovato (console): si chiede se continuare o iniziare una nuova partita
+  const [resumeAsk, setResumeAsk] = useState<{ game: Game; time: number; resolve: (c: ResumeChoice) => void } | null>(null)
+  const askResume = (game: Game, time: number): Promise<ResumeChoice> =>
+    new Promise((resolve) => setResumeAsk({ game, time, resolve: (c) => (setResumeAsk(null), resolve(c)) }))
+
   const launch = async (g: Game): Promise<void> => {
+    let fresh = false
+    if (!g.demo) {
+      const info = await window.mr.getSaveInfo(g).catch(() => null)
+      if (info?.ask && info.state) {
+        const choice = await askResume(g, info.state.time)
+        if (choice === 'cancel') return
+        fresh = choice === 'new'
+      }
+    }
     // sequenza "INSERT COIN": solo per giochi veri, e si può saltare con un pulsante
     if (opts.launchAnimation && !g.demo) {
       await new Promise<void>((resolve) => {
@@ -170,7 +185,7 @@ export default function App(): React.JSX.Element {
       })
     }
     music.stop() // la musica non deve continuare mentre si gioca
-    const res = await window.mr.launch(g)
+    const res = await window.mr.launch(g, { fresh })
     setLaunching(null)
     lastActivity.current = Date.now()
     if (!res.ok && res.error) toast(res.error)
@@ -285,6 +300,15 @@ export default function App(): React.JSX.Element {
         />
       )}
       {busy && <div className="busy">{t('⟳ Preparazione dell\'elenco… (succede solo la prima volta)')}</div>}
+      {resumeAsk && (
+        <ResumeDialog
+          game={resumeAsk.game}
+          time={resumeAsk.time}
+          systemName={screen.name === 'games' ? screen.system.name : ''}
+          color={screen.name === 'games' ? screen.system.color : '#ffd400'}
+          onChoice={resumeAsk.resolve}
+        />
+      )}
       {wipe > 0 && <div key={wipe} className="wipe" style={{ ['--w' as string]: wipeColor }} />}
       {ended && (
         <FeedbackPrompt

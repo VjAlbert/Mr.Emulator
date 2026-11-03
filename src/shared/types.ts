@@ -32,6 +32,33 @@ export interface SystemDef {
   softlist?: string[]
 }
 
+/** Cosa c'è di salvato per un gioco, e cosa succede all'avvio */
+export interface SaveInfo {
+  /** console = si chiede all'avvio; arcade = si sceglie nell'anteprima */
+  kind: 'console' | 'arcade'
+  /** Il gioco riprende da dove era (impostazione attuale) */
+  resume: boolean
+  /** Stato salvato (data in millisecondi) */
+  state: { time: number } | null
+  /** Salvataggio del gioco stesso (memory card, batteria) */
+  sram: { time: number } | null
+  /** MAME: il gioco è tra quelli di cui si salvano i record */
+  hiscore: boolean
+  /** All'avvio va chiesto "continua o nuova partita" */
+  ask: boolean
+}
+
+export interface SaveStats {
+  dir: string
+  files: number
+  bytes: number
+}
+
+export interface LaunchOptions {
+  /** Nuova partita: non carica lo stato salvato (se c'è, se ne conserva una copia) */
+  fresh?: boolean
+}
+
 export interface DiagnosticCheck {
   level: 'ok' | 'warn' | 'bad'
   title: string
@@ -116,6 +143,14 @@ export interface Settings {
   overlayPath: string
   /** Cartella con i bordi (.cfg): per ogni sistema si cerca da sola quello giusto */
   overlayDir: string
+  /** Cartella dei salvataggi (vuota = "saves" accanto alla cartella ROM) */
+  savesDir: string
+  /** Console: salva da sola lo stato all'uscita e propone di continuare all'avvio (sostituisce la Memory Card) */
+  resumeConsoles: boolean
+  /** Arcade: per ogni gioco, se riprendere la partita (id del gioco -> sì/no) */
+  resumeArcade: Record<string, boolean>
+  /** MAME: salva i punteggi record dei giochi arcade (plugin hiscore) */
+  hiscore: boolean
   /** Bordo scelto a mano per un sistema ("-" = nessun bordo per quel sistema) */
   overlayBySystem: Record<string, string>
   /** Tema grafico del launcher */
@@ -410,7 +445,14 @@ export interface MrApi {
   getGames(systemId: string): Promise<Game[]>
   getSettings(): Promise<Settings>
   saveSettings(s: Settings): Promise<Settings>
-  launch(game: Game): Promise<LaunchResult>
+  launch(game: Game, opts?: LaunchOptions): Promise<LaunchResult>
+  getSaveInfo(game: Game): Promise<SaveInfo>
+  setResume(gameId: string, on: boolean): Promise<void>
+  getSaveStats(): Promise<SaveStats>
+  openSaves(): Promise<void>
+  backupSaves(): Promise<{ ok: boolean; path?: string; files?: number; error?: string }>
+  restoreSaves(): Promise<{ ok: boolean; files?: number; error?: string }>
+  importSaves(): Promise<{ copied: number }>
   pickPath(kind: PickKind): Promise<string | null>
   /** Restituisce l'indirizzo locale di una copertina (la scarica se manca) oppure null */
   /** Apre in Esplora risorse la cartella ROM, BIOS o di un sistema */

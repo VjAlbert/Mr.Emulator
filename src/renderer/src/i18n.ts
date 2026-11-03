@@ -49,3 +49,12 @@ export function useLangVersion(): number {
     () => version
   )
 }
+
+/** Data e ora brevi nella lingua scelta (per le date dei salvataggi) */
+export function formatDate(ms: number): string {
+  try {
+    return new Date(ms).toLocaleString(lang === 'it' ? 'it-IT' : 'en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
+  } catch {
+    return new Date(ms).toISOString().slice(0, 16).replace('T', ' ')
+  }
+}

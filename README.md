@@ -43,6 +43,7 @@ A fast, flashy launcher for arcade and classic console games, built for people w
 - 🌍 **English and Italian** in the program, switchable any time (Settings → General, or the IT/EN buttons on the title screen).
 - 🎬 **New "PRESS START" title screen** with the system parade.
 - 🧭 **First-run guide**: folders, RetroArch, **one-click core download**, BIOS checklist (with known-file verification) and MAME.
+- 💾 **Saves, done properly**: one saves folder next to your ROMs, automatic save every 10 s, **"Continue / New game"** question before launching a console game with a save (replaces the Memory Card), per-game **Resume** switch in the arcade preview, MAME **high scores**, plus backup/restore to a ZIP.
 - 🕹️ **Exit and game menu without a keyboard**: Select + Start on a gamepad, Coin + Start on an arcade panel; fixed Start/Coin on Xbox gamepads in MAME.
 - 🎛️ **Manual button mapping** for keyboards, pads and arcade encoders, for two players, with conflict detection. It applies to RetroArch, MAME and the launcher menu.
 - 🖼️ **Border (overlay) for each system**: point the program to a folder of RetroArch borders and it picks the right one for every console by itself, or choose one by hand.

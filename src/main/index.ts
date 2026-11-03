@@ -6,7 +6,7 @@ import { extname } from 'path'
 import { MEDIA_MIME, parseRange } from './rangeFile'
 import { tmpdir } from 'os'
 import { basename, join } from 'path'
-import type { ArtKind, Feedback, Game, GameEnded, OptimizationReport, PickKind, Settings, SystemDef, SystemInfo, VerifyState } from '@shared/types'
+import type { ArtKind, Feedback, Game, GameEnded, LaunchOptions, SaveInfo, OptimizationReport, PickKind, Settings, SystemDef, SystemInfo, VerifyState } from '@shared/types'
 import { mkdirSync } from 'fs'
 import { SYSTEMS } from './systems'
 import { loadSettings, saveSettings } from './settings'
@@ -26,6 +26,7 @@ import { runVerify, type VerifyBad } from './verify'
 import { existsSync, readFileSync, writeFileSync } from 'fs'
 import { loadMameData, type MameData } from './mame'
 import { findOverlays } from './overlays'
+import { backupSaves, importSaves, mameSaveIni, prepareFresh, restoreSaves, retroSaveConfig, saveInfo, savesRoot, saveStats } from './saves'
 import { coreList, coresDirOf, installCore } from './cores'
 import { biosStatus, buildDiagnostics } from './diagnostics'
 import { writeFileAtomic } from './atomic'
@@ -487,7 +488,7 @@ app.whenReady().then(async () => {
     return res.canceled ? null : res.filePaths[0]
   })
 
-  ipcMain.handle('game:launch', async (_e, game: Game) => {
+  ipcMain.handle('game:launch', async (_e, game: Game, opts?: LaunchOptions) => {
     const system = SYSTEMS.find((s) => s.id === game.systemId)
     if (!system) return { ok: false, error: 'Sistema sconosciuto.' }
     const settings = loadSettings()
@@ -545,7 +546,8 @@ app.whenReady().then(async () => {
           const levels = Object.values(launchFix).filter((l) => l > 0)
           const launchFloor = levels.length >= 2 ? Math.min(...levels) : cur.launchFloor
           saveSettings({ ...cur, launchFix, launchFloor })
-        }
+        },
+        mameSaveIni(settings, system, game)
       )
     }
 
@@ -553,11 +555,14 @@ app.whenReady().then(async () => {
     const { profile } = profileFor(system, settings, hw, win)
     const input = buildInputConfig(settings.inputScheme, settings.arcadeLayout, system.id === 'arcade', settings.customControls, { exit: settings.padExit, menu: settings.padMenu })
     const t = { t: 0 }
+    // salvataggi: una sola cartella; "nuova partita" conserva lo stato vecchio come copia
+    if (opts?.fresh && !game.demo) prepareFresh(settings, system, game)
+    const save = retroSaveConfig(settings, system, game, !!opts?.fresh)
     return launchGame(
       game,
       system,
       settings,
-      toConfigText({ ...profile.config, ...input }),
+      toConfigText({ ...profile.config, ...input, ...save }),
       () => {
         t.t = Date.now()
         win?.hide()
@@ -586,6 +591,47 @@ app.whenReady().then(async () => {
   })
 
   ipcMain.handle('controls:presets', () => ({ laptop: presetControls('laptop'), cabinet: presetControls('cabinet') }))
+  // salvataggi: informazioni per il gioco scelto, ripresa per gli arcade, cartella, backup e ripristino
+  const absGame = (game: Game, system: SystemDef, s: Settings): Game => (game.demo ? game : { ...game, path: join(systemDir(system, s), game.path) })
+  ipcMain.handle('saves:info', (_e, game: Game): SaveInfo | null => {
+    const system = SYSTEMS.find((x) => x.id === game.systemId)
+    if (!system || game.demo) return null
+    const s = loadSettings()
+    return saveInfo(s, system, absGame(game, system, s))
+  })
+  ipcMain.handle('saves:set-resume', (_e, gameId: string, on: boolean) => {
+    const cur = loadSettings()
+    saveSettings({ ...cur, resumeArcade: { ...cur.resumeArcade, [gameId]: on } })
+  })
+  ipcMain.handle('saves:stats', () => saveStats(loadSettings()))
+  ipcMain.handle('saves:open', async () => {
+    const dir = savesRoot(loadSettings())
+    mkdirSync(dir, { recursive: true })
+    await shell.openPath(dir)
+  })
+  ipcMain.handle('saves:backup', async () => {
+    const res = await dialog.showSaveDialog(win!, {
+      defaultPath: `MrEmulator-salvataggi-${new Date().toISOString().slice(0, 10)}.zip`,
+      filters: [{ name: 'ZIP', extensions: ['zip'] }]
+    })
+    if (res.canceled || !res.filePath) return { ok: false }
+    try {
+      return { ok: true, path: res.filePath, files: backupSaves(loadSettings(), res.filePath) }
+    } catch (e) {
+      return { ok: false, error: e instanceof Error ? e.message : String(e) }
+    }
+  })
+  ipcMain.handle('saves:restore', async () => {
+    const res = await dialog.showOpenDialog(win!, { properties: ['openFile'], filters: [{ name: 'ZIP', extensions: ['zip'] }] })
+    if (res.canceled || !res.filePaths[0]) return { ok: false }
+    try {
+      const r = await restoreSaves(loadSettings(), res.filePaths[0])
+      return { ok: true, files: r.files }
+    } catch (e) {
+      return { ok: false, error: e instanceof Error ? e.message : String(e) }
+    }
+  })
+  ipcMain.handle('saves:import', () => ({ copied: importSaves(loadSettings(), join(app.getPath('userData'), 'mame')) }))
   ipcMain.handle('overlays:find', (_e, dir: string) => findOverlays(dir, SYSTEMS.map((x) => x.id)))
   ipcMain.handle('app:version', () => app.getVersion())
   ipcMain.handle('app:quit', () => {
@@ -620,6 +666,13 @@ app.whenReady().then(async () => {
 
   createWindow()
   applyCabinet(loadSettings())
+  // prima volta con la cartella unica dei salvataggi: si portano lì quelli di MAME già esistenti (RetroArch si importa dalle impostazioni)
+  try {
+    const cur = loadSettings()
+    if (cur.romsDir && !existsSync(savesRoot(cur))) importSaves(cur, join(app.getPath('userData'), 'mame'), false)
+  } catch (e) {
+    logCrash('import-salvataggi', e)
+  }
   // la libreria si carica dopo che la finestra è aperta: l'interfaccia è subito utilizzabile
   void library.init()
   app.on('activate', () => BrowserWindow.getAllWindows().length === 0 && createWindow())

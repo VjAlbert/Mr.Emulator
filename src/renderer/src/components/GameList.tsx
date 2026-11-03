@@ -1,5 +1,5 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
-import type { Game, SystemInfo } from '@shared/types'
+import type { Game, SaveInfo, SystemInfo } from '@shared/types'
 import { useInput } from '../hooks/useInput'
 import CoverCarousel from './CoverCarousel'
 import Orbs from './Orbs'
@@ -11,7 +11,7 @@ import { music } from '../music'
 import type { MediaTrack } from '@shared/types'
 import type { LibraryStats } from '@shared/types'
 import { decadeLabel, decadeOf, initialOf, matchAll, norm, splitTitle } from '../search'
-import { getLang, t } from '../i18n'
+import { formatDate, getLang, t } from '../i18n'
 
 /** Altezza di una riga (compreso lo spazio): la lista disegna solo quelle visibili */
 const ROW_H = 58
@@ -164,6 +164,37 @@ export default function GameList({ system, games, message, onLaunch, onBack, let
   }, [base, baseKeys, query])
 
   const game = list[index]
+
+  // salvataggi del gioco scelto: stato, memory card, record (si legge poco dopo la selezione e quando si torna da una partita)
+  const [sinfo, setSinfo] = useState<SaveInfo | null>(null)
+  const [sbump, setSbump] = useState(0)
+  useEffect(() => {
+    const on = (): void => setSbump((n) => n + 1)
+    window.addEventListener('focus', on)
+    return () => window.removeEventListener('focus', on)
+  }, [])
+  const gameId = game?.id
+  useEffect(() => {
+    if (!game || game.demo) {
+      setSinfo(null)
+      return
+    }
+    let dead = false
+    const h = window.setTimeout(() => {
+      window.mr.getSaveInfo(game).then((i) => !dead && setSinfo(i), () => undefined)
+    }, 150)
+    return () => {
+      dead = true
+      window.clearTimeout(h)
+    }
+  }, [gameId, sbump]) // eslint-disable-line react-hooks/exhaustive-deps
+  /** Arcade: riprendere la partita sì/no, ricordato per ogni gioco */
+  const setResume = (on: boolean): void => {
+    if (!game || !sinfo || sinfo.kind !== 'arcade' || sinfo.resume === on) return
+    sfx.move()
+    setSinfo({ ...sinfo, resume: on })
+    window.mr.setResume(game.id, on)
+  }
   // ---- media del gioco selezionato: filmato (videosnaps) e colonna sonora (soundtrack) ----
   const [mediaOpts, setMediaOpts] = useState({ video: false, music: true })
   useEffect(() => {
@@ -245,7 +276,11 @@ export default function GameList({ system, games, message, onLaunch, onBack, let
   }
 
   useInput({
-    onMove: (dir) => move((i) => (dir === 'up' || dir === 'left' ? i - 1 : i + 1)),
+    onMove: (dir) => {
+      // arcade: sinistra e destra scelgono "nuova partita" / "riprendi" nell'anteprima
+      if (sinfo?.kind === 'arcade' && (dir === 'left' || dir === 'right')) return setResume(dir === 'right')
+      move((i) => (dir === 'up' || dir === 'left' ? i - 1 : i + 1))
+    },
     onPage: (d) => move((i) => i + d * PAGE),
     onConfirm: () => game && launchGame(game),
     // Tab / Start del pad / Moneta 1: passa alla famiglia successiva (anche senza mouse)
@@ -485,6 +520,31 @@ export default function GameList({ system, games, message, onLaunch, onBack, let
                 <button className={`sp-star ${favIds.has(game.id) ? 'on' : ''}`} onClick={() => toggleFav(game)} title={t('Preferito (X del pad · F2 · Start 2 sul pannello)')}>
                   {favIds.has(game.id) ? t('★ NEI PREFERITI') : t('☆ AGGIUNGI AI PREFERITI')}
                 </button>
+                {sinfo && sinfo.kind === 'arcade' && (
+                  <div className="savebox">
+                    <div className="savebox-h">{t('💾 SALVATAGGIO')}</div>
+                    <div className="savebox-seg">
+                      <button className={!sinfo.resume ? 'on' : ''} onClick={() => setResume(false)}>{t('NUOVA PARTITA')}</button>
+                      <button className={sinfo.resume ? 'on' : ''} onClick={() => setResume(true)}>{t('RIPRENDI')}</button>
+                    </div>
+                    <div className="savebox-s">
+                      {sinfo.resume
+                        ? sinfo.state
+                          ? t('Stato salvato il {d}', { d: formatDate(sinfo.state.time) })
+                          : t('Si salverà da solo all\'uscita')
+                        : t('Non carica e non salva nulla')}
+                    </div>
+                    {sinfo.hiscore && <div className="savebox-s hi">{t('🏆 Punteggi record salvati')}</div>}
+                    <div className="savebox-k">{t('◀ ▶ per cambiare')}</div>
+                  </div>
+                )}
+                {sinfo && sinfo.kind === 'console' && (sinfo.state || sinfo.sram) && (
+                  <div className="savebox">
+                    <div className="savebox-h">{t('💾 SALVATAGGIO')}</div>
+                    {sinfo.state && <div className="savebox-s">{t('Partita salvata il {d}', { d: formatDate(sinfo.state.time) })}</div>}
+                    {sinfo.sram && <div className="savebox-s">{t('Memory card / batteria: {d}', { d: formatDate(sinfo.sram.time) })}</div>}
+                  </div>
+                )}
                 <div className="preview-start">{t('▶ PREMI INVIO PER GIOCARE')}</div>
               </div>
             </>

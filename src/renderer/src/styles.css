@@ -647,3 +647,38 @@ b.warnmark { color: #ffd400; margin-right: 8px; font-weight: 400; } .row.active 
 .light-fx .tt-rays, .light-fx .tt-em, .light-fx .tt-track { animation: none; }
 .persys-row { grid-template-columns: minmax(70px, .8fr) minmax(0, 1.6fr); }
 .persys-row select { width: 100%; min-width: 0; text-overflow: ellipsis; }
+
+/* salvataggi: finestra "continua o nuova partita" */
+.rd-back { position: fixed; inset: 0; z-index: 60; display: grid; place-items: center; background: radial-gradient(ellipse at center, rgba(0,0,0,.72), rgba(0,0,0,.92)); }
+.rd { position: relative; width: min(780px, 92vw); padding: 26px 34px 22px; text-align: center; background: linear-gradient(160deg, color-mix(in srgb, var(--accent) 26%, var(--card)), var(--deep) 70%); border: 4px solid #000; box-shadow: 0 0 0 3px var(--accent), 12px 12px 0 rgba(0,0,0,.7), 0 0 80px color-mix(in srgb, var(--accent) 45%, transparent); clip-path: polygon(0 0, calc(100% - 26px) 0, 100% 26px, 100% 100%, 26px 100%, 0 calc(100% - 26px)); animation: rdin .22s ease-out; }
+@keyframes rdin { from { transform: scale(.9) skewX(-3deg); opacity: 0; } }
+.rd-top { display: inline-flex; gap: 12px; align-items: center; padding: 6px 22px; background: var(--accent); color: #000; font-family: var(--font); letter-spacing: 4px; font-size: 20px; transform: skewX(-8deg); }
+.rd-ic { font-size: 22px; }
+.rd-game { margin-top: 16px; font-family: var(--font); font-size: clamp(30px, 4.4vw, 54px); line-height: 1.05; letter-spacing: 2px; color: #f4f4fa; -webkit-text-stroke: 3px #000; paint-order: stroke fill; text-shadow: 5px 5px 0 #000; text-transform: uppercase; }
+.rd-sys { margin-top: 8px; color: var(--muted); letter-spacing: 2px; text-transform: uppercase; font-size: 14px; }
+.rd-choices { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 22px; }
+.rd-btn { display: grid; gap: 6px; padding: 18px 14px; color: var(--text); background: var(--card2); border: 3px solid rgba(255,255,255,.14); clip-path: polygon(14px 0, 100% 0, calc(100% - 14px) 100%, 0 100%); transition: transform .1s, border-color .1s, background .1s; }
+.rd-btn b { font-family: var(--font); font-size: 26px; letter-spacing: 3px; }
+.rd-btn small { color: var(--muted); font-size: 13px; line-height: 1.3; }
+.rd-btn.on { transform: scale(1.06) skewX(-3deg); border-color: var(--accent); background: color-mix(in srgb, var(--accent) 38%, var(--card)); box-shadow: 0 0 30px color-mix(in srgb, var(--accent) 60%, transparent); }
+.rd-btn.on small { color: var(--text); }
+.rd-hint { margin-top: 18px; font-size: 12px; letter-spacing: 3px; color: var(--muted); }
+
+/* salvataggi: riquadro nell'anteprima del gioco */
+.savebox { display: grid; gap: 4px; margin: 8px 0 2px; padding: 8px 12px 9px; background: linear-gradient(160deg, color-mix(in srgb, var(--accent) 22%, var(--card2)), var(--deep)); border-left: 5px solid var(--accent); box-shadow: 4px 4px 0 rgba(0,0,0,.55); }
+.savebox-h { font-family: var(--font); letter-spacing: 3px; font-size: 15px; color: var(--accent); }
+.savebox-seg { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.savebox-seg button { padding: 6px 8px; font-family: var(--font); letter-spacing: 2px; font-size: 14px; color: var(--muted); background: var(--card); border: 2px solid rgba(255,255,255,.12); clip-path: polygon(8px 0, 100% 0, calc(100% - 8px) 100%, 0 100%); }
+.savebox-seg button.on { color: #000; background: var(--accent); border-color: #000; }
+.savebox-s { font-size: 12px; color: var(--text); opacity: .9; }
+.savebox-s.hi { color: #ffd400; }
+.savebox-k { font-size: 10px; letter-spacing: 2px; color: var(--muted); text-transform: uppercase; }
+.savedir { display: flex; justify-content: space-between; gap: 14px; flex-wrap: wrap; padding: 10px 14px; background: var(--card2); border-left: 5px solid var(--accent); font-size: 13px; }
+.savedir-p { word-break: break-all; }
+.savedir-n { color: var(--muted); }
+.warnbox { display: grid; gap: 10px; padding: 12px 16px; background: #2a1119; border-left: 5px solid #ff2d55; }
+
+/* impostazioni: tante schede, su più righe senza spezzare le parole */
+.tabs { flex-wrap: wrap; gap: 8px; }
+.tab { white-space: nowrap; padding: 8px 16px; font-size: 14px; }
+.sysopts.saves { display: grid; gap: 12px; }

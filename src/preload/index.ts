@@ -1,5 +1,5 @@
 import { contextBridge, ipcRenderer } from 'electron'
-import type { GameEnded, LibraryEvent, MrApi, VerifyState } from '@shared/types'
+import type { Game, GameEnded, LibraryEvent, MrApi, VerifyState } from '@shared/types'
 
 const api: MrApi = {
   getLastMameLog: () => ipcRenderer.invoke('mame:last-log'),
@@ -44,6 +44,13 @@ const api: MrApi = {
   getCoreList: () => ipcRenderer.invoke('cores:list'),
   installCore: (core: string) => ipcRenderer.invoke('cores:install', core),
   findOverlays: (dir: string) => ipcRenderer.invoke('overlays:find', dir),
+  getSaveInfo: (game: Game) => ipcRenderer.invoke('saves:info', game),
+  setResume: (gameId: string, on: boolean) => ipcRenderer.invoke('saves:set-resume', gameId, on),
+  getSaveStats: () => ipcRenderer.invoke('saves:stats'),
+  openSaves: () => ipcRenderer.invoke('saves:open'),
+  backupSaves: () => ipcRenderer.invoke('saves:backup'),
+  restoreSaves: () => ipcRenderer.invoke('saves:restore'),
+  importSaves: () => ipcRenderer.invoke('saves:import'),
   getAppVersion: () => ipcRenderer.invoke('app:version'),
   quitApp: () => ipcRenderer.invoke('app:quit'),
   getBiosStatus: () => ipcRenderer.invoke('bios:status'),
@@ -57,7 +64,7 @@ const api: MrApi = {
   getGames: (systemId) => ipcRenderer.invoke('games:get', systemId),
   getSettings: () => ipcRenderer.invoke('settings:get'),
   saveSettings: (s) => ipcRenderer.invoke('settings:save', s),
-  launch: (game) => ipcRenderer.invoke('game:launch', game),
+  launch: (game, opts) => ipcRenderer.invoke('game:launch', game, opts),
   pickPath: (kind) => ipcRenderer.invoke('dialog:pick', kind),
   openFolder: (target) => ipcRenderer.invoke('folder:open', target),
   setupFolders: () => ipcRenderer.invoke('folder:setup'),
