@@ -6,6 +6,7 @@ import { tmpdir } from 'os'
 import { buildDiagnostics } from '../src/main/diagnostics'
 import { SYSTEMS } from '../src/main/systems'
 import type { Settings } from '../src/shared/types'
+import type { BiosRule } from '../src/shared/bios'
 
 const base = (over: Partial<Settings>): Settings => ({ romsDir: '', biosDir: '', retroarchPath: '', coresDir: '', mamePath: '', datDir: '', mediaDir: '', hiddenSystems: [], ...over }) as Settings
 
@@ -43,4 +44,25 @@ test('diagnostica: configurazione completa -> nessun problema', () => {
     systems: SYSTEMS, gameCount: (id) => (id === 'nes' ? 5 : 0), userData: root, version: 't', os: 't'
   })
   assert.equal(r.problems, 0)
+})
+
+test('BIOS: assente, riconosciuto, non riconosciuto, senza controllo', async () => {
+  const { biosStatus } = await import('../src/main/diagnostics')
+  const { createHash } = await import('crypto')
+  const root = mkdtempSync(join(tmpdir(), 'mr-bios-'))
+  mkdirSync(join(root, 'dc'))
+  const good = Buffer.from('contenuto noto')
+  writeFileSync(join(root, 'giusto.bin'), good)
+  writeFileSync(join(root, 'sbagliato.bin'), 'altro')
+  writeFileSync(join(root, 'dc', 'libero.zip'), 'x')
+  const md5 = createHash('md5').update(good).digest('hex')
+  const rules: BiosRule[] = [
+    { systemId: 'a', name: 'A', anyOf: ['giusto.bin'], where: 'bios', note: '', md5: { 'giusto.bin': [md5] } },
+    { systemId: 'b', name: 'B', anyOf: ['sbagliato.bin'], where: 'bios', note: '', md5: { 'sbagliato.bin': [md5] } },
+    { systemId: 'c', name: 'C', anyOf: ['libero.zip'], where: 'bios\\dc', note: '' },
+    { systemId: 'd', name: 'D', anyOf: ['manca.bin'], where: 'bios', note: '' }
+  ]
+  const r = biosStatus({ biosDir: root } as Settings, rules)
+  assert.deepEqual(r.map((x) => x.verified), ['ok', 'unknown', 'unchecked', null])
+  assert.deepEqual(r.map((x) => x.found), ['giusto.bin', 'sbagliato.bin', 'libero.zip', null])
 })

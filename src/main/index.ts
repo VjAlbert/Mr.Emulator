@@ -76,8 +76,25 @@ async function applyGpuPreference(s: Settings): Promise<void> {
   else gpuPref = (await setHighPerformanceGpu(s.retroarchPath)) ? 'applied' : 'failed'
 }
 
+/** Modalità cabinato: schermo intero, avvio con Windows. Con l'argomento --cabinet (usato dall'avvio automatico) è sempre a tutto schermo. */
+let allowQuit = false
+const cabinetFlag = process.argv.includes('--cabinet')
+function applyCabinet(s: Settings): void {
+  if (win && !win.isDestroyed()) win.setFullScreen(s.cabinetFullscreen || cabinetFlag)
+  // l'avvio automatico ha senso solo nella versione installata: da sviluppo avvierebbe Electron "vuoto"
+  if (app.isPackaged) {
+    try {
+      app.setLoginItemSettings({ openAtLogin: s.cabinetAutostart, args: s.cabinetAutostart ? ['--cabinet'] : [] })
+    } catch (e) {
+      logCrash('setLoginItemSettings', e)
+    }
+  }
+}
+
 function createWindow(): void {
+  const startFull = loadSettings().cabinetFullscreen || cabinetFlag
   win = new BrowserWindow({
+    fullscreen: startFull,
     width: 1280,
     height: 720,
     minWidth: 960,
@@ -97,6 +114,17 @@ function createWindow(): void {
   Menu.setApplicationMenu(null)
   win.removeMenu()
   win.setMenuBarVisibility(false)
+  // chiusura bloccata: Alt+F4 non spegne il cabinato; Ctrl+Maiusc+Q o il pulsante nelle impostazioni sì
+  win.on('close', (e) => {
+    if (loadSettings().cabinetLockClose && !allowQuit) e.preventDefault()
+  })
+  win.webContents.on('before-input-event', (e, input) => {
+    if (input.type === 'keyDown' && input.control && input.shift && input.key.toLowerCase() === 'q') {
+      e.preventDefault()
+      allowQuit = true
+      app.quit()
+    }
+  })
   // se la finestra si blocca o la sua parte grafica si chiude da sola, si registra e si ricarica invece di restare nera
   let reloads = 0
   win.webContents.on('render-process-gone', (_e, d) => {
@@ -398,6 +426,7 @@ app.whenReady().then(async () => {
       clearLocalArt()
       mediaSrc = null
     }
+    applyCabinet(saved)
     if (before.datDir !== saved.datDir) clearArtMisses()
     if (before.romsDir !== saved.romsDir || before.datDir !== saved.datDir || before.showUnsupported !== saved.showUnsupported || before.mamePath !== saved.mamePath || before.mameClones !== saved.mameClones || before.mameRomDir !== saved.mameRomDir || before.hideBadRoms !== saved.hideBadRoms) {
       library.rescan(before.romsDir !== saved.romsDir || before.mameRomDir !== saved.mameRomDir)
@@ -556,12 +585,16 @@ app.whenReady().then(async () => {
   })
 
   ipcMain.handle('controls:presets', () => ({ laptop: presetControls('laptop'), cabinet: presetControls('cabinet') }))
+  ipcMain.handle('app:quit', () => {
+    allowQuit = true
+    app.quit()
+  })
   ipcMain.handle('cores:list', () => coreList(loadSettings(), SYSTEMS, (id) => library.count(id)))
   ipcMain.handle('cores:install', (_e, core: string) => {
     const dir = coresDirOf(loadSettings())
     return dir ? installCore(core, dir) : { core, ok: false, error: 'Indica prima retroarch.exe' }
   })
-  ipcMain.handle('bios:status', () => biosStatus(loadSettings()).map(({ rule, found }) => ({ systemId: rule.systemId, name: rule.name, files: rule.anyOf, where: rule.where, note: rule.note, found })))
+  ipcMain.handle('bios:status', () => biosStatus(loadSettings()).map(({ rule, found, verified }) => ({ systemId: rule.systemId, name: rule.name, files: rule.anyOf, where: rule.where, note: rule.note, found, verified })))
   ipcMain.handle('diagnostics:get', () =>
     buildDiagnostics({
       settings: loadSettings(),
@@ -583,6 +616,7 @@ app.whenReady().then(async () => {
   })
 
   createWindow()
+  applyCabinet(loadSettings())
   // la libreria si carica dopo che la finestra è aperta: l'interfaccia è subito utilizzabile
   void library.init()
   app.on('activate', () => BrowserWindow.getAllWindows().length === 0 && createWindow())

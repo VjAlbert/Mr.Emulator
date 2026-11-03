@@ -35,6 +35,22 @@ export default function App(): React.JSX.Element {
   const [attract, setAttract] = useState(false)
   const [opts, setOpts] = useState({ attractSeconds: 90, launchAnimation: true })
   const lastActivity = useRef(Date.now())
+  const cursorHide = useRef(false)
+  // modalità cabinato: il cursore sparisce dopo 2 secondi senza movimenti e ricompare se si muove il mouse
+  useEffect(() => {
+    let t = 0
+    const show = (): void => {
+      document.documentElement.classList.remove('nocursor')
+      window.clearTimeout(t)
+      if (cursorHide.current) t = window.setTimeout(() => document.documentElement.classList.add('nocursor'), 2000)
+    }
+    show()
+    window.addEventListener('mousemove', show)
+    return () => {
+      window.removeEventListener('mousemove', show)
+      window.clearTimeout(t)
+    }
+  }, [])
   const screenRef = useRef<Screen>({ name: 'systems' })
   useEffect(() => setCabinetKeys(scheme === 'cabinet'), [scheme])
   const [ended, setEnded] = useState<GameEnded | null>(null)
@@ -88,6 +104,8 @@ export default function App(): React.JSX.Element {
   const applyFx = useCallback(() => {
     window.mr.getSettings().then((st) => {
       document.documentElement.classList.toggle('light-fx', !!st.lightEffects)
+      cursorHide.current = !!st.cabinetHideCursor
+      if (!st.cabinetHideCursor) document.documentElement.classList.remove('nocursor')
       setScheme(st.inputScheme)
       setCustomKeys(st.inputScheme === 'custom' ? st.customControls : null)
       configureSound(st.soundOn, st.soundVolume)

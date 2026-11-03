@@ -1,4 +1,5 @@
 import { existsSync, readFileSync, statSync } from 'fs'
+import { createHash } from 'crypto'
 import { dirname, join } from 'path'
 import type { DiagnosticCheck, DiagnosticReport, Settings, SystemDef } from '@shared/types'
 import { BIOS_RULES, type BiosRule } from '@shared/bios'
@@ -22,12 +23,29 @@ const tail = (file: string, n: number): string => {
 }
 
 /** Per ogni BIOS richiesto: quale file è stato trovato (null = manca) */
-export function biosStatus(s: Settings): Array<{ rule: BiosRule; found: string | null }> {
+export function biosStatus(s: Settings, rules: BiosRule[] = BIOS_RULES): Array<{ rule: BiosRule; found: string | null; verified: 'ok' | 'unknown' | 'unchecked' | null }> {
   const dirs = [s.biosDir, join(s.biosDir || '', 'dc'), join(s.biosDir || '', 'fbneo')]
-  return BIOS_RULES.map((rule) => ({
-    rule,
-    found: rule.anyOf.find((f) => dirs.some((d) => d && existsSync(join(d, f)))) ?? null
-  }))
+  return rules.map((rule) => {
+    let found: string | null = null
+    let path = ''
+    for (const f of rule.anyOf) {
+      const d = dirs.find((x) => x && existsSync(join(x, f)))
+      if (d) {
+        found = f
+        path = join(d, f)
+        break
+      }
+    }
+    if (!found) return { rule, found, verified: null }
+    const known = rule.md5?.[found]
+    if (!known) return { rule, found, verified: 'unchecked' as const }
+    try {
+      const sum = createHash('md5').update(readFileSync(path)).digest('hex')
+      return { rule, found, verified: known.includes(sum) ? ('ok' as const) : ('unknown' as const) }
+    } catch {
+      return { rule, found, verified: 'unknown' as const }
+    }
+  })
 }
 
 export interface DiagContext {

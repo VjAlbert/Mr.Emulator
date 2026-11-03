@@ -3,7 +3,7 @@ type Kind = 'arcade' | 'handheld' | 'cartridge' | 'disc' | 'computer' | 'dreamca
 const KIND: Record<string, Kind> = {
   arcade: 'arcade', mame: 'arcade', neogeo: 'arcade',
   gb: 'handheld', gbc: 'handheld', gba: 'handheld', ngp: 'handheld', gamegear: 'handheld', nds: 'handheld',
-  fds: 'disc', dreamcast: 'dreamcast', psx: 'psx', naomi: 'naomi', atomiswave: 'atomiswave',
+  fds: 'disc', '3do': 'disc', dreamcast: 'dreamcast', psx: 'psx', naomi: 'naomi', atomiswave: 'atomiswave',
   msx: 'computer', spectrum: 'computer'
 }
 export const kindOf = (id: string): Kind => KIND[id] ?? 'cartridge'

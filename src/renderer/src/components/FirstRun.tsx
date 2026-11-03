@@ -191,9 +191,9 @@ export default function FirstRun({ onDone }: { onDone: () => void }): React.JSX.
             <div className="fr-bios">
               {bios.map((b) => (
                 <div key={b.systemId} className={`fr-b ${b.found ? 'ok' : ''}`}>
-                  <span className="fr-b-ic">{b.found ? '✔' : '✖'}</span>
+                  <span className="fr-b-ic">{b.found ? (b.verified === 'unknown' ? '⚠' : '✔') : '✖'}</span>
                   <span className="fr-b-n">{b.name}</span>
-                  <span className="fr-b-f">{b.found ? `trovato: ${b.found}` : `serve ${b.files[0]}${b.files.length > 1 ? ' (o simile)' : ''} in ${b.where}`}</span>
+                  <span className="fr-b-f">{b.found ? (b.verified === 'ok' ? `trovato e riconosciuto: ${b.found}` : b.verified === 'unknown' ? `trovato ma non riconosciuto: ${b.found} (può funzionare lo stesso, ma non è una versione nota)` : `trovato: ${b.found}`) : `serve ${b.files[0]}${b.files.length > 1 ? ' (o simile)' : ''} in ${b.where}`}</span>
                   <span className="fr-b-note">{b.note}</span>
                 </div>
               ))}

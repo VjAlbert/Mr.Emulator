@@ -19,7 +19,7 @@ export default function SettingsScreen({ onClose, onSaved, onPc, onRomCheck, onG
   const [mameInfo, setMameInfo] = useState<string>('')
   const [mediaInfo, setMediaInfo] = useState<string[]>([])
   const bodyRef = useRef<HTMLDivElement>(null)
-  const [tab, setTab] = useState<'general' | 'systems' | 'diag'>('general')
+  const [tab, setTab] = useState<'general' | 'systems' | 'cabinet' | 'diag'>('general')
   const [diag, setDiag] = useState<DiagnosticReport | null>(null)
   const [copied, setCopied] = useState(false)
   const [all, setAll] = useState<SystemInfo[]>([])
@@ -79,6 +79,7 @@ export default function SettingsScreen({ onClose, onSaved, onPc, onRomCheck, onG
           <button className={`tab ${tab === 'general' ? 'on' : ''}`} onClick={() => setTab('general')}>GENERALE</button>
           {onGuide && <button className="tab" onClick={onGuide}>▶ RIFAI LA GUIDA</button>}
           <button className={`tab ${tab === 'systems' ? 'on' : ''}`} onClick={() => setTab('systems')}>SISTEMI IN HOME</button>
+          <button className={`tab ${tab === 'cabinet' ? 'on' : ''}`} onClick={() => setTab('cabinet')}>MODALITÀ CABINATO</button>
           <button
             className={`tab ${tab === 'diag' ? 'on' : ''}`}
             onClick={async () => {
@@ -90,7 +91,33 @@ export default function SettingsScreen({ onClose, onSaved, onPc, onRomCheck, onG
             DIAGNOSTICA
           </button>
         </div>
-        {tab === 'diag' ? (
+        {tab === 'cabinet' ? (
+          <div className="sysopts">
+            <p className="hint">Per usare il computer come un vero cabinato: il programma parte da solo, a tutto schermo, senza bordi né cursore. Ricorda di premere SALVA.</p>
+            <label className="check">
+              <input type="checkbox" checked={s.cabinetFullscreen} onChange={(e) => setS({ ...s, cabinetFullscreen: e.target.checked })} />
+              Schermo intero senza bordi
+            </label>
+            <label className="check">
+              <input type="checkbox" checked={s.cabinetAutostart} onChange={(e) => setS({ ...s, cabinetAutostart: e.target.checked })} />
+              Avvia Mr. Emulator quando si accende Windows (funziona nella versione installata)
+            </label>
+            <label className="check">
+              <input type="checkbox" checked={s.cabinetHideCursor} onChange={(e) => setS({ ...s, cabinetHideCursor: e.target.checked })} />
+              Nascondi il cursore del mouse dopo qualche secondo
+            </label>
+            <label className="check">
+              <input type="checkbox" checked={s.cabinetLockClose} onChange={(e) => setS({ ...s, cabinetLockClose: e.target.checked })} />
+              Blocca la chiusura accidentale (Alt+F4 non spegne il programma)
+            </label>
+            <p className="hint">
+              Con la chiusura bloccata si esce con <b>Ctrl + Maiusc + Q</b> oppure con il pulsante qui sotto. Al prossimo avvio di Windows il programma si apre da solo sulla home.
+            </p>
+            <div className="field-row">
+              <button className="chip" onClick={() => window.mr.quitApp()}>⏻ CHIUDI IL PROGRAMMA</button>
+            </div>
+          </div>
+        ) : tab === 'diag' ? (
           <div className="diag">
             {!diag ? (
               <p className="hint">Controllo in corso…</p>

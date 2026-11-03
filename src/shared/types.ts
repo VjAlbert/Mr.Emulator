@@ -97,6 +97,14 @@ export interface Settings {
   customControls: CustomControls | null
   /** La procedura guidata del primo avvio è stata completata o saltata */
   firstRunDone: boolean
+  /** Modalità cabinato: il launcher a tutto schermo senza bordi */
+  cabinetFullscreen: boolean
+  /** Si avvia da solo all'accensione di Windows (solo nella versione installata) */
+  cabinetAutostart: boolean
+  /** Il cursore del mouse sparisce dopo qualche secondo di inattività */
+  cabinetHideCursor: boolean
+  /** Alt+F4 e la chiusura accidentale non spengono il programma (si esce con Ctrl+Maiusc+Q o dalle impostazioni) */
+  cabinetLockClose: boolean
   /** Arcade/Neo Geo: mostra anche i giochi che il motore FBNeo non supporta (set MAME completi) */
   showUnsupported: boolean
   /** MAME autonomo (mame.exe), usato dal sistema "Arcade (MAME)" */
@@ -357,7 +365,9 @@ export interface MrApi {
   getCoreList(): Promise<Array<{ core: string; systems: string[]; installed: boolean; games: number }>>
   /** Scarica un core dall'archivio ufficiale di RetroArch */
   installCore(core: string): Promise<{ core: string; ok: boolean; error?: string }>
-  getBiosStatus(): Promise<Array<{ systemId: string; name: string; files: string[]; where: string; note: string; found: string | null }>>
+  /** Chiude il programma (anche con la chiusura bloccata) */
+  quitApp(): Promise<void>
+  getBiosStatus(): Promise<Array<{ systemId: string; name: string; files: string[]; where: string; note: string; found: string | null; verified: 'ok' | 'unknown' | 'unchecked' | null }>>
   sendFeedback(systemId: string, answer: Feedback): Promise<void>
   /** Si attiva quando un gioco si chiude; restituisce la funzione per smettere di ascoltare */
   onGameEnded(cb: (e: GameEnded) => void): () => void
