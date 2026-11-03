@@ -1,6 +1,7 @@
 import { existsSync, readFileSync, statSync } from 'fs'
 import { dirname, join } from 'path'
 import type { DiagnosticCheck, DiagnosticReport, Settings, SystemDef } from '@shared/types'
+import { BIOS_RULES, type BiosRule } from '@shared/bios'
 import { platform } from './platform'
 import { systemDir } from './paths'
 
@@ -18,6 +19,15 @@ const tail = (file: string, n: number): string => {
   } catch {
     return ''
   }
+}
+
+/** Per ogni BIOS richiesto: quale file è stato trovato (null = manca) */
+export function biosStatus(s: Settings): Array<{ rule: BiosRule; found: string | null }> {
+  const dirs = [s.biosDir, join(s.biosDir || '', 'dc'), join(s.biosDir || '', 'fbneo')]
+  return BIOS_RULES.map((rule) => ({
+    rule,
+    found: rule.anyOf.find((f) => dirs.some((d) => d && existsSync(join(d, f)))) ?? null
+  }))
 }
 
 export interface DiagContext {
@@ -64,17 +74,9 @@ export function buildDiagnostics(c: DiagContext): DiagnosticReport {
   if (s.datDir) add(isDir(s.datDir) ? 'ok' : 'warn', 'Cartella DAT', s.datDir, isDir(s.datDir) ? '' : 'La cartella non esiste.')
   if (s.mediaDir) add(isDir(s.mediaDir) ? 'ok' : 'warn', 'Cartella immagini/Multimedia', s.mediaDir, isDir(s.mediaDir) ? '' : 'La cartella non esiste: filmati e musica non saranno disponibili.')
 
-  // BIOS per sistema
-  const hasBios = (...n: string[]): boolean => [s.biosDir, join(s.biosDir || '', 'dc'), join(s.biosDir || '', 'fbneo')].some((d) => d && n.some((f) => existsSync(join(d, f))))
-  const biosRules: Array<[string, string[], string]> = [
-    ['neogeo', ['neogeo.zip'], 'neogeo.zip in bios\\fbneo'],
-    ['psx', ['scph5501.bin', 'scph5500.bin', 'scph5502.bin', 'scph1001.bin', 'scph7001.bin'], 'scph5501.bin in bios'],
-    ['dreamcast', ['dc_boot.bin'], 'dc_boot.bin e dc_flash.bin in bios\\dc'],
-    ['naomi', ['naomi.zip'], 'naomi.zip in bios\\dc'],
-    ['atomiswave', ['awbios.zip'], 'awbios.zip in bios\\dc']
-  ]
-  for (const [id, files, where] of biosRules) {
-    if (c.gameCount(id) > 0 && !hasBios(...files)) add('bad', `BIOS mancante per ${c.systems.find((x) => x.id === id)?.name ?? id}`, '', `Copia ${where}.`)
+  // BIOS per sistema (solo per i sistemi in cui l'utente ha dei giochi)
+  for (const st of biosStatus(s)) {
+    if (c.gameCount(st.rule.systemId) > 0 && !st.found) add('bad', `BIOS mancante per ${st.rule.name}`, '', `Copia ${st.rule.anyOf[0]} in ${st.rule.where}.`)
   }
 
   // sistemi: cartella e numero di giochi

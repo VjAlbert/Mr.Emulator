@@ -30,6 +30,7 @@ const DEFAULTS: Settings = {
   datDir: '',
   hiddenSystems: [],
   customControls: null,
+  firstRunDone: false,
   videoPreview: true,
   musicVolume: 0.5,
   mameRomDir: '',

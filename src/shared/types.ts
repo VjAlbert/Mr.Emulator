@@ -95,6 +95,8 @@ export interface Settings {
   arcadeLayout: ArcadeLayout
   /** Comandi assegnati a mano (valgono quando lo schema è "custom") */
   customControls: CustomControls | null
+  /** La procedura guidata del primo avvio è stata completata o saltata */
+  firstRunDone: boolean
   /** Arcade/Neo Geo: mostra anche i giochi che il motore FBNeo non supporta (set MAME completi) */
   showUnsupported: boolean
   /** MAME autonomo (mame.exe), usato dal sistema "Arcade (MAME)" */
@@ -350,6 +352,8 @@ export interface MrApi {
   getControlPresets(): Promise<{ laptop: CustomControls; cabinet: CustomControls }>
   getReport(): Promise<OptimizationReport>
   getDiagnostics(): Promise<DiagnosticReport>
+  /** Elenco dei BIOS richiesti e se sono stati trovati */
+  getBiosStatus(): Promise<Array<{ systemId: string; name: string; files: string[]; where: string; note: string; found: string | null }>>
   sendFeedback(systemId: string, answer: Feedback): Promise<void>
   /** Si attiva quando un gioco si chiude; restituisce la funzione per smettere di ascoltare */
   onGameEnded(cb: (e: GameEnded) => void): () => void

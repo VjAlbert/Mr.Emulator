@@ -5,6 +5,7 @@ import GameList from './components/GameList'
 import SettingsScreen from './components/Settings'
 import SystemReport from './components/SystemReport'
 import InputTest from './components/InputTest'
+import FirstRun from './components/FirstRun'
 import RomCheck from './components/RomCheck'
 import FeedbackPrompt from './components/FeedbackPrompt'
 import LaunchSequence from './components/LaunchSequence'
@@ -15,7 +16,7 @@ import MiniPlayer from './components/MiniPlayer'
 import { clearArtCache } from './hooks/useArt'
 import { isModalOpen, setCabinetKeys, setCustomKeys } from './hooks/useInput'
 
-type Screen = { name: 'systems' } | { name: 'games'; system: SystemInfo } | { name: 'settings' } | { name: 'pc' } | { name: 'input' } | { name: 'romcheck' }
+type Screen = { name: 'systems' } | { name: 'games'; system: SystemInfo } | { name: 'settings' } | { name: 'pc' } | { name: 'input' } | { name: 'romcheck' } | { name: 'firstrun' }
 
 export default function App(): React.JSX.Element {
   const [screen, setScreen] = useState<Screen>({ name: 'systems' })
@@ -37,6 +38,16 @@ export default function App(): React.JSX.Element {
   const screenRef = useRef<Screen>({ name: 'systems' })
   useEffect(() => setCabinetKeys(scheme === 'cabinet'), [scheme])
   const [ended, setEnded] = useState<GameEnded | null>(null)
+
+  // primo avvio: se non è mai stato configurato nulla si parte dalla procedura guidata
+  useEffect(() => {
+    window.mr.getSettings().then((st) => {
+      if (!st.firstRunDone && !st.retroarchPath && !st.mamePath) {
+        screenRef.current = { name: 'firstrun' }
+        setScreen({ name: 'firstrun' })
+      }
+    })
+  }, [])
 
   // quando un gioco si chiude, il programma chiede com'è andata
   useEffect(() => window.mr.onGameEnded(setEnded), [])
@@ -194,6 +205,7 @@ export default function App(): React.JSX.Element {
         onPc={() => go({ name: 'pc' })}
         onRomCheck={() => go({ name: 'romcheck' })}
         onClose={() => go({ name: 'systems' })}
+        onGuide={() => go({ name: 'firstrun' })}
         onSaved={() => {
           clearArtCache()
           refresh()
@@ -201,6 +213,8 @@ export default function App(): React.JSX.Element {
         }}
       />
     )
+  } else if (screen.name === 'firstrun') {
+    view = <FirstRun onDone={() => { refresh(); applyFx(); go({ name: 'systems' }) }} />
   } else if (screen.name === 'games') {
     view = (
       <GameList system={screen.system} games={games} message={message} onLaunch={launch} onBack={() => go({ name: 'systems' })} letterJump={scheme !== 'cabinet'} onRomCheck={() => go({ name: 'romcheck' })} onToastClick={hasLog ? copyLog : undefined} />

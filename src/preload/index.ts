@@ -41,6 +41,7 @@ const api: MrApi = {
   getControlPresets: () => ipcRenderer.invoke('controls:presets'),
   getReport: () => ipcRenderer.invoke('report:get'),
   getDiagnostics: () => ipcRenderer.invoke('diagnostics:get'),
+  getBiosStatus: () => ipcRenderer.invoke('bios:status'),
   sendFeedback: (systemId, answer) => ipcRenderer.invoke('feedback:send', systemId, answer),
   onGameEnded: (cb) => {
     const handler = (_e: unknown, data: GameEnded): void => cb(data)

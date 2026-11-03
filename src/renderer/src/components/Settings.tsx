@@ -10,9 +10,10 @@ interface Props {
   onSaved: () => void
   onPc: () => void
   onRomCheck: () => void
+  onGuide?: () => void
 }
 
-export default function SettingsScreen({ onClose, onSaved, onPc, onRomCheck }: Props): React.JSX.Element {
+export default function SettingsScreen({ onClose, onSaved, onPc, onRomCheck, onGuide }: Props): React.JSX.Element {
   const [s, setS] = useState<Settings | null>(null)
   const [saved, setSaved] = useState(false)
   const [mameInfo, setMameInfo] = useState<string>('')
@@ -76,6 +77,7 @@ export default function SettingsScreen({ onClose, onSaved, onPc, onRomCheck }: P
       <div className="settings-body" ref={bodyRef}>
         <div className="tabs">
           <button className={`tab ${tab === 'general' ? 'on' : ''}`} onClick={() => setTab('general')}>GENERALE</button>
+          {onGuide && <button className="tab" onClick={onGuide}>▶ RIFAI LA GUIDA</button>}
           <button className={`tab ${tab === 'systems' ? 'on' : ''}`} onClick={() => setTab('systems')}>SISTEMI IN HOME</button>
           <button
             className={`tab ${tab === 'diag' ? 'on' : ''}`}

@@ -25,7 +25,7 @@ import { MediaSource } from './media'
 import { runVerify, type VerifyBad } from './verify'
 import { existsSync, readFileSync, writeFileSync } from 'fs'
 import { loadMameData, type MameData } from './mame'
-import { buildDiagnostics } from './diagnostics'
+import { biosStatus, buildDiagnostics } from './diagnostics'
 import { writeFileAtomic } from './atomic'
 import { softTitles } from './softlist'
 import { datTitles } from './datfiles'
@@ -555,6 +555,7 @@ app.whenReady().then(async () => {
   })
 
   ipcMain.handle('controls:presets', () => ({ laptop: presetControls('laptop'), cabinet: presetControls('cabinet') }))
+  ipcMain.handle('bios:status', () => biosStatus(loadSettings()).map(({ rule, found }) => ({ systemId: rule.systemId, name: rule.name, files: rule.anyOf, where: rule.where, note: rule.note, found })))
   ipcMain.handle('diagnostics:get', () =>
     buildDiagnostics({
       settings: loadSettings(),
