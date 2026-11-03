@@ -62,7 +62,8 @@ export function profileFor(
     biosDir: s.biosDir,
     shaderDir: shaders.dir,
     shadersAvailable: shaders.names,
-    monitorIndex: monitorIndexFor(s, hw.screens, cur)
+    monitorIndex: monitorIndexFor(s, hw.screens, cur),
+    crtChoice: s.crtShader
   })
   return { profile, level, delta }
 }

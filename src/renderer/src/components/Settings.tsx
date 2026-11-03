@@ -19,7 +19,7 @@ export default function SettingsScreen({ onClose, onSaved, onPc, onRomCheck, onG
   const [mameInfo, setMameInfo] = useState<string>('')
   const [mediaInfo, setMediaInfo] = useState<string[]>([])
   const bodyRef = useRef<HTMLDivElement>(null)
-  const [tab, setTab] = useState<'general' | 'systems' | 'cabinet' | 'diag'>('general')
+  const [tab, setTab] = useState<'general' | 'systems' | 'look' | 'cabinet' | 'diag'>('general')
   const [diag, setDiag] = useState<DiagnosticReport | null>(null)
   const [copied, setCopied] = useState(false)
   const [all, setAll] = useState<SystemInfo[]>([])
@@ -79,6 +79,7 @@ export default function SettingsScreen({ onClose, onSaved, onPc, onRomCheck, onG
           <button className={`tab ${tab === 'general' ? 'on' : ''}`} onClick={() => setTab('general')}>GENERALE</button>
           {onGuide && <button className="tab" onClick={onGuide}>▶ RIFAI LA GUIDA</button>}
           <button className={`tab ${tab === 'systems' ? 'on' : ''}`} onClick={() => setTab('systems')}>SISTEMI IN HOME</button>
+          <button className={`tab ${tab === 'look' ? 'on' : ''}`} onClick={() => setTab('look')}>ASPETTO</button>
           <button className={`tab ${tab === 'cabinet' ? 'on' : ''}`} onClick={() => setTab('cabinet')}>MODALITÀ CABINATO</button>
           <button
             className={`tab ${tab === 'diag' ? 'on' : ''}`}
@@ -91,7 +92,40 @@ export default function SettingsScreen({ onClose, onSaved, onPc, onRomCheck, onG
             DIAGNOSTICA
           </button>
         </div>
-        {tab === 'cabinet' ? (
+        {tab === 'look' ? (
+          <div className="sysopts">
+            <h3 className="sub-h">Tema del launcher</h3>
+            <div className="themes">
+              {([['fighter', 'Picchiaduro', '#12121c', '#ff2d55'], ['neon', 'Neon', '#1c0b52', '#00e5ff'], ['retro', 'Fosforo verde', '#0a2812', '#5dff8f'], ['mono', 'Notte', '#181818', '#ffffff']] as const).map(([id, name, bg, fg]) => (
+                <button
+                  key={id}
+                  className={`theme ${s.theme === id ? 'on' : ''}`}
+                  style={{ ['--tbg' as string]: bg, ['--tfg' as string]: fg }}
+                  onClick={() => {
+                    setS({ ...s, theme: id })
+                    document.documentElement.dataset.theme = id
+                  }}
+                >
+                  <i /> {name}
+                </button>
+              ))}
+            </div>
+            <h3 className="sub-h">Effetto schermo a tubo (CRT) nei giochi</h3>
+            <div className="field">
+              <select value={s.crtShader} onChange={(e) => setS({ ...s, crtShader: e.target.value as Settings['crtShader'] })}>
+                <option value="auto">Automatico (lo sceglie il programma in base al tuo PC)</option>
+                <option value="off">Nessuno (immagine pulita)</option>
+                <option value="crt-easymode">CRT leggero (Easymode)</option>
+                <option value="crt-geom">CRT classico con curvatura (Geom)</option>
+                <option value="crt-lottes">CRT morbido (Lottes)</option>
+                <option value="crt-royale">CRT realistico (Royale, richiede una scheda video potente)</option>
+              </select>
+            </div>
+            <p className="hint">
+              Vale per i giochi lanciati con RetroArch. Se lo shader scelto non è installato, il programma torna al modo automatico. Per installarli: in RetroArch, Aggiornamenti online → Aggiorna shader Slang. Ricorda di premere SALVA.
+            </p>
+          </div>
+        ) : tab === 'cabinet' ? (
           <div className="sysopts">
             <p className="hint">Per usare il computer come un vero cabinato: il programma parte da solo, a tutto schermo, senza bordi né cursore. Ricorda di premere SALVA.</p>
             <label className="check">

@@ -32,6 +32,8 @@ const DEFAULTS: Settings = {
   customControls: null,
   firstRunDone: false,
   cabinetFullscreen: false,
+  theme: 'fighter',
+  crtShader: 'auto',
   cabinetAutostart: false,
   cabinetHideCursor: false,
   cabinetLockClose: false,

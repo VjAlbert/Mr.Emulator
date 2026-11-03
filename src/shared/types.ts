@@ -99,6 +99,10 @@ export interface Settings {
   firstRunDone: boolean
   /** Modalità cabinato: il launcher a tutto schermo senza bordi */
   cabinetFullscreen: boolean
+  /** Tema grafico del launcher */
+  theme: 'fighter' | 'neon' | 'retro' | 'mono'
+  /** Effetto schermo a tubo catodico nei giochi RetroArch: auto = scelto dal programma in base al PC */
+  crtShader: 'auto' | 'off' | 'crt-easymode' | 'crt-geom' | 'crt-lottes' | 'crt-royale'
   /** Si avvia da solo all'accensione di Windows (solo nella versione installata) */
   cabinetAutostart: boolean
   /** Il cursore del mouse sparisce dopo qualche secondo di inattività */

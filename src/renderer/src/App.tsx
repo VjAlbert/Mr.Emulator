@@ -104,6 +104,7 @@ export default function App(): React.JSX.Element {
   const applyFx = useCallback(() => {
     window.mr.getSettings().then((st) => {
       document.documentElement.classList.toggle('light-fx', !!st.lightEffects)
+      document.documentElement.dataset.theme = st.theme ?? 'fighter'
       cursorHide.current = !!st.cabinetHideCursor
       if (!st.cabinetHideCursor) document.documentElement.classList.remove('nocursor')
       setScheme(st.inputScheme)

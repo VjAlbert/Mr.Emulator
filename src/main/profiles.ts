@@ -19,6 +19,8 @@ export interface ProfileInput {
   shadersAvailable: Set<string>
   /** 0 = predefinito di RetroArch */
   monitorIndex: number
+  /** Scelta dell'utente: auto, off oppure il nome di uno shader */
+  crtChoice?: string
 }
 
 export interface Profile {
@@ -31,7 +33,8 @@ export interface Profile {
 const SHADER_LABEL: Record<string, string> = {
   'crt-royale': 'CRT Royale',
   'crt-geom': 'CRT Geom',
-  'crt-easymode': 'CRT Easymode'
+  'crt-easymode': 'CRT Easymode',
+  'crt-lottes': 'CRT Lottes'
 }
 
 /** Quale shader vorremmo, in ordine di preferenza (il primo installato viene usato) */
@@ -81,8 +84,11 @@ export function buildProfile(i: ProfileInput): Profile {
   }
 
   let shader: string | null = null
-  if (i.shaderDir) {
-    for (const name of wantedShaders(i)) {
+  const choice = i.crtChoice ?? 'auto'
+  if (i.shaderDir && choice !== 'off') {
+    // scelta manuale: si usa se è installato, altrimenti si torna alla scelta automatica
+    const wanted = choice !== 'auto' && i.shadersAvailable.has(choice) ? [choice] : wantedShaders(i)
+    for (const name of wanted) {
       if (i.shadersAvailable.has(name)) {
         shader = name
         break
