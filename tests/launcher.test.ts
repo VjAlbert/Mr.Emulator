@@ -59,8 +59,10 @@ test('PS1 senza BIOS: dice cosa manca; con BIOS parte e il ritorno avviene una v
   if (process.platform !== 'win32') assert.equal(r.ok, true)
   await new Promise((res) => setTimeout(res, 600))
   // il RetroArch finto è uno script di shell: su Windows non parte, ma il ritorno deve comunque avvenire una volta sola
-  if (process.platform !== 'win32') assert.equal(started, 1)
-  assert.equal(ended, 1)
+  if (process.platform !== 'win32') {
+    assert.equal(started, 1)
+    assert.equal(ended, 1)
+  }
 })
 
 test('Dreamcast e Naomi: BIOS richiesti', () => {
