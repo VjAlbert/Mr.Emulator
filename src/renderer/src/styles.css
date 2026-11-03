@@ -609,3 +609,16 @@ b.warnmark { color: #ffd400; margin-right: 8px; font-weight: 400; } .row.active 
 .theme { display: flex; align-items: center; gap: 12px; padding: 14px 16px; background: var(--tbg); color: var(--tfg); border: 3px solid transparent; font-family: var(--font); letter-spacing: 2px; font-size: 16px; clip-path: polygon(10px 0, 100% 0, calc(100% - 10px) 100%, 0 100%); }
 .theme i { width: 22px; height: 22px; background: var(--tfg); box-shadow: 0 0 12px var(--tfg); }
 .theme.on { border-color: var(--tfg); }
+
+/* anteprima dello schermo */
+.spv { display: grid; gap: 8px; margin: 10px 0; }
+.spv-top { display: flex; gap: 14px; align-items: center; flex-wrap: wrap; }
+.spv-screen { position: relative; display: grid; place-items: center; background: #000; border: 3px solid #555; box-shadow: 0 0 0 3px #111; }
+.spv-game { display: grid; place-items: center; background: linear-gradient(160deg, var(--accent), #222); color: #000; font-family: var(--font); letter-spacing: 1px; font-size: 14px; overflow: hidden; }
+.spv-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 3px; font-size: 13px; }
+.spv-list li { padding: 4px 10px; background: var(--card2); border-left: 4px solid transparent; }
+.spv-list li.on { border-left-color: var(--accent); background: var(--card); }
+.spv-list span { color: var(--muted); }
+.persys { display: grid; grid-template-columns: repeat(auto-fill, minmax(330px, 1fr)); gap: 6px; }
+.persys-row { display: grid; grid-template-columns: 1fr 1.4fr; gap: 10px; align-items: center; padding: 6px 10px; background: var(--card2); border-left: 4px solid var(--tile); font-size: 14px; }
+.persys-row select { max-width: 100%; }

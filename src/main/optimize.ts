@@ -57,13 +57,14 @@ export function profileFor(
     cpuTier: hw.cpu.tier,
     gpuTier: hw.gpuTier,
     display: { width: cur.width, height: cur.height, hz: cur.hz },
-    imageStyle: s.imageStyle,
+    imageStyle: s.imageBySystem?.[system.id] ?? s.imageStyle,
     fullscreen: s.fullscreen,
     biosDir: s.biosDir,
     shaderDir: shaders.dir,
     shadersAvailable: shaders.names,
     monitorIndex: monitorIndexFor(s, hw.screens, cur),
-    crtChoice: s.crtShader
+    crtChoice: s.crtShader,
+    overlay: s.overlayEnabled && s.overlayPath && existsSync(s.overlayPath) ? s.overlayPath : null
   })
   return { profile, level, delta }
 }
@@ -81,8 +82,9 @@ export function mameProfileFor(
     level,
     gpuTier: hw.gpuTier,
     display: { width: cur.width, height: cur.height, hz: cur.hz },
-    imageStyle: s.imageStyle,
-    fullscreen: s.fullscreen
+    imageStyle: s.imageBySystem?.[systemId] ?? s.imageStyle,
+    fullscreen: s.fullscreen,
+    tate: s.tate
   })
   return { profile, level, delta }
 }

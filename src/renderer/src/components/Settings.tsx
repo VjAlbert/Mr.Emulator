@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
-import type { DiagnosticReport, PickKind, Settings, SystemInfo } from '@shared/types'
+import { IMAGE_MODES } from './ScreenPreview'
+import type { DiagnosticReport, ImageStyle, PickKind, Settings, SystemInfo } from '@shared/types'
 import { useInput } from '../hooks/useInput'
 import { configureSound, sfx } from '../sound'
 
-type PathKey = 'romsDir' | 'biosDir' | 'retroarchPath' | 'coresDir' | 'mamePath' | 'mameChdDir' | 'mameRomDir' | 'mediaDir' | 'datDir'
+type PathKey = 'romsDir' | 'biosDir' | 'retroarchPath' | 'coresDir' | 'mamePath' | 'mameChdDir' | 'mameRomDir' | 'mediaDir' | 'datDir' | 'overlayPath'
 
 interface Props {
   onClose: () => void
@@ -110,6 +111,44 @@ export default function SettingsScreen({ onClose, onSaved, onPc, onRomCheck, onG
                 </button>
               ))}
             </div>
+            <h3 className="sub-h">Immagine dei giochi</h3>
+            <p className="hint">La modalità generale si sceglie in <b>IL TUO PC</b> (con l&apos;anteprima delle misure sul tuo schermo). Qui puoi dare a un sistema una modalità diversa: per esempio pixel perfetti per le console e altezza piena per l&apos;arcade.</p>
+            <div className="persys">
+              {all.filter((x) => x.phase === 1).map((x) => (
+                <label key={x.id} className="persys-row" style={{ ['--tile' as string]: x.color }}>
+                  <span className="persys-n">{x.name}</span>
+                  <select
+                    value={s.imageBySystem?.[x.id] ?? ''}
+                    onChange={(e) => {
+                      const next = { ...(s.imageBySystem ?? {}) }
+                      if (e.target.value) next[x.id] = e.target.value as ImageStyle
+                      else delete next[x.id]
+                      setS({ ...s, imageBySystem: next })
+                    }}
+                  >
+                    <option value="">Come la modalità generale</option>
+                    {IMAGE_MODES.map(([id, name]) => (
+                      <option key={id} value={id}>{name}</option>
+                    ))}
+                  </select>
+                </label>
+              ))}
+            </div>
+            <h3 className="sub-h">Monitor montato in verticale (solo MAME)</h3>
+            <div className="field">
+              <select value={s.tate} onChange={(e) => setS({ ...s, tate: e.target.value as Settings['tate'] })}>
+                <option value="off">No: monitor orizzontale (i giochi verticali restano al centro)</option>
+                <option value="cw">Sì, ruotato in senso orario</option>
+                <option value="ccw">Sì, ruotato in senso antiorario</option>
+              </select>
+            </div>
+            <p className="hint">Per sfruttare tutto lo schermo nei giochi verticali (shoot&apos;em up) il monitor va montato ruotato; ruota anche lo schermo da Windows, poi scegli qui il senso.</p>
+            <h3 className="sub-h">Bordo grafico ai lati (overlay di RetroArch)</h3>
+            <label className="check">
+              <input type="checkbox" checked={s.overlayEnabled} onChange={(e) => setS({ ...s, overlayEnabled: e.target.checked })} />
+              Riempi le strisce laterali con un bordo grafico
+            </label>
+            {field('File del bordo (.cfg)', 'Es. C:\\RetroArch\\overlays\\borders\\... .cfg — da RetroArch: Aggiornamenti online → Aggiorna overlay', 'overlayPath', 'cfg')}
             <h3 className="sub-h">Effetto schermo a tubo (CRT) nei giochi</h3>
             <div className="field">
               <select value={s.crtShader} onChange={(e) => setS({ ...s, crtShader: e.target.value as Settings['crtShader'] })}>

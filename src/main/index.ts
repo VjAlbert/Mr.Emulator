@@ -481,7 +481,7 @@ app.whenReady().then(async () => {
   ipcMain.handle('dialog:pick', async (_e, kind: PickKind) => {
     const res = await dialog.showOpenDialog(win!, {
       properties: [kind === 'dir' ? 'openDirectory' : 'openFile'],
-      filters: kind === 'file' ? [platform.exeFilter] : undefined
+      filters: kind === 'file' ? [platform.exeFilter] : kind === 'cfg' ? [{ name: 'Bordo grafico (overlay)', extensions: ['cfg'] }] : undefined
     })
     return res.canceled ? null : res.filePaths[0]
   })

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import ScreenPreview, { IMAGE_MODES } from './ScreenPreview'
 import type { ImageStyle, OptimizationReport, PerfLevel, PerfMode, Settings, Tier } from '@shared/types'
 import { useInput } from '../hooks/useInput'
 import Orbs from './Orbs'
@@ -115,10 +116,12 @@ export default function SystemReport({ onBack }: { onBack: () => void }): React.
             <span>Stile immagine</span>
             <Seg<ImageStyle>
               value={s.imageStyle}
-              options={[['fit', 'ADATTATO ALLO SCHERMO'], ['pixel', 'PIXEL PERFETTI']]}
+              options={IMAGE_MODES.map(([id, name]) => [id, name] as [ImageStyle, string])}
               onChange={(v) => patch({ imageStyle: v })}
             />
           </div>
+          <p className="hint">{IMAGE_MODES.find(([id]) => id === s.imageStyle)?.[2]}</p>
+          <ScreenPreview screen={hw.screens.find((sc) => sc.id === report.currentScreenId) ?? hw.screens[0] ?? { width: 1920, height: 1080 }} mode={s.imageStyle} />
           <div className="opt-row">
             <span>Schermo dei giochi</span>
             <select value={s.gameMonitor} onChange={(e) => patch({ gameMonitor: Number(e.target.value) })}>

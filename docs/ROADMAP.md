@@ -52,7 +52,10 @@ Sistemi: Arcade (MAME, FBNeo), Neo Geo, Master System, Mega Drive, NES, SNES, Ga
 - [x] Home: disegni originali per categoria di macchina (cabinato, portatile, cartuccia, disco, computer) e scheda "Sistemi in home" nelle impostazioni per nascondere i sistemi
 - [x] Dreamcast, Naomi, Atomiswave (Flycast) e PlayStation (pcsx_rearmed), con controllo dei BIOS (da provare con RetroArch reale)
 - [x] Debug: salvataggi sicuri, registro errori, istanza unica, ripristino della finestra, test automatici (`npm test`) e schermata Diagnostica
-- [ ] Nintendo 64, Nintendo DS, Mega CD, Famicom Disk System
+- [x] Schermo: quattro modalità immagine (altezza piena, pixel perfetti, pixel perfetti in altezza, stirata) con anteprima sulle misure reali del tuo schermo, modalità diversa per sistema, rotazione per monitor verticale (MAME), bordo grafico (overlay) di RetroArch (da provare con RetroArch reale)
+- [x] Temi grafici (Picchiaduro, Neon, Fosforo verde, Notte) e scelta manuale dello shader CRT
+- [x] Nintendo 64, Nintendo DS, Atari Jaguar e 3DO (core RetroArch, da provare con le ROM reali)
+- [ ] Mega CD (core dedicato)
 - [ ] GameCube e Wii (da verificare sulle prestazioni)
 
 ## Fase 3 — Estensioni

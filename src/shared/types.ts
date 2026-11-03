@@ -2,7 +2,8 @@
 export type PerfLevel = 'light' | 'balanced' | 'max'
 export type PerfMode = 'auto' | PerfLevel
 /** fit = schermo il più grande possibile con proporzioni corrette; pixel = pixel perfetti (scala intera) */
-export type ImageStyle = 'fit' | 'pixel'
+/** adattato = tutta l'altezza, proporzioni originali · pixel = solo multipli interi · pixel-height = multipli interi in altezza · stretch = riempie lo schermo (deforma) */
+export type ImageStyle = 'fit' | 'pixel' | 'pixel-height' | 'stretch'
 export type Tier = 'low' | 'mid' | 'high'
 /** Quanto pesa il core di emulazione sul PC */
 export type CoreCost = 'light' | 'medium' | 'heavy'
@@ -99,6 +100,13 @@ export interface Settings {
   firstRunDone: boolean
   /** Modalità cabinato: il launcher a tutto schermo senza bordi */
   cabinetFullscreen: boolean
+  /** Modalità immagine diversa per alcuni sistemi (id sistema -> modalità); gli altri usano imageStyle */
+  imageBySystem: Record<string, ImageStyle>
+  /** Giochi arcade verticali su un monitor montato ruotato: senso di rotazione (solo MAME) */
+  tate: 'off' | 'cw' | 'ccw'
+  /** Bordo grafico (overlay) di RetroArch per riempire le strisce ai lati */
+  overlayEnabled: boolean
+  overlayPath: string
   /** Tema grafico del launcher */
   theme: 'fighter' | 'neon' | 'retro' | 'mono'
   /** Effetto schermo a tubo catodico nei giochi RetroArch: auto = scelto dal programma in base al PC */
@@ -288,7 +296,7 @@ export interface LibraryStats {
 
 export type ArtKind = 'boxart' | 'snap' | 'title'
 
-export type PickKind = 'dir' | 'file'
+export type PickKind = 'dir' | 'file' | 'cfg'
 
 export interface VerifyIssue {
   set: string

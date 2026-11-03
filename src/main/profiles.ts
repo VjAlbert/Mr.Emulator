@@ -21,6 +21,8 @@ export interface ProfileInput {
   monitorIndex: number
   /** Scelta dell'utente: auto, off oppure il nome di uno shader */
   crtChoice?: string
+  /** Bordo grafico (percorso del file .cfg di RetroArch), se attivo */
+  overlay?: string | null
 }
 
 export interface Profile {
@@ -29,6 +31,8 @@ export interface Profile {
   runAhead: boolean
   summary: string
 }
+
+export const IMAGE_LABEL: Record<ImageStyle, string> = { fit: 'altezza piena', pixel: 'pixel perfetti', 'pixel-height': 'pixel perfetti in altezza', stretch: 'schermo intero stirato' }
 
 const SHADER_LABEL: Record<string, string> = {
   'crt-royale': 'CRT Royale',
@@ -63,7 +67,15 @@ export function buildProfile(i: ProfileInput): Profile {
   c['video_windowed_fullscreen'] = 'true'
   c['video_vsync'] = 'true'
   c['video_smooth'] = 'false'
-  c['video_scale_integer'] = String(i.imageStyle === 'pixel')
+  c['video_scale_integer'] = String(i.imageStyle === 'pixel' || i.imageStyle === 'pixel-height')
+  // solo altezza intera: l'asse Y soltanto (RetroArch recente); a tutto schermo: proporzione "Full" dell'elenco di RetroArch
+  if (i.imageStyle === 'pixel-height') c['video_scale_integer_axis'] = '1'
+  if (i.imageStyle === 'stretch') c['aspect_ratio_index'] = '24'
+  if (i.overlay) {
+    c['input_overlay_enable'] = 'true'
+    c['input_overlay'] = i.overlay.replace(/\\/g, '/')
+    c['input_overlay_opacity'] = '1.0'
+  }
   c['video_threaded'] = String(i.level === 'light')
   c['video_max_swapchain_images'] = i.level === 'light' ? '3' : '2'
   c['audio_latency'] = i.level === 'light' ? '96' : '64'
@@ -101,7 +113,7 @@ export function buildProfile(i: ProfileInput): Profile {
   const parts = [LEVEL_LABEL[i.level]]
   parts.push(shader ? SHADER_LABEL[shader] : 'nessuno shader')
   if (runAhead) parts.push('meno ritardo comandi')
-  parts.push(i.imageStyle === 'pixel' ? 'pixel perfetti' : 'schermo adattato')
+  parts.push(IMAGE_LABEL[i.imageStyle])
   return { config: c, shader, runAhead, summary: parts.join(' · ') }
 }
 
@@ -127,13 +139,18 @@ export function buildMameProfile(i: {
   display: { width: number; height: number; hz: number }
   imageStyle: ImageStyle
   fullscreen: boolean
+  tate?: 'off' | 'cw' | 'ccw'
 }): MameProfile {
   const ini: Record<string, string> = {
     window: i.fullscreen ? '0' : '1',
     maximize: '1',
-    keepaspect: '1',
-    // "pixel perfetti" = niente stiramenti irregolari
-    unevenstretch: i.imageStyle === 'pixel' ? '0' : '1',
+    keepaspect: i.imageStyle === 'stretch' ? '0' : '1',
+    // "pixel perfetti" = niente stiramenti irregolari; "in altezza" = intero in altezza, libero in larghezza
+    unevenstretch: i.imageStyle === 'fit' || i.imageStyle === 'stretch' ? '1' : '0',
+    unevenstretchx: i.imageStyle === 'pixel-height' ? '1' : '0',
+    // monitor montato in verticale: i giochi verticali si ruotano da soli
+    autoror: i.tate === 'cw' ? '1' : '0',
+    autorol: i.tate === 'ccw' ? '1' : '0',
     waitvsync: '1',
     sleep: '1',
     throttle: '1',
@@ -161,7 +178,7 @@ export function buildMameProfile(i: {
   }
 
   const label = chain === 'hlsl' ? 'CRT HLSL' : chain === 'crt-geom' ? 'CRT Geom' : 'nessuno shader'
-  return { ini, chain, summary: [LEVEL_LABEL[i.level], label, i.imageStyle === 'pixel' ? 'pixel perfetti' : 'schermo adattato'].join(' · ') }
+  return { ini, chain, summary: [LEVEL_LABEL[i.level], label, IMAGE_LABEL[i.imageStyle]].join(' · ') }
 }
 
 export function toIniText(ini: Record<string, string>): string {
