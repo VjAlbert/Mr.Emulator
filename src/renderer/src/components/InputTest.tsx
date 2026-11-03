@@ -185,6 +185,52 @@ export default function InputTest({ onBack, onChanged }: { onBack: () => void; o
           </div>
         </section>
 
+        <section className="card wide">
+          <h3>{t('Uscire dal gioco e aprire il menu')}</h3>
+          <p className="hint">{t('Mentre giochi non serve la tastiera: queste combinazioni funzionano con il joypad e con il pannello arcade.')}</p>
+          <div className="opt-row">
+            <span>{t('Joypad: per uscire dal gioco')}</span>
+            <select value={s.padExit} onChange={(e) => patch({ padExit: e.target.value as Settings['padExit'] })}>
+              <option value="start-select">{t('Select + Start (consigliata)')}</option>
+              <option value="hold-select">{t('Tieni premuto Select per 2 secondi (evita uscite accidentali)')}</option>
+              <option value="l3-r3">{t('L3 + R3 (premi le due leve)')}</option>
+              <option value="none">{t('Nessuna')}</option>
+            </select>
+          </div>
+          <div className="opt-row">
+            <span>{t('Joypad: per aprire il menu del gioco')}</span>
+            <select value={s.padMenu} onChange={(e) => patch({ padMenu: e.target.value as Settings['padMenu'] })}>
+              <option value="hold-start">{t('Tieni premuto Start per 2 secondi (consigliata)')}</option>
+              <option value="l3-r3">{t('L3 + R3 (premi le due leve)')}</option>
+              <option value="l1-r1-start-select">{t('L1 + R1 + Start + Select')}</option>
+              <option value="none">{t('Nessuna')}</option>
+            </select>
+          </div>
+          <div className="keys exitmap">
+            <div className="keyrow">
+              <span>{t('Tastiera')}</span>
+              <kbd>{t('Esc = esci · F1 = menu di RetroArch · Tab = menu di MAME')}</kbd>
+            </div>
+            <div className="keyrow">
+              <span>{t('Pannello arcade (I-PAC)')}</span>
+              <kbd>{t('Tieni Moneta 1 e premi Start 1 = esci · Tieni Moneta 1 e premi Pulsante 1 = menu del gioco')}</kbd>
+            </div>
+            <div className="keyrow">
+              <span>{t('Joypad Xbox e simili')}</span>
+              <kbd>
+                {({ 'start-select': t('Select + Start = esci'), 'hold-select': t('tieni Select 2 secondi = esci'), 'l3-r3': t('L3 + R3 = esci'), none: t('uscita da joypad disattivata') } as const)[s.padExit]}
+                {' · '}
+                {({ 'hold-start': t('tieni Start 2 secondi = menu di RetroArch'), 'l3-r3': t('L3 + R3 = menu di RetroArch'), 'l1-r1-start-select': t('L1 + R1 + Start + Select = menu di RetroArch'), none: t('menu da joypad disattivato') } as const)[s.padMenu]}
+              </kbd>
+            </div>
+            <div className="keyrow">
+              <span>{t('Joypad in MAME')}</span>
+              <kbd>{t('Select + Start = esci · Select + Pulsante 1 (A) = menu di MAME (DIP switch, comandi, reset)')}</kbd>
+            </div>
+          </div>
+          <p className="hint">{t('Sul joypad Xbox: Select è il tasto Back (due rettangoli), Start è il tasto Menu (tre righe).')}</p>
+        </section>
+
         {map.players.map((p) => (
           <section className="card" key={p.player}>
             <h3>{p.title}</h3>

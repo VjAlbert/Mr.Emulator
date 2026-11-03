@@ -43,6 +43,7 @@ A fast, flashy launcher for arcade and classic console games, built for people w
 - 🌍 **English and Italian** in the program, switchable any time (Settings → General, or the IT/EN buttons on the title screen).
 - 🎬 **New "PRESS START" title screen** with the system parade.
 - 🧭 **First-run guide**: folders, RetroArch, **one-click core download**, BIOS checklist (with known-file verification) and MAME.
+- 🕹️ **Exit and game menu without a keyboard**: Select + Start on a gamepad, Coin + Start on an arcade panel; fixed Start/Coin on Xbox gamepads in MAME.
 - 🎛️ **Manual button mapping** for keyboards, pads and arcade encoders, for two players, with conflict detection. It applies to RetroArch, MAME and the launcher menu.
 - 🖥️ **Screen modes** (full height, pixel perfect, pixel perfect in height, stretched) with a live preview using your real screen size, per-system overrides, vertical-monitor mode for MAME and RetroArch overlays.
 - 🕹️ **New systems**: Dreamcast, Sega Naomi, Atomiswave, PlayStation, Nintendo 64, Nintendo DS, Atari Jaguar, 3DO, PC Engine/TurboGrafx-16, SuperGrafx, Game Gear, SG-1000, Famicom Disk System, Neo Geo Pocket, ColecoVision, MSX, ZX Spectrum, Channel F and Astrocade.
@@ -88,7 +89,15 @@ Something not working? Open **Settings → Diagnostics**: it tells you what is m
 
 - **Keyboard**: arrows + Enter / Esc / Tab, `F2` favorite, `F3` soundtrack, `/` search.
 - **Gamepad / arcade panel**: D-pad or stick to move, button 1 confirm, button 2 back. Presets for a laptop keyboard (WASD + J K L), I-PAC-style encoders, or your own mapping.
-- Exiting a game on a cabinet without a keyboard: hold **Coin 1** and press **Start 1**.
+- **Exiting a game and opening the game menu without a keyboard:**
+
+| | Exit the game | Game menu |
+|---|---|---|
+| **Keyboard** | `Esc` | `F1` (RetroArch) · `Tab` (MAME) |
+| **Arcade panel (I-PAC)** | hold **Coin 1** + press **Start 1** | hold **Coin 1** + press **Button 1** |
+| **Gamepad (Xbox, PlayStation, 8BitDo…)** | **Select + Start** | hold **Start** for 2 s (RetroArch) · **Select + A** (MAME) |
+
+  The gamepad combinations can be changed (or disabled) in *Controls → Exit the game and open the menu*. In MAME the menu gives access to DIP switches, input mapping, service mode and reset.
 
 ## Screen and cabinet tips
 

@@ -30,6 +30,8 @@ const DEFAULTS: Settings = {
   datDir: '',
   hiddenSystems: [],
   customControls: null,
+  padExit: 'start-select',
+  padMenu: 'hold-start',
   firstRunDone: false,
   language: 'auto',
   titleScreen: true,

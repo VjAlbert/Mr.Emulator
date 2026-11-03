@@ -96,6 +96,9 @@ export interface Settings {
   arcadeLayout: ArcadeLayout
   /** Comandi assegnati a mano (valgono quando lo schema è "custom") */
   customControls: CustomControls | null
+  /** Combinazioni del joypad per uscire dal gioco e aprire il menu */
+  padExit: PadExit
+  padMenu: PadMenu
   /** La procedura guidata del primo avvio è stata completata o saltata */
   firstRunDone: boolean
   /** Modalità cabinato: il launcher a tutto schermo senza bordi */
@@ -162,6 +165,15 @@ export interface Settings {
 
 /** laptop = tastiera del portatile (WASD + J/K/L); cabinet = pannello arcade con encoder tipo I-PAC */
 export type InputScheme = 'laptop' | 'cabinet' | 'custom'
+
+/** Come si esce da un gioco con il joypad */
+export type PadExit = 'start-select' | 'hold-select' | 'l3-r3' | 'none'
+/** Come si apre il menu del gioco (RetroArch / MAME) con il joypad */
+export type PadMenu = 'hold-start' | 'l3-r3' | 'l1-r1-start-select' | 'none'
+export interface PadCombos {
+  exit: PadExit
+  menu: PadMenu
+}
 
 /** Azioni di un giocatore che si possono assegnare a mano */
 export type ActionId = 'up' | 'down' | 'left' | 'right' | 'b1' | 'b2' | 'b3' | 'b4' | 'b5' | 'b6' | 'start' | 'select'

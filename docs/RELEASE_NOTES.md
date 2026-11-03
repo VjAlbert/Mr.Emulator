@@ -1,14 +1,13 @@
-## Mr. Emulator — what's new
+## Mr. Emulator 0.1.1
 
 **Download:** `Mr-Emulator-Setup-<version>.exe` below. Windows may warn that the app is unsigned: **More info → Run anyway**.
 
-- 🌍 English / Italian language switch in the program
-- 🎬 New "PRESS START" title screen
-- 🧭 First-run guide with one-click RetroArch core download and BIOS checklist
-- 🎛️ Manual button mapping (keyboard, pad, arcade encoder) for two players
-- 🖥️ Four screen modes with a live preview, per-system overrides, vertical monitor mode, overlays
-- 🕹️ New systems: Dreamcast, Naomi, Atomiswave, PlayStation, N64, DS, Jaguar, 3DO and more
-- 🎨 Themes, CRT shader choice, cabinet mode (start with Windows, full screen, hidden cursor)
-- 🖼️ Covers everywhere, Diagnostics screen, safer saving
+### New and fixed
+- 🕹️ **Exit and game menu without a keyboard**: gamepad **Select + Start** to exit, hold **Start** for the menu; arcade panel **Coin 1 + Start 1** to exit, **Coin 1 + Button 1** for the menu. Configurable in *Controls*.
+- 🛠️ **Xbox gamepads in MAME**: Start and Coin now use the real Start/Back buttons (they were mapped to the stick clicks).
+- 🧭 Menu of MAME (DIP switches, input mapping, reset) reachable from gamepad and arcade panel.
+
+### Since 0.1.0
+English / Italian, "PRESS START" title screen, first-run guide with core download and BIOS checklist, manual button mapping, screen modes with live preview, new systems (Dreamcast, Naomi, PlayStation, N64, DS, Jaguar, 3DO…), themes, cabinet mode, diagnostics.
 
 Mr. Emulator does not include or download ROMs or BIOS files.

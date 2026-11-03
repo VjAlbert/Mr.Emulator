@@ -1,4 +1,4 @@
-import type { ActionId, ArcadeLayout, Binding, ControlRow, CustomControls, InputMapReport, InputScheme, PlayerControls } from '@shared/types'
+import type { ActionId, ArcadeLayout, Binding, ControlRow, CustomControls, InputMapReport, InputScheme, PadCombos, PlayerControls } from '@shared/types'
 import { ACTIONS, prettyKey } from '@shared/keys'
 
 /**
@@ -80,8 +80,13 @@ function buttonTargets(scheme: InputScheme, layout: ArcadeLayout): string[] {
 
 const DIRS: ActionId[] = ['up', 'down', 'left', 'right']
 
+/** Valori delle combinazioni del joypad in RetroArch (da input_defines.h: INPUT_COMBO_*) */
+const RA_QUIT: Record<PadCombos['exit'], string> = { none: '0', 'l3-r3': '2', 'start-select': '4', 'hold-select': '8' }
+const RA_MENU: Record<PadCombos['menu'], string> = { none: '0', 'l3-r3': '2', 'l1-r1-start-select': '3', 'hold-start': '7' }
+export const DEFAULT_PAD: PadCombos = { exit: 'start-select', menu: 'hold-start' }
+
 /** Impostazioni di RetroArch per i comandi di entrambi i giocatori (tastiera, pulsanti e assi del pad) */
-export function buildInputConfig(scheme: InputScheme, layout: ArcadeLayout, isArcade: boolean, custom: CustomControls | null = null): Record<string, string> {
+export function buildInputConfig(scheme: InputScheme, layout: ArcadeLayout, isArcade: boolean, custom: CustomControls | null = null, pad: PadCombos = DEFAULT_PAD): Record<string, string> {
   const c: Record<string, string> = {}
   const targets = buttonTargets(scheme, isArcade ? layout : 'standard')
   const ctl = controlsFor(scheme, custom)
@@ -107,7 +112,14 @@ export function buildInputConfig(scheme: InputScheme, layout: ArcadeLayout, isAr
     if (sel.btn !== undefined) c['input_enable_hotkey_btn'] = String(sel.btn)
     if (st.key) c['input_exit_emulator'] = st.key
     if (st.btn !== undefined) c['input_exit_emulator_btn'] = String(st.btn)
+    // menu del gioco dal pannello: tieni Moneta 1 e premi Pulsante 1 (con la moneta tenuta, come per l'uscita)
+    const b1 = ctl.p1.b1 ?? {}
+    if (b1.key) c['input_menu_toggle'] = b1.key
+    if (b1.btn !== undefined) c['input_menu_toggle_btn'] = String(b1.btn)
   }
+  // joypad: combinazioni riconosciute da RetroArch sui pulsanti "logici" (valgono con qualsiasi pad già riconosciuto o mappato a mano)
+  c['input_quit_gamepad_combo'] = RA_QUIT[pad.exit]
+  c['input_menu_toggle_gamepad_combo'] = RA_MENU[pad.menu]
   return c
 }
 
@@ -196,12 +208,20 @@ function mameSeq(n: string, b: Binding | undefined, extra: string[]): string {
  * quelli giusti: serve solo la combinazione per uscire (Moneta 1 + Start 1). Per la tastiera del portatile
  * e per i comandi manuali si assegnano i tasti scelti; i pad restano utilizzabili grazie ai comandi predefiniti di MAME.
  */
-export function buildMameCtrlr(scheme: InputScheme, layout: ArcadeLayout, custom: CustomControls | null = null): { name: string; xml: string } {
+export function buildMameCtrlr(scheme: InputScheme, layout: ArcadeLayout, custom: CustomControls | null = null, pad: PadCombos = DEFAULT_PAD): { name: string; xml: string } {
   const port = (type: string, seq: string): string =>
     `            <port type="${type}">\n                <newseq type="standard">${seq}</newseq>\n            </port>\n`
   let body = ''
+  // combinazioni con il pad: pulsanti Select/Start "logici" di MAME (o quelli scelti a mano); il menu di MAME è Tab
+  const ctl0 = controlsFor(scheme, custom)
+  const joySel = ctl0.p1.select?.btn !== undefined ? `JOYCODE_1_BUTTON${ctl0.p1.select.btn + 1}` : 'JOYCODE_1_SELECT'
+  const joyStart = ctl0.p1.start?.btn !== undefined ? `JOYCODE_1_BUTTON${ctl0.p1.start.btn + 1}` : 'JOYCODE_1_START'
+  const joyB1 = ctl0.p1.b1?.btn !== undefined ? `JOYCODE_1_BUTTON${ctl0.p1.b1.btn + 1}` : 'JOYCODE_1_BUTTON1'
+  const exitPad = pad.exit === 'none' ? '' : ` OR ${joySel} ${joyStart}`
+  const menuPad = pad.menu === 'none' ? '' : ` OR ${joySel} ${joyB1}`
   if (scheme === 'cabinet') {
-    body += port('UI_CANCEL', 'KEYCODE_ESC OR KEYCODE_5 KEYCODE_1')
+    body += port('UI_CANCEL', `KEYCODE_ESC OR KEYCODE_5 KEYCODE_1${exitPad}`)
+    body += port('UI_CONFIGURE', `KEYCODE_TAB OR KEYCODE_5 ${mameKey(ctl0.p1.b1?.key ?? 'lctrl')}${menuPad}`)
   } else {
     const ctl = controlsFor(scheme, custom)
     // "capcom" sul portatile: i pugni (pulsanti 1-3) stanno sulla fila alta della tastiera (U I O), i calci (4-6) su J K L
@@ -213,12 +233,14 @@ export function buildMameCtrlr(scheme: InputScheme, layout: ArcadeLayout, custom
       body += port(`P${n}_JOYSTICK_LEFT`, mameSeq(n, pc.left, [`JOYCODE_${n}_XAXIS_LEFT_SWITCH`, `JOYCODE_${n}_DPADLEFT`]))
       body += port(`P${n}_JOYSTICK_RIGHT`, mameSeq(n, pc.right, [`JOYCODE_${n}_XAXIS_RIGHT_SWITCH`, `JOYCODE_${n}_DPADRIGHT`]))
       order.forEach((idx, b) => (body += port(`P${n}_BUTTON${b + 1}`, mameSeq(n, pc[bs[idx]], [`JOYCODE_${n}_BUTTON${b + 1}`]))))
-      body += port(`START${n}`, mameSeq(n, pc.start, [`JOYCODE_${n}_BUTTON9`]))
-      body += port(`COIN${n}`, mameSeq(n, pc.select, [`JOYCODE_${n}_BUTTON10`]))
+      body += port(`START${n}`, mameSeq(n, pc.start, [`JOYCODE_${n}_START`]))
+      body += port(`COIN${n}`, mameSeq(n, pc.select, [`JOYCODE_${n}_SELECT`]))
     })
     const sel = ctl.p1.select?.key
     const st = ctl.p1.start?.key
-    body += port('UI_CANCEL', scheme === 'custom' && sel && st ? `KEYCODE_ESC OR ${mameKey(sel)} ${mameKey(st)}` : 'KEYCODE_ESC')
+    body += port('UI_CANCEL', (scheme === 'custom' && sel && st ? `KEYCODE_ESC OR ${mameKey(sel)} ${mameKey(st)}` : 'KEYCODE_ESC') + exitPad)
+    const b1k = ctl.p1.b1?.key
+    body += port('UI_CONFIGURE', (scheme === 'custom' && sel && b1k ? `KEYCODE_TAB OR ${mameKey(sel)} ${mameKey(b1k)}` : 'KEYCODE_TAB') + menuPad)
   }
   const xml = `<?xml version="1.0"?>\n<mameconfig version="10">\n    <system name="default">\n        <input>\n${body}        </input>\n    </system>\n</mameconfig>\n`
   return { name: scheme === 'cabinet' ? 'mrcabinet' : scheme === 'custom' ? 'mrcustom' : 'mrlaptop', xml }

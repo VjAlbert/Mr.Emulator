@@ -75,3 +75,52 @@ test('mappa mostrata all\'utente', () => {
   assert.equal(prettyBinding({ btn: 0 }), 'Pad 1')
   assert.equal(prettyBinding(undefined), '—')
 })
+
+test('joypad: uscita e menu in RetroArch (valori verificati su input_defines.h)', () => {
+  const d = buildInputConfig('laptop', 'standard', false)
+  assert.equal(d.input_quit_gamepad_combo, '4') // Start + Select
+  assert.equal(d.input_menu_toggle_gamepad_combo, '7') // tieni Start
+  const alt = buildInputConfig('laptop', 'standard', false, null, { exit: 'hold-select', menu: 'l3-r3' })
+  assert.deepEqual([alt.input_quit_gamepad_combo, alt.input_menu_toggle_gamepad_combo], ['8', '2'])
+  const none = buildInputConfig('laptop', 'standard', false, null, { exit: 'none', menu: 'none' })
+  assert.deepEqual([none.input_quit_gamepad_combo, none.input_menu_toggle_gamepad_combo], ['0', '0'])
+})
+
+test('pannello I-PAC: Moneta 1 + Start 1 esce, Moneta 1 + Pulsante 1 apre il menu (RetroArch)', () => {
+  const c = buildInputConfig('cabinet', 'standard', false)
+  assert.equal(c.input_enable_hotkey, 'num5')
+  assert.equal(c.input_exit_emulator, 'num1')
+  assert.equal(c.input_menu_toggle, 'lctrl')
+  // sul portatile il menu resta F1 (non si tocca) e si esce con Esc
+  const l = buildInputConfig('laptop', 'standard', false)
+  assert.equal(l.input_menu_toggle, undefined)
+  assert.equal(l.input_exit_emulator, 'escape')
+})
+
+test('comandi manuali con pulsanti del pad: uscita e menu usano quei pulsanti', () => {
+  const c = custom()
+  c.p1.b1 = { btn: 0 }
+  const cfg = buildInputConfig('custom', 'standard', false, c)
+  assert.equal(cfg.input_menu_toggle_btn, '0')
+  const { xml } = buildMameCtrlr('custom', 'standard', c)
+  assert.match(xml, /UI_CANCEL[\s\S]*?JOYCODE_1_BUTTON9 JOYCODE_1_BUTTON10<\/newseq>/)
+  assert.match(xml, /UI_CONFIGURE[\s\S]*?JOYCODE_1_BUTTON9 JOYCODE_1_BUTTON1<\/newseq>/)
+})
+
+test('MAME con pad Xbox: Start e Moneta usano i pulsanti "logici", non i numeri 9/10 (che sono le leve)', () => {
+  const { xml } = buildMameCtrlr('laptop', 'standard')
+  assert.match(xml, /START1[\s\S]*?JOYCODE_1_START<\/newseq>/)
+  assert.match(xml, /COIN1[\s\S]*?JOYCODE_1_SELECT<\/newseq>/)
+  assert.ok(!/JOYCODE_1_BUTTON9|JOYCODE_1_BUTTON10/.test(xml))
+  assert.match(xml, /UI_CANCEL[\s\S]*?KEYCODE_ESC OR JOYCODE_1_SELECT JOYCODE_1_START<\/newseq>/)
+  assert.match(xml, /UI_CONFIGURE[\s\S]*?KEYCODE_TAB OR JOYCODE_1_SELECT JOYCODE_1_BUTTON1<\/newseq>/)
+})
+
+test('MAME: cabinato (I-PAC) e combinazioni disattivate', () => {
+  const cab = buildMameCtrlr('cabinet', 'standard').xml
+  assert.match(cab, /UI_CANCEL[\s\S]*?KEYCODE_ESC OR KEYCODE_5 KEYCODE_1 OR JOYCODE_1_SELECT JOYCODE_1_START<\/newseq>/)
+  assert.match(cab, /UI_CONFIGURE[\s\S]*?KEYCODE_TAB OR KEYCODE_5 KEYCODE_LCONTROL OR JOYCODE_1_SELECT JOYCODE_1_BUTTON1<\/newseq>/)
+  const off = buildMameCtrlr('cabinet', 'standard', null, { exit: 'none', menu: 'none' }).xml
+  assert.ok(!/JOYCODE_1_SELECT JOYCODE_1_START/.test(off))
+  assert.match(off, /UI_CANCEL[\s\S]*?KEYCODE_ESC OR KEYCODE_5 KEYCODE_1<\/newseq>/)
+})

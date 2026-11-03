@@ -519,7 +519,7 @@ app.whenReady().then(async () => {
         system,
         settings,
         profile.ini,
-        buildMameCtrlr(settings.inputScheme, settings.arcadeLayout, settings.customControls),
+        buildMameCtrlr(settings.inputScheme, settings.arcadeLayout, settings.customControls, { exit: settings.padExit, menu: settings.padMenu }),
         () => {
           t.t = Date.now()
           win?.hide()
@@ -550,7 +550,7 @@ app.whenReady().then(async () => {
 
     await applyGpuPreference(settings)
     const { profile } = profileFor(system, settings, hw, win)
-    const input = buildInputConfig(settings.inputScheme, settings.arcadeLayout, system.id === 'arcade', settings.customControls)
+    const input = buildInputConfig(settings.inputScheme, settings.arcadeLayout, system.id === 'arcade', settings.customControls, { exit: settings.padExit, menu: settings.padMenu })
     const t = { t: 0 }
     return launchGame(
       game,
