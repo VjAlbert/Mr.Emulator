@@ -6,6 +6,7 @@ import { decadeLabel, highlightRanges, INITIALS, initialOf, nextChars, searchTit
 import { loadAll, pickArt } from '../hooks/useArt'
 import FadeBackdrop from './FadeBackdrop'
 import { sfx } from '../sound'
+import { getLang, t } from '../i18n'
 
 type Zone = 'initials' | 'keys' | 'pane'
 type Layout = 'qwerty' | 'alfa'
@@ -126,12 +127,12 @@ export default function SearchPanel(p: Props): React.JSX.Element {
     if (p.games.length) p.onPick(p.games[Math.floor(Math.random() * p.games.length)])
   }
   const tiles: Tile[] = useMemo(() => {
-    const t: Tile[] = [{ id: 'rnd', icon: '🎲', label: 'SORPRENDIMI', sub: 'un gioco a caso', run: random }]
-    if (p.favorites.length) t.push({ id: 'fav', icon: '★', label: 'PREFERITI', sub: `${p.favorites.length.toLocaleString('it')} giochi`, run: () => enterView('fav') })
-    if (p.recents.length) t.push({ id: 'rec', icon: '⏱', label: 'ULTIMI GIOCATI', sub: `${p.recents.length.toLocaleString('it')} giochi`, run: () => enterView('recent') })
-    p.families.slice(0, 6).forEach(([n, c]) => t.push({ id: `f:${n}`, icon: '◆', label: n.toUpperCase(), sub: `${c.toLocaleString('it')} giochi`, run: () => p.onFamilyPick(n) }))
-    p.decades.forEach(([d, c]) => t.push({ id: `d:${d}`, icon: '◷', label: decadeLabel(d), sub: `${c.toLocaleString('it')} giochi`, run: () => p.onDecadePick(d) }))
-    return t
+    const out: Tile[] = [{ id: 'rnd', icon: '🎲', label: t('SORPRENDIMI'), sub: t('un gioco a caso'), run: random }]
+    if (p.favorites.length) out.push({ id: 'fav', icon: '★', label: t('PREFERITI'), sub: t('{n} giochi', { n: p.favorites.length.toLocaleString(getLang() === 'it' ? 'it' : 'en') }), run: () => enterView('fav') })
+    if (p.recents.length) out.push({ id: 'rec', icon: '⏱', label: t('ULTIMI GIOCATI'), sub: t('{n} giochi', { n: p.recents.length.toLocaleString(getLang() === 'it' ? 'it' : 'en') }), run: () => enterView('recent') })
+    p.families.slice(0, 6).forEach(([n, c]) => out.push({ id: `f:${n}`, icon: '◆', label: n.toUpperCase(), sub: t('{n} giochi', { n: c.toLocaleString(getLang() === 'it' ? 'it' : 'en') }), run: () => p.onFamilyPick(n) }))
+    p.decades.forEach(([d, c]) => out.push({ id: `d:${d}`, icon: '◷', label: decadeLabel(d), sub: t('{n} giochi', { n: c.toLocaleString(getLang() === 'it' ? 'it' : 'en') }), run: () => p.onDecadePick(d) }))
+    return out
   }, [p.favorites, p.recents, p.families, p.decades, p.games]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const enterView = (v: View): void => {
@@ -398,20 +399,20 @@ export default function SearchPanel(p: Props): React.JSX.Element {
       <div className="sp-box">
         <div className="sp-left">
           <div className="sp-query">
-            <span className="sp-label">CERCA</span>
+            <span className="sp-label">{t('CERCA')}</span>
             <span className="sp-text">
-              {query || <em>scrivi il titolo…</em>}
+              {query || <em>{t('scrivi il titolo…')}</em>}
               <i className="sp-cursor" />
             </span>
-            <button className="sp-x" onClick={toggleLayout} title="Cambia disposizione tastiera (X del pad · F2)">
+            <button className="sp-x" onClick={toggleLayout} title={t('Cambia disposizione tastiera (X del pad · F2)')}>
               {layout === 'qwerty' ? 'ABC' : 'QWE'}
             </button>
-            <button className="sp-x" onClick={p.onClose} title="Chiudi">
+            <button className="sp-x" onClick={p.onClose} title={t('Chiudi')}>
               ✕
             </button>
           </div>
           <div className="sp-info">
-            {query ? `${hits.total.toLocaleString('it')} ${hits.total === 1 ? 'titolo' : 'titoli'}` : `${p.games.length.toLocaleString('it')} titoli`}
+            {query ? `${hits.total.toLocaleString(getLang() === 'it' ? 'it' : 'en')} ${hits.total === 1 ? t('titolo') : t('titoli')}` : `${p.games.length.toLocaleString(getLang() === 'it' ? 'it' : 'en')} ${t('titoli')}`}
             {p.family ? ` · ${p.family}` : ''}
           </div>
 
@@ -473,8 +474,8 @@ export default function SearchPanel(p: Props): React.JSX.Element {
           </div>
 
           <div className="sp-hint">
-            {p.typing ? 'Scrivi con la tastiera, oppure usa joystick/pad · ' : 'Joystick: muovi · Pulsante 1: scrivi · Pulsante 2: cancella · Start 2: cambia tastiera · '}
-            I tasti spenti non portano a nessun titolo · LB/RB cambia area · Start cambia famiglia
+            {p.typing ? t('Scrivi con la tastiera, oppure usa joystick/pad · ') : t('Joystick: muovi · Pulsante 1: scrivi · Pulsante 2: cancella · Start 2: cambia tastiera · ')}
+            {t('I tasti spenti non portano a nessun titolo · LB/RB cambia area · Start cambia famiglia')}
           </div>
         </div>
 
@@ -489,7 +490,7 @@ export default function SearchPanel(p: Props): React.JSX.Element {
                 {splitTitle(hi.name).tag && <div className="sp-ptag">{splitTitle(hi.name).tag}</div>}
                 <div className="sp-pmeta">{[hi.group, hi.year && hi.year.replace(/\?/g, '')].filter(Boolean).join(' · ')}</div>
                 <button className={`sp-star ${p.favIds.has(hi.id) ? 'on' : ''}`} onClick={() => p.onToggleFav(hi)}>
-                  {p.favIds.has(hi.id) ? '★ NEI PREFERITI' : '☆ AGGIUNGI AI PREFERITI'}
+                  {p.favIds.has(hi.id) ? t('★ NEI PREFERITI') : t('☆ AGGIUNGI AI PREFERITI')}
                 </button>
               </div>
             </div>
@@ -498,8 +499,8 @@ export default function SearchPanel(p: Props): React.JSX.Element {
           <div className="sp-pane" ref={paneRef}>
             {view && (
               <div className="sp-viewhead">
-                {view === 'fav' ? '★ PREFERITI' : '⏱ ULTIMI GIOCATI'}
-                <button onClick={() => setView(null)}>◀ INDIETRO</button>
+                {view === 'fav' ? t('★ PREFERITI') : t('⏱ ULTIMI GIOCATI')}
+                <button onClick={() => setView(null)}>{t('◀ INDIETRO')}</button>
               </div>
             )}
             {showTiles && (
@@ -525,7 +526,7 @@ export default function SearchPanel(p: Props): React.JSX.Element {
               </div>
             )}
             {!showTiles && items.length === 0 && (
-              <div className="sp-empty">{query ? <>Nessun titolo trovato per “{query}”.</> : <>Nessun gioco in questa lista.</>}</div>
+              <div className="sp-empty">{query ? <>{t('Nessun titolo trovato per “')}{query}”.</> : <>{t('Nessun gioco in questa lista.')}</>}</div>
             )}
             {!showTiles &&
               items.map((g, i) => {
@@ -554,7 +555,7 @@ export default function SearchPanel(p: Props): React.JSX.Element {
               })}
             {!showTiles && query && hits.total > items.length && (
               <button className="sp-more" onClick={() => p.onApply(query)}>
-                … e altri {(hits.total - items.length).toLocaleString('it')}: MOSTRA TUTTI NELLA LISTA
+                {t('… e altri')} {(hits.total - items.length).toLocaleString('it')}{t(': MOSTRA TUTTI NELLA LISTA')}
               </button>
             )}
           </div>

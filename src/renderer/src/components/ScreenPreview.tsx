@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import type { ImageStyle } from '@shared/types'
 import { SOURCES, computeViewport } from '@shared/viewport'
+import { t } from '../i18n'
 
 export const IMAGE_MODES: Array<[ImageStyle, string, string]> = [
   ['fit', 'ALTEZZA PIENA', 'Il gioco occupa tutta l\'altezza dello schermo, con le proporzioni originali. Nitido e il più grande possibile.'],
@@ -21,10 +22,10 @@ export default function ScreenPreview({ screen, mode }: { screen: { width: numbe
       <div className="spv-top">
         <select value={srcId} onChange={(e) => setSrcId(e.target.value)}>
           {SOURCES.map((s) => (
-            <option key={s.id} value={s.id}>{s.label}</option>
+            <option key={s.id} value={s.id}>{t(s.label)}</option>
           ))}
         </select>
-        <span className="hint" style={{ margin: 0 }}>Il tuo schermo: {screen.width}×{screen.height}</span>
+        <span className="hint" style={{ margin: 0 }}>{t('Il tuo schermo:')} {screen.width}×{screen.height}</span>
       </div>
       <div className="spv-screen" style={{ width: W, height: Math.round(screen.height * k) }}>
         <div className="spv-game" style={{ width: Math.round(v.width * k), height: Math.round(v.height * k) }}>
@@ -32,14 +33,14 @@ export default function ScreenPreview({ screen, mode }: { screen: { width: numbe
         </div>
       </div>
       <p className="hint" style={{ margin: 0 }}>
-        Occupa il {Math.round(v.coverW * 100)}% della larghezza e il {Math.round(v.coverH * 100)}% dell&apos;altezza{v.factor ? ` · ingrandimento ×${v.factor}` : ''}.
+        {t('Occupa il')} {Math.round(v.coverW * 100)}{t('% della larghezza e il')} {Math.round(v.coverH * 100)}{t('% dell\'altezza')}{v.factor ? ` · ingrandimento ×${v.factor}` : ''}.
       </p>
       <ul className="spv-list">
         {IMAGE_MODES.map(([id, name]) => {
           const x = computeViewport(screen, src, id)
           return (
             <li key={id} className={id === mode ? 'on' : ''}>
-              <b>{name}</b> {x.width}×{x.height} <span>({Math.round(x.coverH * 100)}% altezza{x.factor ? `, ×${x.factor}` : ''})</span>
+              <b>{t(name)}</b> {x.width}×{x.height} <span>({Math.round(x.coverH * 100)}{t('% altezza')}{x.factor ? `, ×${x.factor}` : ''})</span>
             </li>
           )
         })}

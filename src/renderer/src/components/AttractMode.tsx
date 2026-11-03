@@ -3,6 +3,7 @@ import type { Game, SystemInfo } from '@shared/types'
 import { setModalOpen } from '../hooks/useInput'
 import { peekKind, pickArt } from '../hooks/useArt'
 import { splitTitle } from '../search'
+import { t } from '../i18n'
 
 interface Slide {
   game: Game
@@ -107,10 +108,10 @@ export default function AttractMode({ systems, onClose }: { systems: SystemInfo[
         </div>
       ) : (
         <div className="at-logo">
-          MR. <span>EMULATOR</span>
+          {t('MR.')} <span>{t('EMULATOR')}</span>
         </div>
       )}
-      <div className="at-press">INSERT COIN · PREMI UN PULSANTE</div>
+      <div className="at-press">{t('INSERT COIN · PREMI UN PULSANTE')}</div>
     </div>
   )
 }

@@ -585,6 +585,7 @@ app.whenReady().then(async () => {
   })
 
   ipcMain.handle('controls:presets', () => ({ laptop: presetControls('laptop'), cabinet: presetControls('cabinet') }))
+  ipcMain.handle('app:version', () => app.getVersion())
   ipcMain.handle('app:quit', () => {
     allowQuit = true
     app.quit()

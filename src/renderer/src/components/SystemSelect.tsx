@@ -5,6 +5,7 @@ import { sfx } from '../sound'
 import ArtShowcase from './ArtShowcase'
 import Orbs from './Orbs'
 import SystemArt from './SystemArt'
+import { getLang, t } from '../i18n'
 
 const COLS = 4
 
@@ -53,11 +54,11 @@ export default function SystemSelect({ systems, onOpen, onSettings, onPc, onInpu
     // lista vuota: o si sta ancora caricando, o l'utente ha nascosto tutti i sistemi
     return (
       <div className="loading" style={{ display: 'flex', flexDirection: 'column', gap: 16, alignItems: 'center', justifyContent: 'center' }}>
-        <div>{lib?.scanning ? 'Caricamento…' : 'Nessun sistema da mostrare.'}</div>
+        <div>{lib?.scanning ? t('Caricamento…') : t('Nessun sistema da mostrare.')}</div>
         {!lib?.scanning && (
           <>
-            <div className="hint">Puoi sceglierli in Impostazioni → Sistemi in home.</div>
-            <button className="chip" onClick={onSettings}>⚙ IMPOSTAZIONI</button>
+            <div className="hint">{t('Puoi sceglierli in Impostazioni → Sistemi in home.')}</div>
+            <button className="chip" onClick={onSettings}>{t('⚙ IMPOSTAZIONI')}</button>
           </>
         )}
       </div>
@@ -70,27 +71,27 @@ export default function SystemSelect({ systems, onOpen, onSettings, onPc, onInpu
       {sel.phase === 1 && <ArtShowcase systemId={sel.id} />}
       <header className="topbar">
         <h1 className="logo">
-          MR. <span>EMULATOR</span>
+          {t('MR.')} <span>{t('EMULATOR')}</span>
         </h1>
         <div className="top-actions">
           {lib?.offline && (
             <span className="scan warn" title={`Non trovo: ${lib.offline}`}>
-              💾 CARTELLA NON RAGGIUNGIBILE
+              {t('💾 CARTELLA NON RAGGIUNGIBILE')}
             </span>
           )}
           {lib?.scanning && (
-            <span className="scan" title="La libreria si aggiorna in background">
-              ⟳ SCANSIONE{lib.found > 0 ? ` · ${lib.found.toLocaleString('it')}` : ''}
+            <span className="scan" title={t('La libreria si aggiorna in background')}>
+              {t('⟳ SCANSIONE')}{lib.found > 0 ? ` · ${lib.found.toLocaleString('it')}` : ''}
             </span>
           )}
           <button className="chip" onClick={onInput}>
-            🎮 COMANDI
+            {t('🎮 COMANDI')}
           </button>
           <button className="chip" onClick={onPc}>
-            ⚡ IL TUO PC
+            {t('⚡ IL TUO PC')}
           </button>
           <button className="chip" onClick={onSettings}>
-            ⚙ IMPOSTAZIONI
+            {t('⚙ IMPOSTAZIONI')}
           </button>
         </div>
       </header>
@@ -101,7 +102,7 @@ export default function SystemSelect({ systems, onOpen, onSettings, onPc, onInpu
           <div className="hero-short">{sel.short}</div>
           <div className="hero-name">{sel.name}</div>
           <div className="hero-count">
-            {sel.phase !== 1 ? 'IN ARRIVO' : `${sel.gameCount.toLocaleString('it')} ${sel.gameCount === 1 ? 'GIOCO' : 'GIOCHI'}`}
+            {sel.phase !== 1 ? t('IN ARRIVO') : `${sel.gameCount.toLocaleString(getLang() === 'it' ? 'it' : 'en')} ${sel.gameCount === 1 ? t('GIOCO') : t('GIOCHI')}`}
           </div>
         </section>
 
@@ -117,16 +118,16 @@ export default function SystemSelect({ systems, onOpen, onSettings, onPc, onInpu
               <SystemArt id={s.id} className="tile-art" />
               <span className="tile-short">{s.short}</span>
               <span className="tile-name">{s.name}</span>
-              {s.phase !== 1 && <span className="tile-lock">SOON</span>}
+              {s.phase !== 1 && <span className="tile-lock">{t('SOON')}</span>}
             </button>
           ))}
         </section>
       </div>
 
       <footer className="hints">
-        <span>◀▲▼▶ MUOVI</span>
-        <span>INVIO / A CONFERMA</span>
-        <span>TAB / START IMPOSTAZIONI</span>
+        <span>{t('◀▲▼▶ MUOVI')}</span>
+        <span>{t('INVIO / A CONFERMA')}</span>
+        <span>{t('TAB / START IMPOSTAZIONI')}</span>
       </footer>
     </div>
   )

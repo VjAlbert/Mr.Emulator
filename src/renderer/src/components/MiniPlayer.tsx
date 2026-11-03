@@ -1,5 +1,6 @@
 import { useSyncExternalStore } from 'react'
 import { music } from '../music'
+import { t } from '../i18n'
 
 /** Barra della musica in basso a sinistra: compare quando la colonna sonora di un gioco è in riproduzione */
 export default function MiniPlayer(): React.JSX.Element | null {
@@ -16,19 +17,19 @@ export default function MiniPlayer(): React.JSX.Element | null {
       <div className="mp-text">
         <div className="mp-track">{s.track}</div>
         <div className="mp-game">
-          ♪ {s.game} · brano {s.index + 1} di {s.count}
+          ♪ {s.game} {t('· brano')} {s.index + 1} {t('di')} {s.count}
         </div>
       </div>
-      <button onClick={() => music.prev()} title="Brano precedente">
+      <button onClick={() => music.prev()} title={t('Brano precedente')}>
         ⏮
       </button>
-      <button onClick={() => music.toggle()} title="Pausa / riprendi">
+      <button onClick={() => music.toggle()} title={t('Pausa / riprendi')}>
         {s.playing ? '⏸' : '▶'}
       </button>
-      <button onClick={() => music.next()} title="Brano successivo">
+      <button onClick={() => music.next()} title={t('Brano successivo')}>
         ⏭
       </button>
-      <button onClick={() => music.stop()} title="Ferma">
+      <button onClick={() => music.stop()} title={t('Ferma')}>
         ✕
       </button>
     </div>

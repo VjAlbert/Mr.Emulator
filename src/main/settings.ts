@@ -31,6 +31,8 @@ const DEFAULTS: Settings = {
   hiddenSystems: [],
   customControls: null,
   firstRunDone: false,
+  language: 'auto',
+  titleScreen: true,
   cabinetFullscreen: false,
   imageBySystem: {},
   tate: 'off',

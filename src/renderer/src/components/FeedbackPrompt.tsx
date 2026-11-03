@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import type { Feedback, GameEnded } from '@shared/types'
 import { setModalOpen, useInput } from '../hooks/useInput'
 import { sfx } from '../sound'
+import { t } from '../i18n'
 
 interface Props {
   ended: GameEnded
@@ -28,7 +29,7 @@ export default function FeedbackPrompt({ ended, onAnswer, onSkip }: Props): Reac
   const answer = (a: Feedback): void => {
     if (done) return
     sfx.confirm()
-    const msg = a === 'slow' ? 'Ricevuto: la prossima volta uso meno effetti.' : a === 'better' ? 'Ricevuto: la prossima volta alzo la qualità.' : 'Perfetto, lascio tutto com’è.'
+    const msg = a === 'slow' ? t('Ricevuto: la prossima volta uso meno effetti.') : a === 'better' ? t('Ricevuto: la prossima volta alzo la qualità.') : t('Perfetto, lascio tutto com’è.')
     setDone(msg)
     onAnswer(a)
     window.setTimeout(onSkip, 1400)
@@ -46,7 +47,7 @@ export default function FeedbackPrompt({ ended, onAnswer, onSkip }: Props): Reac
   return (
     <div className="modal">
       <div className="modal-box">
-        <div className="modal-title">COM'È ANDATA?</div>
+        <div className="modal-title">{t('COM\'È ANDATA?')}</div>
         <div className="modal-sub">
           {ended.gameName} · {ended.systemName}
         </div>
@@ -63,7 +64,7 @@ export default function FeedbackPrompt({ ended, onAnswer, onSkip }: Props): Reac
                 </button>
               ))}
             </div>
-            <div className="modal-note">Così Mr. Emulator impara cosa regge il tuo PC per {ended.systemName}. (ESC per saltare)</div>
+            <div className="modal-note">{t('Così Mr. Emulator impara cosa regge il tuo PC per')} {ended.systemName}{t('. (ESC per saltare)')}</div>
           </>
         )}
       </div>

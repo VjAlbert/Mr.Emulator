@@ -11,6 +11,7 @@ import { music } from '../music'
 import type { MediaTrack } from '@shared/types'
 import type { LibraryStats } from '@shared/types'
 import { decadeLabel, decadeOf, initialOf, matchAll, norm, splitTitle } from '../search'
+import { getLang, t } from '../i18n'
 
 /** Altezza di una riga (compreso lo spazio): la lista disegna solo quelle visibili */
 const ROW_H = 58
@@ -102,13 +103,13 @@ export default function GameList({ system, games, message, onLaunch, onBack, let
   }, [system.engine])
   const checkOne = async (g: Game): Promise<void> => {
     if (!g.machine) return
-    setNote('Controllo in corso…')
+    setNote(t('Controllo in corso…'))
     const r = await window.mr.verifyMachine(g.machine)
     const msg = !r.ok
-      ? (r.error ?? 'Controllo non riuscito.')
+      ? (r.error ?? t('Controllo non riuscito.'))
       : r.issues.length === 0
-        ? '✔ ROM a posto: questo gioco è completo.'
-        : `⚠ ROM difettosa: ${r.issues.slice(0, 3).map((i) => `${i.set}.zip → ${i.file}`).join(' · ')}${r.issues.length > 3 ? ` (+${r.issues.length - 3})` : ''}`
+        ? t('✔ ROM a posto: questo gioco è completo.')
+        : `${t('⚠ ROM difettosa:')} ${r.issues.slice(0, 3).map((i) => `${i.set}.zip → ${i.file}`).join(' · ')}${r.issues.length > 3 ? ` (+${r.issues.length - 3})` : ''}`
     setNote(msg)
     window.setTimeout(() => setNote(''), 9000)
   }
@@ -359,17 +360,17 @@ export default function GameList({ system, games, message, onLaunch, onBack, let
       <Orbs />
       <header className="topbar">
         <button className="chip" onClick={onBack}>
-          ◀ INDIETRO
+          {t('◀ INDIETRO')}
         </button>
         <h2 className="sys-title">{system.name}</h2>
         {groups.length > 1 && (
           <select
             className="family"
             value={activeFamily}
-            title="Famiglia di giochi (Tab per cambiarla)"
+            title={t('Famiglia di giochi (Tab per cambiarla)')}
             onChange={(e) => changeFamily(e.target.value)}
           >
-            <option value="">Tutti ({games.length.toLocaleString('it')})</option>
+            <option value="">{t('Tutti (')}{games.length.toLocaleString('it')})</option>
             {groups.map(([n, c]) => (
               <option key={n} value={n}>
                 {n} ({c.toLocaleString('it')})
@@ -378,26 +379,26 @@ export default function GameList({ system, games, message, onLaunch, onBack, let
           </select>
         )}
         {system.engine === 'mame' && onRomCheck && (
-          <button className="chip" onClick={onRomCheck} title="Controlla gli ZIP delle ROM con MAME">
-            🧪 CONTROLLO ROM
+          <button className="chip" onClick={onRomCheck} title={t('Controlla gli ZIP delle ROM con MAME')}>
+            {t('🧪 CONTROLLO ROM')}
           </button>
         )}
-        <button className="chip search-btn" onClick={() => setSearchOpen(true)} title="Cerca un titolo ( / · Y del pad · pulsante 4 del pannello )">
-          🔍 CERCA
+        <button className="chip search-btn" onClick={() => setSearchOpen(true)} title={t('Cerca un titolo ( / · Y del pad · pulsante 4 del pannello )')}>
+          {t('🔍 CERCA')}
         </button>
         {activeDecade && (
-          <button className="chip on" onClick={() => changeDecade('')} title="Togli il filtro per anni">
+          <button className="chip on" onClick={() => changeDecade('')} title={t('Togli il filtro per anni')}>
             {decadeLabel(activeDecade)} ✕
           </button>
         )}
         {query.trim() && (
-          <button className="chip on" onClick={() => setQuery('')} title="Togli il filtro">
+          <button className="chip on" onClick={() => setQuery('')} title={t('Togli il filtro')}>
             “{query.trim()}” ✕
           </button>
         )}
         <span className="counter">
           {list.length ? `${(index + 1).toLocaleString('it')} / ${list.length.toLocaleString('it')}` : ''}
-          {(query || activeFamily) && games.length !== list.length ? ` (su ${games.length.toLocaleString('it')})` : ''}
+          {(query || activeFamily) && games.length !== list.length ? ` ${t('(su {n})', { n: games.length.toLocaleString(getLang() === 'it' ? 'it' : 'en') })}` : ''}
         </span>
       </header>
 
@@ -409,30 +410,30 @@ export default function GameList({ system, games, message, onLaunch, onBack, let
                 <>
                   {stats && stats.total > 0 && stats.bios + stats.device >= Math.ceil(stats.total * 0.8) ? (
                     <>
-                      Nella cartella ci sono <b>{stats.total.toLocaleString('it')} ZIP, ma solo BIOS e dispositivi</b>: mancano gli ZIP dei <b>giochi</b>.
+                      {t('Nella cartella ci sono')} <b>{stats.total.toLocaleString('it')} {t('ZIP, ma solo BIOS e dispositivi')}</b>{t(': mancano gli ZIP dei')} <b>{t('giochi')}</b>.
                       <br />
-                      Serve anche il pacchetto delle ROM dei giochi della stessa versione di MAME ({stats.version || 'quella in uso'}).
+                      {t('Serve anche il pacchetto delle ROM dei giochi della stessa versione di MAME (')}{stats.version || 'quella in uso'}).
                     </>
                   ) : stats && stats.total > 0 && stats.unknown > 0 ? (
                     <>
-                      Nella cartella ci sono {stats.total.toLocaleString('it')} ZIP, ma <b>{stats.unknown.toLocaleString('it')} non sono riconosciuti da questo MAME</b> ({stats.version}).
+                      {t('Nella cartella ci sono')} {stats.total.toLocaleString('it')} {t('ZIP, ma')} <b>{stats.unknown.toLocaleString('it')} {t('non sono riconosciuti da questo MAME')}</b> ({stats.version}).
                       <br />
-                      Di solito vuol dire che il set ROM è di un'altra versione di MAME.
+                      {t('Di solito vuol dire che il set ROM è di un\'altra versione di MAME.')}
                     </>
                   ) : (
                     <>
-                      Nessun gioco trovato in <b>{system.folder}</b>.
+                      {t('Nessun gioco trovato in')} <b>{system.folder}</b>.
                       <br />
-                      Copia qui le tue ROM e riapri questo sistema.
+                      {t('Copia qui le tue ROM e riapri questo sistema.')}
                     </>
                   )}
                   <br />
                   <button className="chip" onClick={() => window.mr.openFolder(system.id)}>
-                    APRI LA CARTELLA
+                    {t('APRI LA CARTELLA')}
                   </button>
                 </>
               ) : (
-                <>Nessun titolo corrisponde ai filtri scelti.</>
+                <>{t('Nessun titolo corrisponde ai filtri scelti.')}</>
               )}
             </div>
           )}
@@ -457,7 +458,7 @@ export default function GameList({ system, games, message, onLaunch, onBack, let
                     onError={() => setVideo(null)}
                   />
                   <i className="vmon-scan" />
-                  <span className="vmon-tag">● PLAY</span>
+                  <span className="vmon-tag">{t('● PLAY')}</span>
                 </div>
               )}
               {/* con il filmato in primo piano la copertina resta visibile, come una custodia davanti allo schermo */}
@@ -468,23 +469,23 @@ export default function GameList({ system, games, message, onLaunch, onBack, let
                 {title.tag && <div className="preview-tag">{title.tag}</div>}
                 <div className="preview-meta">
                   {system.name}
-                  {game.demo ? ' · DEMO' : ''}
+                  {game.demo ? t(' · DEMO') : ''}
                 </div>
-                {game.machine && badSet.has(game.machine) && <div className="warnchip">⚠ ROM DIFETTOSA: apri il Controllo ROM</div>}
+                {game.machine && badSet.has(game.machine) && <div className="warnchip">{t('⚠ ROM DIFETTOSA: apri il Controllo ROM')}</div>}
                 {tracks.length > 0 && (
-                  <button className="sp-star music" onClick={() => music.toggleFor(game.id, game.name, tracks)} title="Colonna sonora (Select del pad · F3)">
-                    ♪ COLONNA SONORA ({tracks.length} {tracks.length === 1 ? 'brano' : 'brani'})
+                  <button className="sp-star music" onClick={() => music.toggleFor(game.id, game.name, tracks)} title={t('Colonna sonora (Select del pad · F3)')}>
+                    {t('♪ COLONNA SONORA (')}{tracks.length} {tracks.length === 1 ? t('brano') : t('brani')})
                   </button>
                 )}
                 {system.engine === 'mame' && (
                   <button className="sp-star" onClick={() => checkOne(game)}>
-                    🧪 CONTROLLA QUESTO GIOCO
+                    {t('🧪 CONTROLLA QUESTO GIOCO')}
                   </button>
                 )}
-                <button className={`sp-star ${favIds.has(game.id) ? 'on' : ''}`} onClick={() => toggleFav(game)} title="Preferito (X del pad · F2 · Start 2 sul pannello)">
-                  {favIds.has(game.id) ? '★ NEI PREFERITI' : '☆ AGGIUNGI AI PREFERITI'}
+                <button className={`sp-star ${favIds.has(game.id) ? 'on' : ''}`} onClick={() => toggleFav(game)} title={t('Preferito (X del pad · F2 · Start 2 sul pannello)')}>
+                  {favIds.has(game.id) ? t('★ NEI PREFERITI') : t('☆ AGGIUNGI AI PREFERITI')}
                 </button>
-                <div className="preview-start">▶ PREMI INVIO PER GIOCARE</div>
+                <div className="preview-start">{t('▶ PREMI INVIO PER GIOCARE')}</div>
               </div>
             </>
           ) : null}

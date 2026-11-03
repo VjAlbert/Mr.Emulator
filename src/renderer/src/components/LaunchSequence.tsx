@@ -5,6 +5,7 @@ import { pickArt } from '../hooks/useArt'
 import { sfx } from '../sound'
 import GeneratedCover from './GeneratedCover'
 import { splitTitle } from '../search'
+import { t } from '../i18n'
 
 interface Props {
   game: Game
@@ -39,8 +40,8 @@ export default function LaunchSequence({ game, systemName, color, onDone }: Prop
       <div className="ls-text">
         <div className="ls-sys">{systemName}</div>
         <div className="ls-title">{title}</div>
-        <div className="ls-coin">INSERT COIN</div>
-        <div className="ls-ready">PLAYER 1 READY!</div>
+        <div className="ls-coin">{t('INSERT COIN')}</div>
+        <div className="ls-ready">{t('PLAYER 1 READY!')}</div>
       </div>
       <div className="ls-bar">
         <i />

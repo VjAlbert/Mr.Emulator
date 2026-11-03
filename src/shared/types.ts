@@ -99,6 +99,10 @@ export interface Settings {
   /** La procedura guidata del primo avvio è stata completata o saltata */
   firstRunDone: boolean
   /** Modalità cabinato: il launcher a tutto schermo senza bordi */
+  /** Lingua del programma: auto = quella del sistema */
+  language: 'auto' | 'it' | 'en'
+  /** Mostra la schermata iniziale "premi start" all'avvio */
+  titleScreen: boolean
   cabinetFullscreen: boolean
   /** Modalità immagine diversa per alcuni sistemi (id sistema -> modalità); gli altri usano imageStyle */
   imageBySystem: Record<string, ImageStyle>
@@ -379,6 +383,7 @@ export interface MrApi {
   installCore(core: string): Promise<{ core: string; ok: boolean; error?: string }>
   /** Chiude il programma (anche con la chiusura bloccata) */
   quitApp(): Promise<void>
+  getAppVersion(): Promise<string>
   getBiosStatus(): Promise<Array<{ systemId: string; name: string; files: string[]; where: string; note: string; found: string | null; verified: 'ok' | 'unknown' | 'unchecked' | null }>>
   sendFeedback(systemId: string, answer: Feedback): Promise<void>
   /** Si attiva quando un gioco si chiude; restituisce la funzione per smettere di ascoltare */

@@ -622,3 +622,26 @@ b.warnmark { color: #ffd400; margin-right: 8px; font-weight: 400; } .row.active 
 .persys { display: grid; grid-template-columns: repeat(auto-fill, minmax(330px, 1fr)); gap: 6px; }
 .persys-row { display: grid; grid-template-columns: 1fr 1.4fr; gap: 10px; align-items: center; padding: 6px 10px; background: var(--card2); border-left: 4px solid var(--tile); font-size: 14px; }
 .persys-row select { max-width: 100%; }
+
+/* schermata iniziale */
+.title { display: grid; grid-template-rows: auto minmax(0, 1fr) auto auto; overflow: hidden; background: radial-gradient(ellipse at 50% 38%, color-mix(in srgb, #ff2d55 30%, var(--bg)), var(--bg) 62%); }
+.tt-rays { position: absolute; inset: -30%; z-index: 0; background: repeating-conic-gradient(from 0deg at 50% 42%, rgba(255,255,255,.07) 0 4deg, transparent 4deg 12deg); animation: ttspin 90s linear infinite; mask-image: radial-gradient(circle at 50% 42%, #000 0, transparent 70%); }
+@keyframes ttspin { to { transform: rotate(360deg); } }
+.tt-top, .tt-center, .tt-strip, .tt-foot { position: relative; z-index: 1; }
+.tt-top { display: flex; justify-content: flex-end; padding: 22px 34px; }
+.tt-center { display: grid; place-content: center; text-align: center; gap: 6px; }
+.tt-pre { font-family: var(--font); letter-spacing: 8px; color: #ffd400; font-size: clamp(14px, 1.8vw, 24px); -webkit-text-stroke: 1px #000; paint-order: stroke fill; }
+.tt-logo { margin: 0; display: grid; font-family: var(--font); line-height: .86; transform: skewX(-8deg); }
+.tt-mr { font-size: clamp(56px, 8.5vw, 130px); letter-spacing: 6px; color: #f4f4fa; -webkit-text-stroke: 5px #000; paint-order: stroke fill; text-shadow: 7px 7px 0 #000; }
+.tt-em { font-size: clamp(76px, 12vw, 190px); letter-spacing: 4px; color: #ff2d55; -webkit-text-stroke: 7px #000; paint-order: stroke fill; text-shadow: 10px 10px 0 #000, 0 0 60px rgba(255,45,85,.55); animation: ttglow 2.4s ease-in-out infinite alternate; }
+@keyframes ttglow { to { text-shadow: 10px 10px 0 #000, 0 0 100px rgba(255,45,85,.9); transform: scale(1.015); } }
+.tt-start { margin: 22px auto 0; padding: 10px 40px; font-family: var(--font); letter-spacing: 6px; font-size: clamp(22px, 3vw, 42px); background: #ffd400; color: #000; clip-path: polygon(16px 0, 100% 0, calc(100% - 16px) 100%, 0 100%); animation: ttblink 1s steps(2, jump-none) infinite; }
+@keyframes ttblink { 50% { opacity: .15; } }
+.tt-hint { font-size: 13px; letter-spacing: 3px; color: var(--muted); text-transform: uppercase; margin-top: 8px; }
+.tt-strip { overflow: hidden; flex: none; padding: 12px 0; border-block: 3px solid #000; background: rgba(0,0,0,.45); }
+.tt-track { display: flex; gap: 34px; width: max-content; animation: ttscroll 38s linear infinite; }
+@keyframes ttscroll { to { transform: translateX(-50%); } }
+.tt-sys { display: grid; justify-items: center; gap: 4px; font-family: var(--font); letter-spacing: 2px; color: var(--tile); font-size: 16px; }
+.tt-art { width: 92px; height: auto; transform: rotate(-5deg); filter: drop-shadow(3px 4px 0 rgba(0,0,0,.6)); }
+.tt-foot { display: flex; justify-content: space-between; padding: 12px 34px 16px; font-size: 13px; letter-spacing: 2px; color: var(--muted); text-transform: uppercase; }
+.light-fx .tt-rays, .light-fx .tt-em, .light-fx .tt-track { animation: none; }

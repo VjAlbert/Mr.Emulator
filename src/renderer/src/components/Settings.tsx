@@ -3,6 +3,7 @@ import { IMAGE_MODES } from './ScreenPreview'
 import type { DiagnosticReport, ImageStyle, PickKind, Settings, SystemInfo } from '@shared/types'
 import { useInput } from '../hooks/useInput'
 import { configureSound, sfx } from '../sound'
+import { setLang, t } from '../i18n'
 
 type PathKey = 'romsDir' | 'biosDir' | 'retroarchPath' | 'coresDir' | 'mamePath' | 'mameChdDir' | 'mameRomDir' | 'mediaDir' | 'datDir' | 'overlayPath'
 
@@ -38,7 +39,7 @@ export default function SettingsScreen({ onClose, onSaved, onPc, onRomCheck, onG
     }
   })
 
-  if (!s) return <div className="loading">Caricamento…</div>
+  if (!s) return <div className="loading">{t('Caricamento…')}</div>
 
   const pick = async (key: PathKey, kind: PickKind): Promise<void> => {
     const p = await window.mr.pickPath(kind)
@@ -54,11 +55,11 @@ export default function SettingsScreen({ onClose, onSaved, onPc, onRomCheck, onG
 
   const field = (label: string, hint: string, key: PathKey, kind: PickKind): React.JSX.Element => (
     <div className="field">
-      <label>{label}</label>
+      <label>{t(label)}</label>
       <div className="field-row">
-        <input value={s[key]} placeholder={hint} onChange={(e) => setS({ ...s, [key]: e.target.value })} />
+        <input value={s[key]} placeholder={t(hint)} onChange={(e) => setS({ ...s, [key]: e.target.value })} />
         <button className="chip" onClick={() => pick(key, kind)}>
-          SFOGLIA
+          {t('SFOGLIA')}
         </button>
       </div>
     </div>
@@ -68,20 +69,20 @@ export default function SettingsScreen({ onClose, onSaved, onPc, onRomCheck, onG
     <div className="screen settings" style={{ ['--accent' as string]: '#ffd400' }}>
       <header className="topbar">
         <button className="chip" onClick={onClose}>
-          ◀ INDIETRO
+          {t('◀ INDIETRO')}
         </button>
-        <h2 className="sys-title">Impostazioni</h2>
+        <h2 className="sys-title">{t('Impostazioni')}</h2>
         <button className="chip save" onClick={save}>
-          {saved ? '✔ SALVATO' : '💾 SALVA'}
+          {saved ? t('✔ SALVATO') : t('💾 SALVA')}
         </button>
       </header>
       <div className="settings-body" ref={bodyRef}>
         <div className="tabs">
-          <button className={`tab ${tab === 'general' ? 'on' : ''}`} onClick={() => setTab('general')}>GENERALE</button>
-          {onGuide && <button className="tab" onClick={onGuide}>▶ RIFAI LA GUIDA</button>}
-          <button className={`tab ${tab === 'systems' ? 'on' : ''}`} onClick={() => setTab('systems')}>SISTEMI IN HOME</button>
-          <button className={`tab ${tab === 'look' ? 'on' : ''}`} onClick={() => setTab('look')}>ASPETTO</button>
-          <button className={`tab ${tab === 'cabinet' ? 'on' : ''}`} onClick={() => setTab('cabinet')}>MODALITÀ CABINATO</button>
+          <button className={`tab ${tab === 'general' ? 'on' : ''}`} onClick={() => setTab('general')}>{t('GENERALE')}</button>
+          {onGuide && <button className="tab" onClick={onGuide}>{t('▶ RIFAI LA GUIDA')}</button>}
+          <button className={`tab ${tab === 'systems' ? 'on' : ''}`} onClick={() => setTab('systems')}>{t('SISTEMI IN HOME')}</button>
+          <button className={`tab ${tab === 'look' ? 'on' : ''}`} onClick={() => setTab('look')}>{t('ASPETTO')}</button>
+          <button className={`tab ${tab === 'cabinet' ? 'on' : ''}`} onClick={() => setTab('cabinet')}>{t('MODALITÀ CABINATO')}</button>
           <button
             className={`tab ${tab === 'diag' ? 'on' : ''}`}
             onClick={async () => {
@@ -90,12 +91,12 @@ export default function SettingsScreen({ onClose, onSaved, onPc, onRomCheck, onG
               setDiag(await window.mr.getDiagnostics())
             }}
           >
-            DIAGNOSTICA
+            {t('DIAGNOSTICA')}
           </button>
         </div>
         {tab === 'look' ? (
           <div className="sysopts">
-            <h3 className="sub-h">Tema del launcher</h3>
+            <h3 className="sub-h">{t('Tema del launcher')}</h3>
             <div className="themes">
               {([['fighter', 'Picchiaduro', '#12121c', '#ff2d55'], ['neon', 'Neon', '#1c0b52', '#00e5ff'], ['retro', 'Fosforo verde', '#0a2812', '#5dff8f'], ['mono', 'Notte', '#181818', '#ffffff']] as const).map(([id, name, bg, fg]) => (
                 <button
@@ -111,8 +112,8 @@ export default function SettingsScreen({ onClose, onSaved, onPc, onRomCheck, onG
                 </button>
               ))}
             </div>
-            <h3 className="sub-h">Immagine dei giochi</h3>
-            <p className="hint">La modalità generale si sceglie in <b>IL TUO PC</b> (con l&apos;anteprima delle misure sul tuo schermo). Qui puoi dare a un sistema una modalità diversa: per esempio pixel perfetti per le console e altezza piena per l&apos;arcade.</p>
+            <h3 className="sub-h">{t('Immagine dei giochi')}</h3>
+            <p className="hint">{t('La modalità generale si sceglie in')} <b>{t('IL TUO PC')}</b> {t('(con l\'anteprima delle misure sul tuo schermo). Qui puoi dare a un sistema una modalità diversa: per esempio pixel perfetti per le console e altezza piena per l\'arcade.')}</p>
             <div className="persys">
               {all.filter((x) => x.phase === 1).map((x) => (
                 <label key={x.id} className="persys-row" style={{ ['--tile' as string]: x.color }}>
@@ -126,78 +127,78 @@ export default function SettingsScreen({ onClose, onSaved, onPc, onRomCheck, onG
                       setS({ ...s, imageBySystem: next })
                     }}
                   >
-                    <option value="">Come la modalità generale</option>
+                    <option value="">{t('Come la modalità generale')}</option>
                     {IMAGE_MODES.map(([id, name]) => (
-                      <option key={id} value={id}>{name}</option>
+                      <option key={id} value={id}>{t(name)}</option>
                     ))}
                   </select>
                 </label>
               ))}
             </div>
-            <h3 className="sub-h">Monitor montato in verticale (solo MAME)</h3>
+            <h3 className="sub-h">{t('Monitor montato in verticale (solo MAME)')}</h3>
             <div className="field">
               <select value={s.tate} onChange={(e) => setS({ ...s, tate: e.target.value as Settings['tate'] })}>
-                <option value="off">No: monitor orizzontale (i giochi verticali restano al centro)</option>
-                <option value="cw">Sì, ruotato in senso orario</option>
-                <option value="ccw">Sì, ruotato in senso antiorario</option>
+                <option value="off">{t('No: monitor orizzontale (i giochi verticali restano al centro)')}</option>
+                <option value="cw">{t('Sì, ruotato in senso orario')}</option>
+                <option value="ccw">{t('Sì, ruotato in senso antiorario')}</option>
               </select>
             </div>
-            <p className="hint">Per sfruttare tutto lo schermo nei giochi verticali (shoot&apos;em up) il monitor va montato ruotato; ruota anche lo schermo da Windows, poi scegli qui il senso.</p>
-            <h3 className="sub-h">Bordo grafico ai lati (overlay di RetroArch)</h3>
+            <p className="hint">{t('Per sfruttare tutto lo schermo nei giochi verticali (shoot\'em up) il monitor va montato ruotato; ruota anche lo schermo da Windows, poi scegli qui il senso.')}</p>
+            <h3 className="sub-h">{t('Bordo grafico ai lati (overlay di RetroArch)')}</h3>
             <label className="check">
               <input type="checkbox" checked={s.overlayEnabled} onChange={(e) => setS({ ...s, overlayEnabled: e.target.checked })} />
-              Riempi le strisce laterali con un bordo grafico
+              {t('Riempi le strisce laterali con un bordo grafico')}
             </label>
             {field('File del bordo (.cfg)', 'Es. C:\\RetroArch\\overlays\\borders\\... .cfg — da RetroArch: Aggiornamenti online → Aggiorna overlay', 'overlayPath', 'cfg')}
-            <h3 className="sub-h">Effetto schermo a tubo (CRT) nei giochi</h3>
+            <h3 className="sub-h">{t('Effetto schermo a tubo (CRT) nei giochi')}</h3>
             <div className="field">
               <select value={s.crtShader} onChange={(e) => setS({ ...s, crtShader: e.target.value as Settings['crtShader'] })}>
-                <option value="auto">Automatico (lo sceglie il programma in base al tuo PC)</option>
-                <option value="off">Nessuno (immagine pulita)</option>
-                <option value="crt-easymode">CRT leggero (Easymode)</option>
-                <option value="crt-geom">CRT classico con curvatura (Geom)</option>
-                <option value="crt-lottes">CRT morbido (Lottes)</option>
-                <option value="crt-royale">CRT realistico (Royale, richiede una scheda video potente)</option>
+                <option value="auto">{t('Automatico (lo sceglie il programma in base al tuo PC)')}</option>
+                <option value="off">{t('Nessuno (immagine pulita)')}</option>
+                <option value="crt-easymode">{t('CRT leggero (Easymode)')}</option>
+                <option value="crt-geom">{t('CRT classico con curvatura (Geom)')}</option>
+                <option value="crt-lottes">{t('CRT morbido (Lottes)')}</option>
+                <option value="crt-royale">{t('CRT realistico (Royale, richiede una scheda video potente)')}</option>
               </select>
             </div>
             <p className="hint">
-              Vale per i giochi lanciati con RetroArch. Se lo shader scelto non è installato, il programma torna al modo automatico. Per installarli: in RetroArch, Aggiornamenti online → Aggiorna shader Slang. Ricorda di premere SALVA.
+              {t('Vale per i giochi lanciati con RetroArch. Se lo shader scelto non è installato, il programma torna al modo automatico. Per installarli: in RetroArch, Aggiornamenti online → Aggiorna shader Slang. Ricorda di premere SALVA.')}
             </p>
           </div>
         ) : tab === 'cabinet' ? (
           <div className="sysopts">
-            <p className="hint">Per usare il computer come un vero cabinato: il programma parte da solo, a tutto schermo, senza bordi né cursore. Ricorda di premere SALVA.</p>
+            <p className="hint">{t('Per usare il computer come un vero cabinato: il programma parte da solo, a tutto schermo, senza bordi né cursore. Ricorda di premere SALVA.')}</p>
             <label className="check">
               <input type="checkbox" checked={s.cabinetFullscreen} onChange={(e) => setS({ ...s, cabinetFullscreen: e.target.checked })} />
-              Schermo intero senza bordi
+              {t('Schermo intero senza bordi')}
             </label>
             <label className="check">
               <input type="checkbox" checked={s.cabinetAutostart} onChange={(e) => setS({ ...s, cabinetAutostart: e.target.checked })} />
-              Avvia Mr. Emulator quando si accende Windows (funziona nella versione installata)
+              {t('Avvia Mr. Emulator quando si accende Windows (funziona nella versione installata)')}
             </label>
             <label className="check">
               <input type="checkbox" checked={s.cabinetHideCursor} onChange={(e) => setS({ ...s, cabinetHideCursor: e.target.checked })} />
-              Nascondi il cursore del mouse dopo qualche secondo
+              {t('Nascondi il cursore del mouse dopo qualche secondo')}
             </label>
             <label className="check">
               <input type="checkbox" checked={s.cabinetLockClose} onChange={(e) => setS({ ...s, cabinetLockClose: e.target.checked })} />
-              Blocca la chiusura accidentale (Alt+F4 non spegne il programma)
+              {t('Blocca la chiusura accidentale (Alt+F4 non spegne il programma)')}
             </label>
             <p className="hint">
-              Con la chiusura bloccata si esce con <b>Ctrl + Maiusc + Q</b> oppure con il pulsante qui sotto. Al prossimo avvio di Windows il programma si apre da solo sulla home.
+              {t('Con la chiusura bloccata si esce con')} <b>{t('Ctrl + Maiusc + Q')}</b> {t('oppure con il pulsante qui sotto. Al prossimo avvio di Windows il programma si apre da solo sulla home.')}
             </p>
             <div className="field-row">
-              <button className="chip" onClick={() => window.mr.quitApp()}>⏻ CHIUDI IL PROGRAMMA</button>
+              <button className="chip" onClick={() => window.mr.quitApp()}>{t('⏻ CHIUDI IL PROGRAMMA')}</button>
             </div>
           </div>
         ) : tab === 'diag' ? (
           <div className="diag">
             {!diag ? (
-              <p className="hint">Controllo in corso…</p>
+              <p className="hint">{t('Controllo in corso…')}</p>
             ) : (
               <>
                 <p className="hint">
-                  {diag.problems === 0 && diag.warnings === 0 ? '✔ Tutto a posto.' : `${diag.problems} problemi · ${diag.warnings} avvisi.`} Se qualcosa non funziona, premi COPIA e incolla il testo nella chat.
+                  {diag.problems === 0 && diag.warnings === 0 ? t('✔ Tutto a posto.') : `${diag.problems} problemi · ${diag.warnings} avvisi.`} {t('Se qualcosa non funziona, premi COPIA e incolla il testo nella chat.')}
                 </p>
                 <div className="field-row">
                   <button
@@ -209,9 +210,9 @@ export default function SettingsScreen({ onClose, onSaved, onPc, onRomCheck, onG
                       }, () => undefined)
                     }}
                   >
-                    {copied ? '✔ COPIATO' : '📋 COPIA IL TESTO'}
+                    {copied ? t('✔ COPIATO') : t('📋 COPIA IL TESTO')}
                   </button>
-                  <button className="chip" onClick={() => window.mr.getDiagnostics().then(setDiag)}>⟳ RICONTROLLA</button>
+                  <button className="chip" onClick={() => window.mr.getDiagnostics().then(setDiag)}>{t('⟳ RICONTROLLA')}</button>
                 </div>
                 <ul className="diag-list">
                   {diag.checks.map((k, i) => (
@@ -228,10 +229,10 @@ export default function SettingsScreen({ onClose, onSaved, onPc, onRomCheck, onG
           </div>
         ) : tab === 'systems' ? (
           <div className="sysopts">
-            <p className="hint">Scegli quali sistemi mostrare nella griglia della home. Le ROM restano dove sono: nascondere un sistema non cancella nulla. Ricorda di premere SALVA.</p>
+            <p className="hint">{t('Scegli quali sistemi mostrare nella griglia della home. Le ROM restano dove sono: nascondere un sistema non cancella nulla. Ricorda di premere SALVA.')}</p>
             <div className="field-row">
-              <button className="chip" onClick={() => setS({ ...s, hiddenSystems: [] })}>MOSTRA TUTTI</button>
-              <button className="chip" onClick={() => setS({ ...s, hiddenSystems: all.filter((x) => x.gameCount === 0 && x.phase === 1).map((x) => x.id) })}>NASCONDI QUELLI SENZA GIOCHI</button>
+              <button className="chip" onClick={() => setS({ ...s, hiddenSystems: [] })}>{t('MOSTRA TUTTI')}</button>
+              <button className="chip" onClick={() => setS({ ...s, hiddenSystems: all.filter((x) => x.gameCount === 0 && x.phase === 1).map((x) => x.id) })}>{t('NASCONDI QUELLI SENZA GIOCHI')}</button>
             </div>
             <div className="sysopt-grid">
               {all.map((x) => {
@@ -241,7 +242,7 @@ export default function SettingsScreen({ onClose, onSaved, onPc, onRomCheck, onG
                     <input type="checkbox" checked={!hidden} onChange={() => setS({ ...s, hiddenSystems: hidden ? s.hiddenSystems.filter((i) => i !== x.id) : [...s.hiddenSystems, x.id] })} />
                     <span className="sysopt-short">{x.short}</span>
                     <span className="sysopt-name">{x.name}</span>
-                    <span className="sysopt-count">{x.phase !== 1 ? 'in arrivo' : `${x.gameCount.toLocaleString('it')} giochi`}</span>
+                    <span className="sysopt-count">{x.phase !== 1 ? t('in arrivo') : `${x.gameCount.toLocaleString('it')} giochi`}</span>
                   </label>
                 )
               })}
@@ -249,12 +250,27 @@ export default function SettingsScreen({ onClose, onSaved, onPc, onRomCheck, onG
           </div>
         ) : (
           <>
+        <div className="opt-row">
+          <span>Language / Lingua</span>
+          <select
+            value={s.language}
+            onChange={(e) => {
+              const language = e.target.value as Settings['language']
+              setS({ ...s, language })
+              setLang(language)
+            }}
+          >
+            <option value="auto">{t('Automatica (come il sistema)')}</option>
+            <option value="it">Italiano</option>
+            <option value="en">English</option>
+          </select>
+        </div>
         {field('Cartella ROM', 'Es. D:\\Giochi\\roms (con sottocartelle: snes, megadrive, arcade…)', 'romsDir', 'dir')}
         {field('Cartella BIOS', 'I tuoi file BIOS vanno qui (viene passata a RetroArch)', 'biosDir', 'dir')}
         <div className="field-row">
-          <button className="chip" onClick={() => window.mr.openFolder('roms')}>APRI CARTELLA ROM</button>
-          <button className="chip" onClick={() => window.mr.openFolder('bios')}>APRI CARTELLA BIOS</button>
-          <button className="chip" onClick={() => window.mr.setupFolders().then(setS)}>CREA CARTELLE MANCANTI</button>
+          <button className="chip" onClick={() => window.mr.openFolder('roms')}>{t('APRI CARTELLA ROM')}</button>
+          <button className="chip" onClick={() => window.mr.openFolder('bios')}>{t('APRI CARTELLA BIOS')}</button>
+          <button className="chip" onClick={() => window.mr.setupFolders().then(setS)}>{t('CREA CARTELLE MANCANTI')}</button>
         </div>
         {field('RetroArch (retroarch.exe)', 'Es. C:\\RetroArch-Win64\\retroarch.exe', 'retroarchPath', 'file')}
         {field('MAME (mame.exe)', 'Es. D:\\MAME\\mame.exe — serve per il sistema Arcade (MAME); usa la stessa versione del tuo set ROM', 'mamePath', 'file')}
@@ -262,13 +278,13 @@ export default function SettingsScreen({ onClose, onSaved, onPc, onRomCheck, onG
           <button
             className="chip"
             onClick={async () => {
-              setMameInfo('Controllo in corso… (la prima volta può richiedere qualche secondo)')
+              setMameInfo(t('Controllo in corso… (la prima volta può richiedere qualche secondo)'))
               await window.mr.saveSettings(s)
               const r = await window.mr.checkMame()
-              setMameInfo(r.ok ? `✔ MAME ${r.version} · ${r.machines.toLocaleString('it')} macchine riconosciute${r.warning ? ` — ⚠ ${r.warning}` : ''}` : `⚠ ${r.error ?? 'MAME non risponde'}`)
+              setMameInfo(r.ok ? `✔ MAME ${r.version} · ${r.machines.toLocaleString('it')} ${t('macchine riconosciute')}${r.warning ? ` — ⚠ ${r.warning}` : ''}` : `⚠ ${r.error ?? t('MAME non risponde')}`)
             }}
           >
-            VERIFICA MAME
+            {t('VERIFICA MAME')}
           </button>
           <span className="hint" style={{ margin: 0, alignSelf: 'center' }}>{mameInfo}</span>
         </div>
@@ -278,12 +294,12 @@ export default function SettingsScreen({ onClose, onSaved, onPc, onRomCheck, onG
             className="chip"
             onClick={async () => {
               const r = await window.mr.makeMameFolder()
-              setMameInfo(r.ok ? `✔ Creata e impostata: ${r.path}` : `⚠ ${r.error ?? 'Non riuscito'}`)
+              setMameInfo(r.ok ? `${t('✔ Creata e impostata:')} ${r.path}` : `⚠ ${r.error ?? t('Non riuscito')}`)
               setS(await window.mr.getSettings())
               onSaved()
             }}
           >
-            CREA LA CARTELLA DI QUESTA VERSIONE DI MAME
+            {t('CREA LA CARTELLA DI QUESTA VERSIONE DI MAME')}
           </button>
           <button
             className="chip"
@@ -292,14 +308,14 @@ export default function SettingsScreen({ onClose, onSaved, onPc, onRomCheck, onG
               if (!dir) return
               try {
                 setS(await window.mr.setupRoot(dir))
-                setMameInfo(`✔ Tutto impostato dentro ${dir} (roms, bios e la cartella di MAME)`)
+                setMameInfo(t('✔ Tutto impostato dentro {dir} (roms, bios e la cartella di MAME)', { dir }))
                 onSaved()
               } catch {
-                setMameInfo('⚠ Non riesco a creare le cartelle lì: controlla che il disco sia collegato e scrivibile.')
+                setMameInfo(t('⚠ Non riesco a creare le cartelle lì: controlla che il disco sia collegato e scrivibile.'))
               }
             }}
           >
-            USA UN ALTRO DISCO PER TUTTO…
+            {t('USA UN ALTRO DISCO PER TUTTO…')}
           </button>
         </div>
         {field('Cartella DAT (FinalBurn Neo, Kawaks, MAME…)', 'File .dat o .xml con nome breve e titolo dei giochi: servono a dare il nome giusto e a trovare le copertine delle console. Hanno la precedenza sulle Software List di MAME', 'datDir', 'dir')}
@@ -308,20 +324,20 @@ export default function SettingsScreen({ onClose, onSaved, onPc, onRomCheck, onG
           <button
             className="chip"
             onClick={async () => {
-              setMediaInfo(['Analisi in corso…'])
+              setMediaInfo([t('Analisi in corso…')])
               await window.mr.saveSettings(s)
               const r = await window.mr.analyzeMedia()
               if (r.error) return setMediaInfo([`⚠ ${r.error}`])
-              const kindName = { boxart: 'Copertine', snap: 'Schermate', title: 'Titoli', video: 'Video delle partite', sound: 'Colonna sonora' } as const
-              const lines = r.found.map((f) => `✔ ${kindName[f.kind]}: ${f.name}${f.type === 'zip' ? ' (archivio ZIP)' : ''} · ${f.count.toLocaleString('it')} ${f.kind === 'sound' ? 'cartelle di giochi' : f.kind === 'video' ? 'file' : 'immagini'}`)
-              if (!r.found.length) lines.push('⚠ Non riconosco nessuna cartella di immagini, video o musica.')
-              if (r.unsupported.length) lines.push(`⚠ Archivi che non so leggere (serve estrarli): ${r.unsupported.join(', ')}`)
-              if (r.other.length) lines.push(`Altre cartelle trovate (non usate): ${r.other.slice(0, 14).join(', ')}${r.other.length > 14 ? '…' : ''}`)
+              const kindName = { boxart: t('Copertine'), snap: t('Schermate'), title: t('Titoli'), video: t('Video delle partite'), sound: t('Colonna sonora') } as const
+              const lines = r.found.map((f) => `✔ ${kindName[f.kind]}: ${f.name}${f.type === 'zip' ? t(' (archivio ZIP)') : ''} · ${f.count.toLocaleString('it')} ${f.kind === 'sound' ? t('cartelle di giochi') : f.kind === 'video' ? t('file') : t('immagini')}`)
+              if (!r.found.length) lines.push(t('⚠ Non riconosco nessuna cartella di immagini, video o musica.'))
+              if (r.unsupported.length) lines.push(`${t('⚠ Archivi che non so leggere (serve estrarli):')} ${r.unsupported.join(', ')}`)
+              if (r.other.length) lines.push(`${t('Altre cartelle trovate (non usate):')} ${r.other.slice(0, 14).join(', ')}${r.other.length > 14 ? '…' : ''}`)
               setMediaInfo(lines)
               onSaved()
             }}
           >
-            ANALIZZA LA CARTELLA IMMAGINI
+            {t('ANALIZZA LA CARTELLA IMMAGINI')}
           </button>
         </div>
         {mediaInfo.length > 0 && (
@@ -334,20 +350,20 @@ export default function SettingsScreen({ onClose, onSaved, onPc, onRomCheck, onG
         {field('Cartella dei dischi CHD per MAME (facoltativa)', 'Se i dischi non stanno già dentro la cartella ROM di MAME', 'mameChdDir', 'dir')}
         <label className="check">
           <input type="checkbox" checked={s.mameClones} onChange={(e) => setS({ ...s, mameClones: e.target.checked })} />
-          Arcade (MAME): mostra anche le varianti dei giochi (nei set "merged" stanno dentro lo ZIP del gioco principale)
+          {t('Arcade (MAME): mostra anche le varianti dei giochi (nei set "merged" stanno dentro lo ZIP del gioco principale)')}
         </label>
         {field('Cartella dei core (facoltativa)', 'Se vuota si usa la cartella "cores" accanto a RetroArch', 'coresDir', 'dir')}
         <label className="check">
           <input type="checkbox" checked={s.fullscreen} onChange={(e) => setS({ ...s, fullscreen: e.target.checked })} />
-          Avvia i giochi a schermo intero
+          {t('Avvia i giochi a schermo intero')}
         </label>
         <label className="check">
           <input type="checkbox" checked={s.downloadArt} onChange={(e) => setS({ ...s, downloadArt: e.target.checked })} />
-          Scarica automaticamente copertine e immagini (gratuito, senza account)
+          {t('Scarica automaticamente copertine e immagini (gratuito, senza account)')}
         </label>
         <label className="check">
           <input type="checkbox" checked={s.showUnsupported} onChange={(e) => setS({ ...s, showUnsupported: e.target.checked })} />
-          Arcade e Neo Geo: mostra anche i giochi che il motore (FBNeo) non supporta, come i set MAME completi
+          {t('Arcade e Neo Geo: mostra anche i giochi che il motore (FBNeo) non supporta, come i set MAME completi')}
         </label>
         <label className="check">
           <input
@@ -359,11 +375,11 @@ export default function SettingsScreen({ onClose, onSaved, onPc, onRomCheck, onG
               if (e.target.checked) sfx.confirm()
             }}
           />
-          Suoni dell'interfaccia (bip da sala giochi)
+          {t('Suoni dell\'interfaccia (bip da sala giochi)')}
         </label>
         {s.soundOn && (
           <div className="field-row" style={{ alignItems: 'center' }}>
-            <span className="hint" style={{ margin: 0 }}>Volume</span>
+            <span className="hint" style={{ margin: 0 }}>{t('Volume')}</span>
             <input
               type="range"
               min={0.05}
@@ -382,41 +398,45 @@ export default function SettingsScreen({ onClose, onSaved, onPc, onRomCheck, onG
         )}
         <label className="check">
           <input type="checkbox" checked={s.videoPreview} onChange={(e) => setS({ ...s, videoPreview: e.target.checked })} />
-          Filmato della partita sul gioco selezionato (serve la cartella videosnaps del pacchetto Multimedia)
+          {t('Filmato della partita sul gioco selezionato (serve la cartella videosnaps del pacchetto Multimedia)')}
         </label>
         <div className="field-row" style={{ alignItems: 'center' }}>
-          <span className="hint" style={{ margin: 0 }}>Volume della colonna sonora</span>
+          <span className="hint" style={{ margin: 0 }}>{t('Volume della colonna sonora')}</span>
           <input type="range" min={0.05} max={1} step={0.05} value={s.musicVolume} style={{ flex: 1, maxWidth: 320 }} onChange={(e) => setS({ ...s, musicVolume: Number(e.target.value) })} />
         </div>
         <label className="check">
           <input type="checkbox" checked={s.launchAnimation} onChange={(e) => setS({ ...s, launchAnimation: e.target.checked })} />
-          Sequenza "INSERT COIN" prima di avviare un gioco (si salta con un pulsante)
+          {t('Sequenza "INSERT COIN" prima di avviare un gioco (si salta con un pulsante)')}
         </label>
         <div className="field-row" style={{ alignItems: 'center' }}>
-          <span className="hint" style={{ margin: 0 }}>Rotazione di copertine a riposo, dopo</span>
+          <span className="hint" style={{ margin: 0 }}>{t('Rotazione di copertine a riposo, dopo')}</span>
           <select value={s.attractSeconds} onChange={(e) => setS({ ...s, attractSeconds: Number(e.target.value) })}>
-            <option value={0}>mai</option>
-            <option value={60}>1 minuto</option>
-            <option value={90}>1 minuto e mezzo</option>
-            <option value={180}>3 minuti</option>
-            <option value={300}>5 minuti</option>
+            <option value={0}>{t('mai')}</option>
+            <option value={60}>{t('1 minuto')}</option>
+            <option value={90}>{t('1 minuto e mezzo')}</option>
+            <option value={180}>{t('3 minuti')}</option>
+            <option value={300}>{t('5 minuti')}</option>
           </select>
         </div>
         <label className="check">
+          <input type="checkbox" checked={s.titleScreen} onChange={(e) => setS({ ...s, titleScreen: e.target.checked })} />
+          {t('Mostra la schermata iniziale "premi start" all\'avvio')}
+        </label>
+        <label className="check">
           <input type="checkbox" checked={s.lightEffects} onChange={(e) => setS({ ...s, lightEffects: e.target.checked })} />
-          Effetti ridotti (consigliato per PC lenti: meno animazioni e luci)
+          {t('Effetti ridotti (consigliato per PC lenti: meno animazioni e luci)')}
         </label>
         <button className="chip" onClick={onRomCheck}>
-          🧪 CONTROLLO ROM DI MAME (trova gli ZIP difettosi)
+          {t('🧪 CONTROLLO ROM DI MAME (trova gli ZIP difettosi)')}
         </button>
         <button className="chip" onClick={onPc}>
-          ⚡ OTTIMIZZAZIONE AUTOMATICA DEL PC
+          {t('⚡ OTTIMIZZAZIONE AUTOMATICA DEL PC')}
         </button>
         <button className="big" onClick={save}>
-          {saved ? '✔ SALVATO' : 'SALVA'}
+          {saved ? t('✔ SALVATO') : t('SALVA')}
         </button>
         <p className="note">
-          Mr. Emulator non include né scarica ROM o BIOS. Usa solo i file che indichi tu.
+          {t('Mr. Emulator non include né scarica ROM o BIOS. Usa solo i file che indichi tu.')}
         </p>
           </>
         )}
