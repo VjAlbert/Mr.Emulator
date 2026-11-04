@@ -1,3 +1,11 @@
+## Mr. Emulator 0.2.3
+
+**Download:** `Mr-Emulator-Setup-<version>.exe` below. Windows may warn that the app is unsigned: **More info → Run anyway**.
+
+### New and fixed
+- 🩺 **Diagnostics** now shows the image settings requested from RetroArch and MAME at the last game (to track the screen-mode problem).
+- ⚡ Smoother screen changes: no full-screen blur or colour blending on the backdrop, animated layers moved to the GPU.
+
 ## Mr. Emulator 0.2.2
 
 **Download:** `Mr-Emulator-Setup-<version>.exe` below. Windows may warn that the app is unsigned: **More info → Run anyway**.
