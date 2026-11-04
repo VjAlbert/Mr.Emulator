@@ -87,7 +87,7 @@ Sistemi: Arcade (MAME, FBNeo), Neo Geo, Master System, Mega Drive, NES, SNES, Ga
 - [x] Ripresa automatica scelta per singola console
 - [x] Pad dei cloni PS3 (Xsail) provato: funziona
 - [x] Messaggi di errore del motore interno (Diagnostica, avvio giochi) in inglese
-- [x] Scaricamento di RetroArch e MAME dal programma (siti ufficiali; da provare su Windows)
+- [x] RetroArch e MAME: ricerca automatica sul PC e rimando ai siti ufficiali, con avviso sulla versione di MAME (niente download automatico: scelta voluta, per fiducia e compatibilità con i set ROM)
 - [x] Trofei (RetroAchievements) e trucchi (cheat): accesso e database scaricabile dal programma (da provare con un account reale)
 - [x] Grafica a fumetto in tutto il programma, schermata dei sistemi a poster e Impostazioni riorganizzate
 

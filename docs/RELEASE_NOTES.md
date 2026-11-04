@@ -8,7 +8,7 @@
 - 🕹️ **Console illustrations** for arcade, NES, SNES, Mega Drive, PlayStation and Game Boy.
 - 📷 **Your own console photos**: drop `<system>.png` (e.g. `snes.png`) in the consoles folder (Settings → Look → open folder). Photos are automatically stylised (background removed, comic outline); can be turned off.
 - 💾 **Resume for each console**: choose per system whether to continue where you left off (Settings → Saves).
-- ⬇ **Download RetroArch and MAME** from their official sites, in the first-run guide and in Settings → General.
+- 🔎 **Finds RetroArch and MAME** already on your PC (guide and Settings → General) and links to their official sites; reminds you that MAME must match your ROM set's version.
 - 🏆 **Trophies (RetroAchievements)** and 🪄 **cheats**: Settings → Trophies & cheats (cheat database downloaded with one click, applied automatically when the game has a file).
 - 🌍 **Engine messages in English**: Diagnostics, game launch errors and MAME notices follow the program's language.
 - 🗂️ **Settings reorganised**: new Screen and Covers tabs, "Redo the guide" last. Covers are searched only from Settings.

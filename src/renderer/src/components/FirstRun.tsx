@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import type { DiagnosticReport, Settings } from '@shared/types'
+import { ToolFinder } from './ToolFinder'
 import { useInput } from '../hooks/useInput'
 import Orbs from './Orbs'
 import { t } from '../i18n'
@@ -15,10 +16,6 @@ export default function FirstRun({ onDone }: { onDone: () => void }): React.JSX.
   const [bios, setBios] = useState<Bios>([])
   const [diag, setDiag] = useState<DiagnosticReport | null>(null)
   const [msg, setMsg] = useState('')
-  const [busy, setBusy] = useState('')
-  const [toolMsg, setToolMsg] = useState('')
-  const [pct, setPct] = useState(0)
-  useEffect(() => window.mr.onToolProgress((p) => setPct(p.pct)), [])
   const [cores, setCores] = useState<Array<{ core: string; systems: string[]; installed: boolean; games: number }>>([])
   const [pickedCores, setPickedCores] = useState<Set<string>>(new Set())
   const [coreBusy, setCoreBusy] = useState('')
@@ -50,15 +47,10 @@ export default function FirstRun({ onDone }: { onDone: () => void }): React.JSX.
 
   if (!s) return <div className="loading">{t('Caricamento…')}</div>
 
-  const download = async (kind: 'retroarch' | 'mame'): Promise<void> => {
-    setBusy(kind)
-    setPct(0)
-    setToolMsg(t('⬇ Scarico {k}…', { k: kind === 'mame' ? 'MAME' : 'RetroArch' }))
-    const r = await window.mr.installTool(kind)
-    setBusy('')
-    setToolMsg(r.ok ? t('✔ Installato: {p}', { p: r.path }) : t('✘ {e}', { e: r.error ?? '' }))
+  const useTool = async (key: 'retroarchPath' | 'mamePath', p: string): Promise<void> => {
+    await window.mr.saveSettings({ ...s, [key]: p })
     await reload()
-    if (r.ok && kind === 'retroarch') setCores(await window.mr.getCoreList())
+    if (key === 'retroarchPath') setCores(await window.mr.getCoreList())
   }
 
   const pick = async (key: 'retroarchPath' | 'mamePath', kind: 'file'): Promise<void> => {
@@ -138,11 +130,10 @@ export default function FirstRun({ onDone }: { onDone: () => void }): React.JSX.
             <h2>{t('RetroArch')}</h2>
             <p>{t('È il programma gratuito che fa partire NES, SNES, Mega Drive, PlayStation, Dreamcast e le altre console. Si scarica dal sito ufficiale')} <b>{t('retroarch.com')}</b> {t('(versione Windows), si estrae in una cartella e basta: non si installa.')}</p>
             <div className="fr-actions">
-              <button className="chip big" disabled={!!busy} onClick={() => download('retroarch')}>{t('⬇ SCARICA RETROARCH')}</button>
               <button className="chip big" onClick={() => pick('retroarchPath', 'file')}>{t('🔎 INDICA retroarch.exe')}</button>
             </div>
+            <ToolFinder kind="retroarch" current={s.retroarchPath} onUse={(p) => useTool('retroarchPath', p)} />
             <p className={s.retroarchPath ? 'fr-ok' : 'fr-warn'}>{s.retroarchPath ? `✔ ${s.retroarchPath}` : t('Non ancora indicato (puoi farlo anche dopo)')}</p>
-            {busy ? <p className="fr-warn">{t('{k}: {n}%', { k: busy === 'mame' ? 'MAME' : 'RetroArch', n: pct })}</p> : toolMsg && <p className="fr-ok">{toolMsg}</p>}
             {s.retroarchPath && (
               <>
                 <p>{t('Ogni console ha bisogno del suo')} <b>{t('core')}</b>{t('. Scegli quelli che ti servono: il programma li scarica dall\'archivio ufficiale di RetroArch.')}</p>
@@ -232,11 +223,10 @@ export default function FirstRun({ onDone }: { onDone: () => void }): React.JSX.
             <h2>{t('MAME (facoltativo)')}</h2>
             <p>{t('Serve solo per il sistema')} <b>{t('Arcade (MAME)')}</b> {t('e per dare i nomi giusti ai giochi delle console. Si scarica da')} <b>{t('mamedev.org')}</b>{t('. Usa la stessa versione dei tuoi set di ROM.')}</p>
             <div className="fr-actions">
-              <button className="chip big" disabled={!!busy} onClick={() => download('mame')}>{t('⬇ SCARICA MAME')}</button>
               <button className="chip big" onClick={() => pick('mamePath', 'file')}>{t('🔎 INDICA mame.exe')}</button>
             </div>
+            <ToolFinder kind="mame" current={s.mamePath} onUse={(p) => useTool('mamePath', p)} />
             <p className={s.mamePath ? 'fr-ok' : 'fr-warn'}>{s.mamePath ? `✔ ${s.mamePath}` : t('Non indicato: va bene se non ti serve.')}</p>
-            {busy ? <p className="fr-warn">{t('{k}: {n}%', { k: busy === 'mame' ? 'MAME' : 'RetroArch', n: pct })}</p> : toolMsg && <p className="fr-ok">{toolMsg}</p>}
           </>
         )}
 

@@ -3,6 +3,7 @@ import { IMAGE_MODES } from './ScreenPreview'
 import { markConsoleImagesDirty, refreshConsoleArt } from '../consoleArt'
 import { SVG_FOR } from './consoleSvgs'
 import type { ArtBulkState, DiagnosticReport, ImageStyle, PickKind, Settings, SystemInfo } from '@shared/types'
+import { ToolFinder } from './ToolFinder'
 import { useInput } from '../hooks/useInput'
 import { configureSound, sfx } from '../sound'
 import { getLang, setLang, t } from '../i18n'
@@ -27,8 +28,6 @@ export default function SettingsScreen({ onClose, onSaved, onPc, onRomCheck, onG
   const [diag, setDiag] = useState<DiagnosticReport | null>(null)
   const [copied, setCopied] = useState(false)
   const [all, setAll] = useState<SystemInfo[]>([])
-  const [tool, setTool] = useState<{ kind: string; pct: number; msg: string } | null>(null)
-  useEffect(() => window.mr.onToolProgress((p) => setTool((o) => (o && o.kind === p.kind ? { ...o, pct: p.pct } : o))), [])
   const [cheatMsg, setCheatMsg] = useState('')
   const [bulk, setBulk] = useState<Record<string, ArtBulkState>>({})
   useEffect(() => window.mr.onArtBulk((b) => setBulk((o) => ({ ...o, [b.systemId]: b }))), [])
@@ -86,12 +85,6 @@ export default function SettingsScreen({ onClose, onSaved, onPc, onRomCheck, onG
     setTimeout(() => setSaved(false), 1800)
   }
 
-  const download = async (kind: 'retroarch' | 'mame'): Promise<void> => {
-    setTool({ kind, pct: 0, msg: '' })
-    const r = await window.mr.installTool(kind)
-    if (r.ok) setS((o) => (o ? { ...o, ...(kind === 'mame' ? { mamePath: r.path } : { retroarchPath: r.path }) } : o))
-    setTool({ kind, pct: 100, msg: r.ok ? t('✔ Installato: {p}', { p: r.path }) : t('✘ {e}', { e: r.error ?? '' }) })
-  }
   const field = (label: string, hint: string, key: PathKey, kind: PickKind): React.JSX.Element => (
     <div className="field">
       <label>{t(label)}</label>
@@ -566,12 +559,8 @@ export default function SettingsScreen({ onClose, onSaved, onPc, onRomCheck, onG
         </div>
         {field('RetroArch (retroarch.exe)', 'Es. C:\\RetroArch-Win64\\retroarch.exe', 'retroarchPath', 'file')}
         {field('MAME (mame.exe)', 'Es. D:\\MAME\\mame.exe — serve per il sistema Arcade (MAME); usa la stessa versione del tuo set ROM', 'mamePath', 'file')}
-        <div className="field-row">
-          <button className="chip" disabled={!!tool && tool.pct < 100} onClick={() => download('retroarch')}>{t('⬇ SCARICA RETROARCH')}</button>
-          <button className="chip" disabled={!!tool && tool.pct < 100} onClick={() => download('mame')}>{t('⬇ SCARICA MAME')}</button>
-          {tool && <span className="persys-st">{tool.pct < 100 ? t('{k}: {n}%', { k: tool.kind === 'mame' ? 'MAME' : 'RetroArch', n: tool.pct }) : tool.msg}</span>}
-        </div>
-        <p className="hint">{t('Si scaricano dai siti ufficiali (RetroArch: archivio stabile di libretro; MAME: ultima versione su GitHub) in Documenti\\MrEmulator\\Emulatori. Attenzione: l\'ultimo MAME può non corrispondere al tuo set di ROM, che vale solo per la sua versione.')}</p>
+        <ToolFinder kind="retroarch" current={s.retroarchPath} onUse={(p) => setS((o) => (o ? { ...o, retroarchPath: p } : o))} />
+        <ToolFinder kind="mame" current={s.mamePath} onUse={(p) => setS((o) => (o ? { ...o, mamePath: p } : o))} />
         <div className="field-row">
           <button
             className="chip"

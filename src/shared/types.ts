@@ -467,8 +467,8 @@ export interface MrApi {
   /** Core di RetroArch usati dai sistemi, con lo stato di installazione */
   getCoreList(): Promise<Array<{ core: string; systems: string[]; installed: boolean; games: number }>>
   /** Scarica un core dall'archivio ufficiale di RetroArch */
-  installTool(kind: 'retroarch' | 'mame'): Promise<{ ok: boolean; path: string; version: string; error?: string }>
-  onToolProgress(cb: (p: { kind: string; pct: number }) => void): () => void
+  detectTool(kind: 'retroarch' | 'mame'): Promise<string[]>
+  openToolSite(kind: 'retroarch' | 'mame'): Promise<void>
   installCheats(): Promise<{ ok: boolean; files: number; error?: string }>
   installCore(core: string): Promise<{ core: string; ok: boolean; error?: string }>
   /** Chiude il programma (anche con la chiusura bloccata) */

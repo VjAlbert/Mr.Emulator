@@ -59,7 +59,7 @@ Un launcher grafico veloce e spettacolare per giochi arcade e console classiche,
 
 ### Installazione e cura
 - 🧭 **Procedura guidata** del primo avvio: cartelle, RetroArch, **download dei core con un clic**, BIOS (con verifica dei file noti) e MAME. Si rifà dal fondo delle Impostazioni.
-- ⬇ **Download di RetroArch e MAME con un clic** dai siti ufficiali (*Impostazioni → Generale*).
+- 🔎 **Trova RetroArch e MAME** se sono già sul PC e rimanda ai siti ufficiali se mancano (il programma non scarica né avvia altri programmi da solo). Ricorda che **la versione di MAME deve corrispondere a quella del tuo set di ROM**.
 - 🩺 **Diagnostica** di cartelle, core, BIOS e registro di RetroArch, con testo copiabile; i messaggi di errore seguono la lingua del programma.
 - 🔔 **Avviso di nuova versione** (una richiesta al giorno, si può spegnere).
 - 🛡️ Salvataggio sicuro delle impostazioni, registro degli errori, istanza unica.
@@ -67,9 +67,9 @@ Un launcher grafico veloce e spettacolare per giochi arcade e console classiche,
 ## Primi passi
 
 1. **Giochi**: la guida crea una cartella per sistema in `Documenti\MrEmulator` o sul disco che scegli. Copiaci le tue ROM.
-2. **RetroArch**: premi **Scarica RetroArch** in *Impostazioni → Generale* (o nella guida), oppure installalo da [retroarch.com](https://www.retroarch.com/) e indica `retroarch.exe`. I **core** li scarica il programma.
+2. **RetroArch**: la guida lo cerca sul PC; se non c'è, scaricalo da [retroarch.com](https://www.retroarch.com/) (Windows 64 bit, si estrae e basta) e indica `retroarch.exe`. I **core** li scarica il programma.
 3. **BIOS**: servono solo a pochi sistemi (Neo Geo `neogeo.zip`, PlayStation `scph5501.bin`, Dreamcast `dc_boot.bin` + `dc_flash.bin`, Naomi/Atomiswave `naomi.zip` + `awbios.zip`, FDS `disksys.rom`, 3DO `panafz10.bin`). La guida mostra cosa manca e dove metterlo.
-4. **MAME** (facoltativo) per il sistema Arcade (MAME) e per i nomi dei giochi. **Scarica MAME** installa l'ultima versione, ma il tuo set di ROM vale solo per *la sua* versione di MAME: se hai già un set, indica il `mame.exe` corrispondente.
+4. **MAME** (facoltativo) per il sistema Arcade (MAME) e per i nomi dei giochi, da [mamedev.org](https://www.mamedev.org/release.html). **Usa la versione di MAME che corrisponde al tuo set di ROM** (un set 0.229 richiede MAME 0.229): i set valgono solo per la loro versione.
 
 Se qualcosa non va: **Impostazioni → Diagnostica**.
 

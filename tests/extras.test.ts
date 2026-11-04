@@ -4,34 +4,28 @@ import { existsSync, mkdirSync, mkdtempSync, writeFileSync } from 'fs'
 import { join } from 'path'
 import { tmpdir } from 'os'
 import { achievementsConfig, cheatsConfig, libraryNameOf } from '../src/main/extras'
-import { findFile, pickMameAsset, pickStableVersion } from '../src/main/tools'
+import { findInstalls, OFFICIAL } from '../src/main/detect'
 import { resumeFor, retroSaveConfig } from '../src/main/saves'
 import { SYSTEMS } from '../src/main/systems'
 import type { Game, Settings } from '../src/shared/types'
 
 const sys = (id: string) => SYSTEMS.find((s) => s.id === id)!
 
-test('versione stabile di RetroArch: la più alta dell\'indice, confrontata come numeri', () => {
-  const html = '<a href="1.9.14/">1.9.14/</a><a href="1.19.1/">1.19.1/</a><a href="1.10.0/">1.10.0/</a><a href="../">..</a>'
-  assert.equal(pickStableVersion(html), '1.19.1')
-  assert.equal(pickStableVersion('<html></html>'), null)
-})
-
-test('MAME: sceglie il pacchetto Windows a 64 bit dalla release di GitHub', () => {
-  const json = { assets: [{ name: 'mame0276s.zip', browser_download_url: 'https://github.com/mamedev/mame/x.zip' }, { name: 'mame0276b_x64.exe', browser_download_url: 'https://github.com/mamedev/mame/releases/download/mame0276/mame0276b_x64.exe' }] }
-  const a = pickMameAsset(json)
-  assert.equal(a?.version, '0276')
-  assert.ok(a?.url.endsWith('.exe'))
-  assert.equal(pickMameAsset({ assets: [{ name: 'mame0276b_x64.exe', browser_download_url: 'https://evil.example/m.exe' }] }), null)
-  assert.equal(pickMameAsset({}), null)
-})
-
-test('findFile cerca nelle sottocartelle', () => {
-  const d = mkdtempSync(join(tmpdir(), 'mr-ff-'))
+test('rilevamento di RetroArch e MAME nei posti comuni', () => {
+  const d = mkdtempSync(join(tmpdir(), 'mr-det-'))
   mkdirSync(join(d, 'RetroArch-Win64'))
-  writeFileSync(join(d, 'RetroArch-Win64', 'RetroArch.exe'), 'x')
-  assert.equal(findFile(d, 'retroarch.exe'), join(d, 'RetroArch-Win64', 'RetroArch.exe'))
-  assert.equal(findFile(d, 'mame.exe'), null)
+  writeFileSync(join(d, 'RetroArch-Win64', 'retroarch.exe'), 'x')
+  mkdirSync(join(d, 'Emulatori', 'MAME 0.229'), { recursive: true })
+  writeFileSync(join(d, 'Emulatori', 'MAME 0.229', 'mame.exe'), 'x')
+  mkdirSync(join(d, 'Altro'))
+  writeFileSync(join(d, 'Altro', 'mame.exe'), 'x')
+  assert.deepEqual(findInstalls('retroarch', [d, join(d, 'non-esiste')]), [join(d, 'RetroArch-Win64', 'retroarch.exe')])
+  assert.deepEqual(findInstalls('mame', [d]), [join(d, 'Emulatori', 'MAME 0.229', 'mame.exe')])
+  assert.deepEqual(findInstalls('mame', []), [])
+})
+
+test('si aprono solo i siti ufficiali', () => {
+  for (const url of Object.values(OFFICIAL)) assert.ok(/^https:\/\/www\.(retroarch\.com|mamedev\.org)\//.test(url))
 })
 
 test('trofei: si attivano solo con utente e password', () => {

@@ -69,7 +69,7 @@ A fast, flashy launcher for arcade and classic console games, built for people w
 
 ### Setup and care
 - 🧭 **First-run guide**: folders, RetroArch, **one-click core download**, BIOS checklist (with known-file verification) and MAME. It can be run again at the end of *Settings*.
-- ⬇ **One-click download of RetroArch and MAME** from their official sites (*Settings → General*).
+- 🔎 **Finds RetroArch and MAME** if they are already on your PC, and links to their official sites if not (the program never downloads or runs other programs by itself). It reminds you that **MAME must match your ROM set's version**.
 - 🩺 **Diagnostics** screen that checks folders, cores, BIOS files and RetroArch's log, plus a copyable report; error messages follow the program's language.
 - 🔔 **Update notice** when a new release is out (one request a day, can be turned off).
 - 🛡️ Safer saving (settings survive power cuts), error log, single instance.
@@ -90,7 +90,7 @@ The list can change as the project grows. Systems you do not use can be hidden i
 ## Quick start
 
 1. **Games** – the first-run guide creates one folder per system (`nes`, `snes`, `megadrive`, `psx`…) in `Documents\MrEmulator` or on any drive you choose. Copy your ROMs there.
-2. **RetroArch** – press **Download RetroArch** in *Settings → General* (or in the guide), or install it yourself from [retroarch.com](https://www.retroarch.com/) and point the guide to `retroarch.exe`. Mr. Emulator downloads the **cores** for you from the official archive.
+2. **RetroArch** – the guide looks for it on your PC; if it is not there, get it from [retroarch.com](https://www.retroarch.com/) (Windows 64-bit, just extract it) and point the guide to `retroarch.exe`. Mr. Emulator downloads the **cores** for you from the official archive.
 3. **BIOS** – only a few systems need one. The guide shows a checklist:
 
 | System | File | Folder |
@@ -102,7 +102,7 @@ The list can change as the project grows. Systems you do not use can be hidden i
 | Famicom Disk System | `disksys.rom` | `bios` |
 | 3DO | `panafz10.bin` | `bios` |
 
-4. **MAME** *(optional)* – for the Arcade (MAME) system and for proper game names. **Download MAME** installs the latest version, but your ROM set only works with *its own* MAME version: if you already have a set, point the program to the matching `mame.exe` instead.
+4. **MAME** *(optional)* – for the Arcade (MAME) system and for proper game names, from [mamedev.org](https://www.mamedev.org/release.html). **Use the MAME version that matches your ROM set** (a 0.229 set needs MAME 0.229): ROM sets only work with their own version.
 
 Something not working? Open **Settings → Diagnostics**: it tells you what is missing and how to fix it.
 

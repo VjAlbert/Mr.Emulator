@@ -29,8 +29,7 @@ import { findOverlays } from './overlays'
 import { checkForUpdate, type UpdateInfo } from './updates'
 import { loadStats, recordPlay } from './stats'
 import { consoleImagesDir, ensureConsoleImagesDir, findConsoleImage, listConsoleImages, readConsoleImage } from './consoleImages'
-import { installMame, installRetroArch } from './tools'
-import { defaultRoot } from './folders'
+import { commonBases, findInstalls, OFFICIAL, type ToolKind } from './detect'
 import { achievementsConfig, cheatsConfig, cheatsDirOf, installCheats } from './extras'
 import { backupSaves, importSaves, mameSaveIni, prepareFresh, restoreSaves, retroSaveConfig, saveInfo, savesRoot, saveStats } from './saves'
 import { coreList, coresDirOf, installCore } from './cores'
@@ -741,24 +740,10 @@ app.whenReady().then(async () => {
     allowQuit = true
     app.quit()
   })
-  // RetroArch e MAME scaricati dai siti ufficiali in Documenti\MrEmulator\Emulatori
-  let toolBusy = false
-  ipcMain.handle('tools:install', async (_e, kind: 'retroarch' | 'mame') => {
-    if (toolBusy) return { ok: false, path: '', version: '', error: mt('Un download è già in corso.') }
-    toolBusy = true
-    try {
-      const dest = join(defaultRoot(), 'Emulatori', kind === 'mame' ? 'MAME' : 'RetroArch')
-      const send = (pct: number): void => win?.webContents.send('tools:progress', { kind, pct })
-      const r = kind === 'mame' ? await installMame(dest, send) : await installRetroArch(dest, send)
-      if (r.ok) {
-        const cur = loadSettings()
-        saveSettings(kind === 'mame' ? { ...cur, mamePath: r.path } : { ...cur, retroarchPath: r.path })
-      }
-      send(100)
-      return r
-    } finally {
-      toolBusy = false
-    }
+  // RetroArch e MAME: cerca quelli già installati e apre il sito ufficiale (il programma non scarica né esegue altri programmi)
+  ipcMain.handle('tools:detect', (_e, kind: ToolKind) => findInstalls(kind, commonBases(app.getPath('documents'), app.getPath('downloads'), app.getPath('desktop'))))
+  ipcMain.handle('tools:site', async (_e, kind: ToolKind) => {
+    if (kind in OFFICIAL) await shell.openExternal(OFFICIAL[kind])
   })
   ipcMain.handle('cheats:install', () => {
     const dir = cheatsDirOf(loadSettings())
