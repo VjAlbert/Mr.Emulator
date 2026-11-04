@@ -1,19 +1,22 @@
 import { copyFileSync, existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'fs'
-import { tmpdir } from 'os'
+import { createWriteStream } from 'fs'
+import { Readable } from 'stream'
+import { pipeline } from 'stream/promises'
 import { dirname, join, parse, resolve, sep } from 'path'
 import { rmSync } from 'fs'
 import type { Game, Settings, SystemDef } from '@shared/types'
 import { writeFileAtomic } from './atomic'
+import { mt } from './mt'
 import { makeMatcher } from './thumbIndex'
 import { openZip, readZipEntry } from './zipinfo'
-import { mt } from './mt'
 
 /** Archivio dei trucchi del database di libretro */
 export const CHEATS_URL = 'https://buildbot.libretro.com/assets/frontend/cheats.zip'
 
 const fwd = (p: string): string => p.replace(/\\/g, '/')
 
-export const cheatsDirOf = (s: Settings): string => (s.retroarchPath ? join(dirname(s.retroarchPath), 'cheats') : '')
+/** Cartella dei trucchi: accanto alla cartella delle ROM (come i salvataggi, sullo stesso disco) */
+export const cheatsDirOf = (s: Settings): string => (s.romsDir ? join(dirname(s.romsDir), 'cheats') : '')
 
 /** RetroAchievements: accesso e modalità. Senza utente e password non si attiva (RetroArch si limiterebbe a chiedere l'accesso) */
 export function achievementsConfig(s: Settings): Record<string, string> {
@@ -90,17 +93,27 @@ export interface CheatsResult {
   error?: string
 }
 
-/** Scarica il database dei trucchi di libretro e lo estrae nella cartella "cheats" di RetroArch */
-export async function installCheats(dir: string, url = CHEATS_URL, fetchFn: typeof fetch = fetch): Promise<CheatsResult> {
-  const tmp = join(tmpdir(), `mr-cheats-${process.pid}.zip`)
+/** Scarica il database dei trucchi di libretro e lo estrae nella cartella dei trucchi; onProgress riceve 0-100 */
+export async function installCheats(dir: string, onProgress: (pct: number) => void = () => undefined, url = CHEATS_URL, fetchFn: typeof fetch = fetch): Promise<CheatsResult> {
+  // il file temporaneo sta nella stessa cartella (non in Temp, dove un antivirus può portarlo via a metà)
+  const tmp = join(dir, '.cheats-download.zip')
   try {
-    const res = await fetchFn(url, { signal: AbortSignal.timeout(300000) })
-    if (!res.ok) return { ok: false, files: 0, error: mt('risposta {n}', { n: res.status }) }
-    writeFileSync(tmp, Buffer.from(await res.arrayBuffer()))
+    mkdirSync(dir, { recursive: true })
+    const res = await fetchFn(url, { signal: AbortSignal.timeout(300000), headers: { 'User-Agent': 'Mr.Emulator' } })
+    if (!res.ok || !res.body) return { ok: false, files: 0, error: mt('risposta {n}', { n: res.status }) }
+    const total = Number(res.headers.get('content-length')) || 0
+    let got = 0
+    const src = Readable.fromWeb(res.body as never)
+    src.on('data', (c: Buffer) => {
+      got += c.length
+      if (total) onProgress(Math.min(60, Math.round((got / total) * 60)))
+    })
+    await pipeline(src, createWriteStream(tmp))
     const arc = await openZip(tmp, (ext) => ext === '.cht', true)
     if (!arc || arc.entries.size === 0) return { ok: false, files: 0, error: mt('il file scaricato non contiene trucchi') }
     const root = resolve(dir)
     let n = 0
+    const all = arc.entries.size
     for (const [name, entry] of arc.entries) {
       // niente percorsi che escono dalla cartella
       const target = resolve(root, name)
@@ -108,7 +121,9 @@ export async function installCheats(dir: string, url = CHEATS_URL, fetchFn: type
       mkdirSync(dirname(target), { recursive: true })
       writeFileAtomic(target, await readZipEntry(tmp, entry))
       n++
+      if (n % 200 === 0) onProgress(60 + Math.round((n / all) * 40))
     }
+    onProgress(100)
     return { ok: true, files: n }
   } catch (e) {
     return { ok: false, files: 0, error: e instanceof Error ? e.message : String(e) }

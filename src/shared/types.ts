@@ -469,6 +469,8 @@ export interface MrApi {
   /** Scarica un core dall'archivio ufficiale di RetroArch */
   detectTool(kind: 'retroarch' | 'mame'): Promise<string[]>
   openToolSite(kind: 'retroarch' | 'mame'): Promise<void>
+  onCheatsProgress(cb: (pct: number) => void): () => void
+  getCoverCounts(): Promise<Record<string, { have: number; total: number }>>
   installCheats(): Promise<{ ok: boolean; files: number; error?: string }>
   installCore(core: string): Promise<{ core: string; ok: boolean; error?: string }>
   /** Chiude il programma (anche con la chiusura bloccata) */

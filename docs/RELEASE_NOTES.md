@@ -13,6 +13,11 @@
 - 🌍 **Engine messages in English**: Diagnostics, game launch errors and MAME notices follow the program's language.
 - 🗂️ **Settings reorganised**: new Screen and Covers tabs, "Redo the guide" last. Covers are searched only from Settings.
 - 🎨 **Comic style for the whole program** (buttons, titles, game list, dialogs, comic-page background).
+- 🎨 **Comic style, rebuilt**: the whole program is now a comic page (paper with halftone dots, white panels with black ink borders and hard shadows, yellow caption boxes, sticker buttons) instead of a dark theme with a few comic details.
+- 🪄 **Cheats folder next to your ROMs** (`…\cheats`), with a progress bar while downloading.
+- 🖼️ **Settings → Covers** shows how many covers you already have for each system.
+- 🔎 **Title search**: numbers and one/two-letter words must start a word (fewer false hits), exact titles first; still instant on 60,000 titles.
+- 🖥️ **Settings adapt to the screen resolution**; the cover fade now covers the whole picture.
 - 🧹 Code cleanup: unused code and styles removed.
 
 ### Previous: 0.1.5

@@ -1,9 +1,10 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { existsSync, mkdirSync, mkdtempSync, writeFileSync } from 'fs'
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 'fs'
+import { createZip } from '../src/main/zipwrite'
 import { join } from 'path'
 import { tmpdir } from 'os'
-import { achievementsConfig, cheatsConfig, libraryNameOf } from '../src/main/extras'
+import { achievementsConfig, cheatsConfig, installCheats, libraryNameOf } from '../src/main/extras'
 import { findInstalls, OFFICIAL } from '../src/main/detect'
 import { resumeFor, retroSaveConfig } from '../src/main/saves'
 import { SYSTEMS } from '../src/main/systems'
@@ -51,7 +52,7 @@ test('trucchi: copia il file giusto dove RetroArch lo cerca e chiede di applicar
   const cheats = join(ra, 'cheats', sys('snes').thumbs!)
   mkdirSync(cheats, { recursive: true })
   writeFileSync(join(cheats, 'Super Mario World (USA).cht'), 'cheats = 1')
-  const s = { retroarchPath: exe, cheatsAuto: true, raEnabled: false, raHardcore: false } as Settings
+  const s = { retroarchPath: exe, romsDir: join(ra, 'roms'), cheatsAuto: true, raEnabled: false, raHardcore: false } as Settings
   const g = { id: 'm', name: 'Super Mario World', fileName: 'smw.sfc', path: join(ra, 'Super Mario World (Europe).sfc'), systemId: 'snes' } as Game
   const r = cheatsConfig(s, sys('snes'), g)
   assert.equal(r.config.apply_cheats_after_load, 'true')
@@ -61,4 +62,24 @@ test('trucchi: copia il file giusto dove RetroArch lo cerca e chiede di applicar
   assert.deepEqual(cheatsConfig({ ...s, cheatsAuto: false }, sys('snes'), g).config, {})
   assert.deepEqual(cheatsConfig({ ...s, raEnabled: true, raHardcore: true }, sys('snes'), g).config, {})
   assert.equal(libraryNameOf(exe, 'genesis_plus_gx_libretro'), 'Genesis Plus GX')
+})
+
+test('download dei trucchi: estrae nella cartella, tiene il file temporaneo accanto e segnala l\'avanzamento', async () => {
+  const d = mkdtempSync(join(tmpdir(), 'mr-dl-'))
+  const src = join(d, 'src')
+  mkdirSync(src)
+  writeFileSync(join(src, 'a.cht'), 'cheats = 0')
+  const zip = join(d, 'c.zip')
+  createZip(zip, [{ name: 'Nintendo - NES/Zelda.cht', path: join(src, 'a.cht') }, { name: '../fuori.cht', path: join(src, 'a.cht') }])
+  const data = readFileSync(zip)
+  const fake = (async () => new Response(data, { headers: { 'content-length': String(data.length) } })) as unknown as typeof fetch
+  const seen: number[] = []
+  const dest = join(d, 'cheats')
+  const r = await installCheats(dest, (p) => seen.push(p), 'https://x/y.zip', fake)
+  assert.equal(r.ok, true)
+  assert.equal(r.files, 1)
+  assert.ok(existsSync(join(dest, 'Nintendo - NES', 'Zelda.cht')))
+  assert.ok(!existsSync(join(d, 'fuori.cht')))
+  assert.ok(!existsSync(join(dest, '.cheats-download.zip')))
+  assert.equal(seen[seen.length - 1], 100)
 })

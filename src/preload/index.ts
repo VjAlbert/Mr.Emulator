@@ -44,6 +44,12 @@ const api: MrApi = {
   getCoreList: () => ipcRenderer.invoke('cores:list'),
   detectTool: (kind: 'retroarch' | 'mame') => ipcRenderer.invoke('tools:detect', kind),
   openToolSite: (kind: 'retroarch' | 'mame') => ipcRenderer.invoke('tools:site', kind),
+  onCheatsProgress: (cb: (pct: number) => void) => {
+    const h = (_e: unknown, pct: number): void => cb(pct)
+    ipcRenderer.on('cheats:progress', h)
+    return () => ipcRenderer.removeListener('cheats:progress', h)
+  },
+  getCoverCounts: () => ipcRenderer.invoke('art:counts'),
   installCheats: () => ipcRenderer.invoke('cheats:install'),
   installCore: (core: string) => ipcRenderer.invoke('cores:install', core),
   findOverlays: (dir: string) => ipcRenderer.invoke('overlays:find', dir),

@@ -20,7 +20,7 @@ import { buildReport, mameProfileFor, profileFor } from './optimize'
 import { toConfigText } from './profiles'
 import { setHighPerformanceGpu } from './gpuPref'
 import { buildInputConfig, buildInputMap, buildMameCtrlr, presetControls } from './inputs'
-import { ART_SCHEME, arcadeTitles, clearArtMisses, clearLocalArt, getArt, resolveArtUrl, setMameTitleProvider, setMediaProvider, setSoftTitleProvider } from './artwork'
+import { ART_SCHEME, arcadeTitles, clearArtMisses, clearLocalArt, coverCount, getArt, resolveArtUrl, setMameTitleProvider, setMediaProvider, setSoftTitleProvider } from './artwork'
 import { MediaSource } from './media'
 import { runVerify, type VerifyBad } from './verify'
 import { existsSync, readFileSync, writeFileSync } from 'fs'
@@ -745,9 +745,18 @@ app.whenReady().then(async () => {
   ipcMain.handle('tools:site', async (_e, kind: ToolKind) => {
     if (kind in OFFICIAL) await shell.openExternal(OFFICIAL[kind])
   })
-  ipcMain.handle('cheats:install', () => {
+  ipcMain.handle('art:counts', () => Object.fromEntries(SYSTEMS.filter((x) => x.thumbs).map((x) => [x.id, { have: coverCount(x.id), total: library.count(x.id) }])))
+  let cheatsBusy = false
+  ipcMain.handle('cheats:install', async () => {
     const dir = cheatsDirOf(loadSettings())
-    return dir ? installCheats(dir) : { ok: false, files: 0, error: mt('Indica prima retroarch.exe') }
+    if (!dir) return { ok: false, files: 0, error: mt('Indica prima la cartella delle ROM') }
+    if (cheatsBusy) return { ok: false, files: 0, error: mt('Un download è già in corso.') }
+    cheatsBusy = true
+    try {
+      return await installCheats(dir, (pct) => win?.webContents.send('cheats:progress', pct))
+    } finally {
+      cheatsBusy = false
+    }
   })
   ipcMain.handle('cores:list', () => coreList(loadSettings(), SYSTEMS, (id) => library.count(id)))
   ipcMain.handle('cores:install', (_e, core: string) => {

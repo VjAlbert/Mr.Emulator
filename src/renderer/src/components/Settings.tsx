@@ -29,8 +29,21 @@ export default function SettingsScreen({ onClose, onSaved, onPc, onRomCheck, onG
   const [copied, setCopied] = useState(false)
   const [all, setAll] = useState<SystemInfo[]>([])
   const [cheatMsg, setCheatMsg] = useState('')
+  const [cheatPct, setCheatPct] = useState<number | null>(null)
+  useEffect(() => window.mr.onCheatsProgress(setCheatPct), [])
+  const [covers, setCovers] = useState<Record<string, { have: number; total: number }>>({})
+  const loadCovers = (): void => {
+    window.mr.getCoverCounts().then((c) => setCovers(c ?? {}), () => undefined)
+  }
   const [bulk, setBulk] = useState<Record<string, ArtBulkState>>({})
-  useEffect(() => window.mr.onArtBulk((b) => setBulk((o) => ({ ...o, [b.systemId]: b }))), [])
+  useEffect(
+    () =>
+      window.mr.onArtBulk((b) => {
+        setBulk((o) => ({ ...o, [b.systemId]: b }))
+        if (!b.running) loadCovers()
+      }),
+    [] // eslint-disable-line react-hooks/exhaustive-deps
+  )
   const [saveStats, setSaveStats] = useState<{ dir: string; files: number; bytes: number } | null>(null)
   const [saveMsg, setSaveMsg] = useState('')
   const [confirmRestore, setConfirmRestore] = useState(false)
@@ -63,6 +76,7 @@ export default function SettingsScreen({ onClose, onSaved, onPc, onRomCheck, onG
 
   // scheda Aspetto: quali console hanno già una foto nella cartella delle immagini
   useEffect(() => {
+    if (tab === 'covers') loadCovers()
     if (tab === 'look') window.mr.listConsoleImages().then(setConImgs, () => undefined)
   }, [tab])
 
@@ -305,12 +319,22 @@ export default function SettingsScreen({ onClose, onSaved, onPc, onRomCheck, onG
             <div className="persys">
               {all.filter((x) => x.phase === 1 && x.thumbs).map((x) => {
                 const b = bulk[x.id]
+                const c = covers[x.id]
                 const n = (v: number): string => v.toLocaleString(getLang() === 'it' ? 'it' : 'en')
+                const status = b?.running
+                  ? `${n(b.done)}/${n(b.total)}`
+                  : c && c.total > 0
+                    ? c.have >= c.total * 0.95
+                      ? t('✔ completa: {h}/{n}', { h: n(c.have), n: n(c.total) })
+                      : c.have > 0
+                        ? t('{h} di {n} presenti', { h: n(c.have), n: n(c.total) })
+                        : t('nessuna ancora ({n} giochi)', { n: n(c.total) })
+                    : ''
                 return (
                   <div key={x.id} className="persys-row" style={{ ['--tile' as string]: x.color }}>
                     <span className="persys-n">{x.name}</span>
                     <span className="persys-st">
-                      {b?.running ? `${n(b.done)}/${n(b.total)}` : b && b.total > 0 ? t('✔ {f}/{n} trovate', { f: n(b.found), n: n(b.total) }) : ''}
+                      {status}
                     </span>
                     <button className={`chip ${b?.running ? 'on' : ''}`} onClick={() => (b?.running ? window.mr.cancelArtBulk() : window.mr.startArtBulk(x.id))}>
                       {b?.running ? t('FERMA') : t('🖼 CERCA COPERTINE')}
@@ -350,6 +374,7 @@ export default function SettingsScreen({ onClose, onSaved, onPc, onRomCheck, onG
               <button
                 className="chip"
                 onClick={async () => {
+                  setCheatPct(0)
                   setCheatMsg(t('Scarico…'))
                   const r = await window.mr.installCheats()
                   setCheatMsg(r.ok ? t('✔ {n} file di trucchi installati', { n: r.files.toLocaleString(getLang() === 'it' ? 'it' : 'en') }) : t('✘ {e}', { e: r.error ?? '' }))
@@ -358,6 +383,14 @@ export default function SettingsScreen({ onClose, onSaved, onPc, onRomCheck, onG
                 {t('⬇ SCARICA I TRUCCHI')}
               </button>
               <span className="persys-st">{cheatMsg}</span>
+            </div>
+            {cheatPct !== null && cheatPct < 100 && cheatMsg === t('Scarico…') && (
+              <div className="pbar" role="progressbar" aria-valuenow={cheatPct}>
+                <i style={{ width: `${cheatPct}%` }} />
+                <b>{cheatPct}%</b>
+              </div>
+            )}
+            <div className="field-row">
             </div>
             <p className="hint">{t('Ricorda di premere SALVA. I trucchi e i trofei valgono per i giochi lanciati con RetroArch; MAME ha i suoi trucchi nel menu interno.')}</p>
           </div>

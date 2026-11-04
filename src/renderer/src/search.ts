@@ -22,6 +22,9 @@ export const initialOf = (key: string): string => (/^[a-z]/.test(key) ? key[0].t
 
 const tokens = (query: string): string[] => norm(query).split(' ').filter(Boolean)
 
+/** Parole brevissime e numeri devono cominciare una parola ("2" non deve trovare "1942" né "ii" trovare "mission"): meno rumore */
+const startsOnly = (t: string): boolean => t.length <= 2 || /^\d+$/.test(t)
+
 /** Indici dei titoli che contengono tutte le parole cercate, nell'ordine originale */
 export function matchAll(keys: string[], query: string): number[] {
   const toks = tokens(query)
@@ -31,7 +34,7 @@ export function matchAll(keys: string[], query: string): number[] {
     const padded = ` ${keys[i]} `
     let ok = true
     for (const t of toks) {
-      if (!padded.includes(t)) {
+      if (!padded.includes(startsOnly(t) ? ` ${t}` : t)) {
         ok = false
         break
       }
@@ -60,7 +63,7 @@ export function searchTitles(keys: string[], query: string, limit = 30): Hits {
     let ok = true
     for (const t of toks) {
       if (padded.includes(` ${t}`)) score += 2
-      else if (padded.includes(t)) score += 1
+      else if (!startsOnly(t) && padded.includes(t)) score += 1
       else {
         ok = false
         break
@@ -68,6 +71,7 @@ export function searchTitles(keys: string[], query: string, limit = 30): Hits {
     }
     if (!ok) continue
     if (k.startsWith(toks[0])) score += 3
+    if (k === toks.join(' ')) score += 6
     scored.push([i, score - k.length / 1000]) // a parità, titoli più corti per primi
   }
   scored.sort((a, b) => b[1] - a[1] || a[0] - b[0])
