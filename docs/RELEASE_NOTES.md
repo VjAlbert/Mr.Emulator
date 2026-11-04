@@ -1,3 +1,10 @@
+## Mr. Emulator 0.2.10
+
+**Download:** `Mr-Emulator-Setup-<version>.exe` below. Windows may warn that the app is unsigned: **More info → Run anyway**.
+
+### New and fixed
+- 🛠️ **Fixed**: Settings → Covers always said "none yet" for every system (it looked in the wrong folder). It now counts the covers you really have.
+
 ## Mr. Emulator 0.2.9
 
 **Download:** `Mr-Emulator-Setup-<version>.exe` below. Windows may warn that the app is unsigned: **More info → Run anyway**.

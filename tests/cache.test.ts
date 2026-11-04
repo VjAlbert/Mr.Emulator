@@ -81,3 +81,16 @@ test('cache: lo spostamento porta i file nella nuova cartella e toglie la vecchi
   // una dentro l'altra: rifiutato
   assert.equal((await moveCache(dest, join(dest, 'sotto'), () => undefined)).ok, false)
 })
+
+test('copertine presenti: si contano quelle scaricate (Named_Boxarts) e quelle estratte dai pacchetti', async () => {
+  const { coverCount, setArtRoot } = await import('../src/main/artwork')
+  const { root, put } = make()
+  put('snes', 'Named_Boxarts', 'a.png', 10)
+  put('snes', 'Named_Boxarts', 'b.png', 10)
+  put('snes', 'local_boxart', 'c.png', 10)
+  put('snes', 'Named_Snaps', 'd.png', 10)
+  setArtRoot(root)
+  assert.equal(coverCount('snes'), 3)
+  assert.equal(coverCount('nes'), 0)
+  setArtRoot('')
+})

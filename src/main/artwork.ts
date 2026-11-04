@@ -84,11 +84,16 @@ export function clearLocalArt(): void {
 
 /** Quante copertine di gioco sono già scaricate per un sistema */
 export function coverCount(systemId: string): number {
-  try {
-    return readdirSync(join(artRoot(), systemId, 'boxart')).filter((f) => f.endsWith('.png')).length
-  } catch {
-    return 0
+  // scaricate (Named_Boxarts) + estratte da pacchetti ZIP (local_boxart)
+  let n = 0
+  for (const dir of [KIND_DIR.boxart, 'local_boxart']) {
+    try {
+      n += readdirSync(join(artRoot(), systemId, dir)).filter((f) => f.endsWith('.png')).length
+    } catch {
+      // cartella assente: nessuna
+    }
   }
+  return n
 }
 
 /** Toglie i segni "copertina mancante" (cambiati i DAT, i titoli trovati possono essere diversi) */
