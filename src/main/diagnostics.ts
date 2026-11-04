@@ -5,6 +5,7 @@ import { dirname, join } from 'path'
 import type { DiagnosticCheck, DiagnosticReport, Settings, SystemDef } from '@shared/types'
 import { BIOS_RULES, type BiosRule } from '@shared/bios'
 import { resolveOverlay } from './overlays'
+import { findUpscalers } from './optimize'
 import { platform } from './platform'
 import { systemDir } from './paths'
 import { mt, numLocale } from './mt'
@@ -115,6 +116,14 @@ export function buildDiagnostics(c: DiagContext): DiagnosticReport {
     const any = list.some((x) => resolveOverlay(s, x.id))
     add(any ? 'ok' : 'warn', mt('Bordi grafici attivi'), lines.join(' · ') || mt('(nessun sistema con giochi)'), any ? '' : mt('Indica la cartella dei bordi o un bordo comune in Impostazioni → Aspetto.'))
   }
+  // nitidezza dei pixel: cosa è stato scelto e quali shader ci sono davvero in RetroArch
+  if (s.retroarchPath) {
+    const ups = findUpscalers(s.retroarchPath)
+    const name = (p: string | null): string => (p ? p.replace(/^.*shaders_slang\//, '') : mt('non trovato'))
+    const wanted = s.sharpness ?? 'off'
+    const missing = (wanted === 'soft' && !ups.soft) || (wanted === 'high' && !ups.high && !ups.soft)
+    add(missing ? 'warn' : 'ok', mt('Nitidezza dei pixel'), mt('scelta: {v} · morbida: {a} · alta qualità: {b}', { v: mt(wanted === 'off' ? 'nessuna' : wanted === 'soft' ? 'morbida' : 'alta qualità'), a: name(ups.soft), b: name(ups.high) }), missing ? mt('Installa gli shader: in RetroArch, Aggiornamenti online → Aggiorna shader Slang.') : '')
+  }
   // salvataggi: cartella, stati trovati e cosa ha scritto RetroArch nell'ultima partita
   {
     const root = savesRoot(s)
@@ -144,7 +153,7 @@ export function buildDiagnostics(c: DiagContext): DiagnosticReport {
       return ''
     }
   }
-  const raCfg = pick(join(c.userData, 'retroarch-mr.cfg'), /aspect|scale_integer|windowed_fullscreen|video_fullscreen|overlay_enable|viewport/i)
+  const raCfg = pick(join(c.userData, 'retroarch-mr.cfg'), /aspect|scale_integer|windowed_fullscreen|video_fullscreen|overlay_enable|viewport|video_shader/i)
   const mameIni = pick(join(c.userData, 'mame', 'mame.ini'), /^(keepaspect|unevenstretch|unevenstretchx|video|window|maximize|autoror|autorol)\s/i)
   const raVideo = tail(join(c.userData, 'retroarch-last.log'), 200000)
     .split(/\r?\n/)

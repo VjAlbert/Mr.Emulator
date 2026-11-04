@@ -1,3 +1,10 @@
+## Mr. Emulator 0.2.7
+
+**Download:** `Mr-Emulator-Setup-<version>.exe` below. Windows may warn that the app is unsigned: **More info → Run anyway**.
+
+### New and fixed
+- 🩺 **Diagnostics** now shows the pixel-sharpness choice, which shaders were found in RetroArch, and the shader requested at the last game.
+
 ## Mr. Emulator 0.2.6
 
 **Download:** `Mr-Emulator-Setup-<version>.exe` below. Windows may warn that the app is unsigned: **More info → Run anyway**.
