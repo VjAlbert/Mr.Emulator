@@ -50,6 +50,16 @@ const api: MrApi = {
     return () => ipcRenderer.removeListener('cheats:progress', h)
   },
   getCoverCounts: () => ipcRenderer.invoke('art:counts'),
+  getCacheStats: () => ipcRenderer.invoke('cache:stats'),
+  optimizeCache: () => ipcRenderer.invoke('cache:optimize'),
+  cancelCacheJob: () => ipcRenderer.invoke('cache:cancel'),
+  clearCache: (what: 'local' | 'all') => ipcRenderer.invoke('cache:clear', what),
+  moveCache: (dir: string) => ipcRenderer.invoke('cache:move', dir),
+  onCacheProgress: (cb: (pct: number) => void) => {
+    const h = (_e: unknown, pct: number): void => cb(pct)
+    ipcRenderer.on('cache:progress', h)
+    return () => ipcRenderer.removeListener('cache:progress', h)
+  },
   getSharpnessInfo: () => ipcRenderer.invoke('sharpness:info'),
   installCheats: () => ipcRenderer.invoke('cheats:install'),
   installCore: (core: string) => ipcRenderer.invoke('cores:install', core),

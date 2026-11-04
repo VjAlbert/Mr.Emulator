@@ -67,6 +67,14 @@ export interface PlayStat {
 /** Nitidezza dei pixel (RetroArch): nessuna, morbida (sharp-bilinear) o alta qualità (xBRZ) */
 export type Sharpness = 'off' | 'soft' | 'high'
 
+export interface CacheStats {
+  dir: string
+  total: number
+  downloaded: number
+  localCopies: number
+  files: number
+}
+
 /** Cosa permette questo PC per la nitidezza dei pixel, e cosa c'è installato */
 export interface SharpnessInfo {
   soft: { ok: boolean; reason: string }
@@ -177,6 +185,10 @@ export interface Settings {
   savesDir: string
   /** Console: salva da sola lo stato all'uscita e propone di continuare all'avvio (sostituisce la Memory Card) */
   resumeConsoles: boolean
+  /** Cartella dove tenere la cache delle immagini (vuota = nei dati del programma); dentro si crea «MrEmulator-artwork» */
+  cacheDir: string
+  /** Limite della cache in GB (0 = nessun limite): oltre, si tolgono le immagini più vecchie */
+  cacheMaxGb: number
   /** Nitidezza dei pixel con gli shader di RetroArch (si applica solo dove il PC lo permette) */
   sharpness: Sharpness
   /** Console: scelta per singolo sistema (id del sistema -> sì/no); se manca vale l'interruttore generale */
@@ -484,6 +496,12 @@ export interface MrApi {
   openToolSite(kind: 'retroarch' | 'mame'): Promise<void>
   onCheatsProgress(cb: (pct: number) => void): () => void
   getSharpnessInfo(): Promise<SharpnessInfo>
+  getCacheStats(): Promise<CacheStats>
+  optimizeCache(): Promise<{ files: number; saved: number }>
+  cancelCacheJob(): Promise<void>
+  clearCache(what: 'local' | 'all'): Promise<number>
+  moveCache(dir: string): Promise<{ ok: boolean; error?: string }>
+  onCacheProgress(cb: (pct: number) => void): () => void
   getCoverCounts(): Promise<Record<string, { have: number; total: number }>>
   installCheats(): Promise<{ ok: boolean; files: number; error?: string }>
   installCore(core: string): Promise<{ core: string; ok: boolean; error?: string }>

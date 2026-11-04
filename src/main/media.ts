@@ -48,6 +48,8 @@ export interface MediaReport {
 
 export interface MediaFile {
   ext: string
+  /** Percorso del file, se sta su disco (negli ZIP no): permette di usarlo senza farne una copia */
+  file?: string
   read: () => Promise<Buffer>
 }
 
@@ -189,7 +191,7 @@ export class MediaSource {
             const file = join(s.path, name + ext)
             try {
               const st = await fsp.stat(file)
-              if (st.isFile()) return { ext, read: () => fsp.readFile(file) }
+              if (st.isFile()) return { ext, file, read: () => fsp.readFile(file) }
             } catch {
               // non c'è con questa estensione
             }

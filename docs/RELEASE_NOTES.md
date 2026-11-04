@@ -1,3 +1,11 @@
+## Mr. Emulator 0.2.9
+
+**Download:** `Mr-Emulator-Setup-<version>.exe` below. Windows may warn that the app is unsigned: **More info → Run anyway**.
+
+### New and fixed
+- 💾 **Image cache under control** (Settings → Covers): shows how much space it uses, **choose where to keep it** (e.g. another drive) and **move** the existing images there, **compress** the images already downloaded, remove the copies of your Multimedia packs, empty everything, or set a **size limit**.
+- 🛠️ **Much smaller cache**: images from your Multimedia packs are no longer copied into the cache (they are used where they are), and downloaded covers are stored resized (max 640 px) and compressed.
+
 ## Mr. Emulator 0.2.8
 
 **Download:** `Mr-Emulator-Setup-<version>.exe` below. Windows may warn that the app is unsigned: **More info → Run anyway**.

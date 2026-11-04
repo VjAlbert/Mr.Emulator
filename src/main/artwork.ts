@@ -1,4 +1,4 @@
-import { app } from 'electron'
+import { app, nativeImage } from 'electron'
 import { join, resolve, parse, sep } from 'path'
 import { writeFileAtomic } from './atomic'
 import { loadIndex, makeMatcher, type TitleMatcher } from './thumbIndex'
@@ -24,7 +24,37 @@ const SOURCES = [
 const KIND_DIR: Record<ArtKind, string> = { boxart: 'Named_Boxarts', snap: 'Named_Snaps', title: 'Named_Titles' }
 
 export const ART_SCHEME = 'mrart'
-export const artRoot = (): string => join(app.getPath('userData'), 'artwork')
+/** Cartella scelta dall'utente per la cache delle immagini (vuota = dentro i dati del programma) */
+let rootOverride = ''
+export const setArtRoot = (dir: string): void => {
+  rootOverride = dir
+}
+export const artRoot = (): string => rootOverride || join(app.getPath('userData'), 'artwork')
+
+/** Immagini dei pacchetti Multimedia usate dove stanno (niente copie nella cache): codice -> percorso, solo per i file indicizzati */
+const localFiles = new Map<string, string>()
+const localToken = (file: string): string => {
+  let h = 5381
+  for (let i = 0; i < file.length; i++) h = ((h * 33) ^ file.charCodeAt(i)) >>> 0
+  const token = `${h.toString(36)}${file.length.toString(36)}`
+  localFiles.set(token, file)
+  return token
+}
+
+/** Riduce un'immagine scaricata (lato massimo 640 px, JPEG): da centinaia di KB a poche decine, senza differenze visibili in lista */
+export function compressImage(data: Buffer): Buffer {
+  try {
+    const img = nativeImage.createFromBuffer(data)
+    if (img.isEmpty()) return data
+    const { width, height } = img.getSize()
+    const big = Math.max(width, height)
+    const scaled = big > 640 ? img.resize(width >= height ? { width: 640 } : { height: 640 }) : img
+    const out = scaled.toJPEG(85)
+    return out.length > 0 && out.length < data.length ? out : data
+  } catch {
+    return data
+  }
+}
 
 /** Libretro sostituisce questi caratteri con "_" nei nomi dei file */
 const clean = (s: string): string => s.replace(/[&*/:`<>?\\|"]/g, '_')
@@ -160,6 +190,10 @@ export function resolveArtUrl(url: string): string | null {
   const u = new URL(url)
   const [systemId, kind, file] = u.pathname.split('/').filter(Boolean).map(decodeURIComponent)
   if (!systemId || !kind || !file) return null
+  if (systemId === '_local') {
+    const f = localFiles.get(file.replace(/\.png$/, ''))
+    return f && existsSync(f) ? f : null
+  }
   const root = resolve(artRoot())
   const full = resolve(root, systemId, kind, file)
   return full.startsWith(root + sep) && existsSync(full) ? full : null
@@ -217,11 +251,13 @@ async function resolveArt(game: Game, system: SystemDef, enabled: boolean, stem:
     const parent = system.titleSource === 'mame' && mameProvider ? (await mameProvider())?.parentOf(stem.toLowerCase()) : undefined
     const hit = await media.find(kind, [stem.toLowerCase(), parent ?? ''])
     if (hit) {
-      const dest = localPath(system.id, `local_${kind}`, stem)
       try {
+        // file su disco: si usa dove sta (nessuna copia); dentro uno ZIP: si estrae una volta, compressa
+        if (hit.file) return `${ART_SCHEME}://art/_local/x/${localToken(hit.file)}.png`
+        const dest = localPath(system.id, `local_${kind}`, stem)
         if (!existsSync(dest)) {
           mkdirSync(join(dest, '..'), { recursive: true })
-          writeFileSync(dest, await hit.read())
+          writeFileSync(dest, compressImage(await hit.read()))
         }
         return toUrl(system.id, `local_${kind}`, stem)
       } catch {
@@ -296,7 +332,7 @@ async function resolveArt(game: Game, system: SystemDef, enabled: boolean, stem:
         const saveAs = names[0] ?? n
         const file = localPath(system.id, dir, saveAs)
         mkdirSync(join(file, '..'), { recursive: true })
-        writeFileAtomic(file, res.data)
+        writeFileAtomic(file, compressImage(res.data))
         return toUrl(system.id, dir, saveAs)
       }
     }

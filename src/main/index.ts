@@ -20,8 +20,9 @@ import { buildReport, mameProfileFor, profileFor, sharpnessInfo } from './optimi
 import { toConfigText } from './profiles'
 import { setHighPerformanceGpu } from './gpuPref'
 import { buildInputConfig, buildInputMap, buildMameCtrlr, presetControls } from './inputs'
-import { ART_SCHEME, arcadeTitles, clearArtMisses, clearLocalArt, coverCount, getArt, resolveArtUrl, setMameTitleProvider, setMediaProvider, setSoftTitleProvider } from './artwork'
+import { ART_SCHEME, artRoot, setArtRoot, arcadeTitles, clearArtMisses, clearLocalArt, coverCount, getArt, resolveArtUrl, setMameTitleProvider, setMediaProvider, setSoftTitleProvider } from './artwork'
 import { MediaSource } from './media'
+import { cacheStats, clearImages, clearLocalCopies, moveCache, optimizeCache, pruneCache } from './cache'
 import { runVerify, type VerifyBad } from './verify'
 import { existsSync, readFileSync, writeFileSync } from 'fs'
 import { loadMameData, type MameData } from './mame'
@@ -424,6 +425,7 @@ app.whenReady().then(async () => {
   ipcMain.handle('settings:save', (_e, s: Settings) => {
     const before = loadSettings()
     const saved = saveSettings(s)
+    applyCacheDir(saved)
     void applyGpuPreference(saved)
     try {
       ensureFolders(saved) // se la cartella indicata non ha le sottocartelle, le crea
@@ -747,6 +749,38 @@ app.whenReady().then(async () => {
   })
   ipcMain.handle('art:counts', () => Object.fromEntries(SYSTEMS.filter((x) => x.thumbs).map((x) => [x.id, { have: coverCount(x.id), total: library.count(x.id) }])))
   ipcMain.handle('sharpness:info', async () => sharpnessInfo(loadSettings(), await detectHardware(true)))
+  // cache delle immagini: dove sta, quanto pesa, compressione, pulizia e spostamento
+  const cacheDirOf = (dir: string): string => (dir ? join(dir, 'MrEmulator-artwork') : '')
+  const applyCacheDir = (s: Settings): void => {
+    setArtRoot(cacheDirOf(s.cacheDir))
+    if (s.cacheMaxGb > 0) void pruneCache(artRoot(), s.cacheMaxGb * 1073741824)
+  }
+  applyCacheDir(loadSettings())
+  let cacheJob: { cancel: boolean } | null = null
+  ipcMain.handle('cache:stats', () => cacheStats(artRoot()))
+  ipcMain.handle('cache:optimize', async () => {
+    if (cacheJob) return { files: 0, saved: 0 }
+    const job = { cancel: false }
+    cacheJob = job
+    try {
+      const r = await optimizeCache(artRoot(), job, (pct) => win?.webContents.send('cache:progress', pct))
+      return r
+    } finally {
+      cacheJob = null
+    }
+  })
+  ipcMain.handle('cache:cancel', () => {
+    if (cacheJob) cacheJob.cancel = true
+  })
+  ipcMain.handle('cache:clear', (_e, what: 'local' | 'all') => (what === 'local' ? clearLocalCopies(artRoot()) : clearImages(artRoot())))
+  ipcMain.handle('cache:move', async (_e, dir: string) => {
+    const r = await moveCache(artRoot(), cacheDirOf(dir), (pct) => win?.webContents.send('cache:progress', pct))
+    if (r.ok) {
+      saveSettings({ ...loadSettings(), cacheDir: dir })
+      setArtRoot(cacheDirOf(dir))
+    }
+    return r
+  })
   let cheatsBusy = false
   ipcMain.handle('cheats:install', async () => {
     const dir = cheatsDirOf(loadSettings())

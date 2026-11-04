@@ -2,13 +2,13 @@ import { useEffect, useRef, useState } from 'react'
 import { IMAGE_MODES } from './ScreenPreview'
 import { markConsoleImagesDirty, refreshConsoleArt } from '../consoleArt'
 import { SVG_FOR } from './consoleSvgs'
-import type { ArtBulkState, DiagnosticReport, ImageStyle, PickKind, Settings, SharpnessInfo, SystemInfo } from '@shared/types'
+import type { ArtBulkState, CacheStats, DiagnosticReport, ImageStyle, PickKind, Settings, SharpnessInfo, SystemInfo } from '@shared/types'
 import { ToolFinder } from './ToolFinder'
 import { useInput } from '../hooks/useInput'
 import { configureSound, sfx } from '../sound'
 import { getLang, setLang, t } from '../i18n'
 
-type PathKey = 'romsDir' | 'biosDir' | 'retroarchPath' | 'coresDir' | 'mamePath' | 'mameChdDir' | 'mameRomDir' | 'mediaDir' | 'datDir' | 'overlayPath' | 'overlayDir' | 'savesDir'
+type PathKey = 'romsDir' | 'biosDir' | 'retroarchPath' | 'coresDir' | 'mamePath' | 'mameChdDir' | 'mameRomDir' | 'mediaDir' | 'datDir' | 'overlayPath' | 'overlayDir' | 'savesDir' | 'cacheDir'
 
 interface Props {
   onClose: () => void
@@ -29,6 +29,22 @@ export default function SettingsScreen({ onClose, onSaved, onPc, onRomCheck, onG
   const [copied, setCopied] = useState(false)
   const [all, setAll] = useState<SystemInfo[]>([])
   const [sharp, setSharp] = useState<SharpnessInfo | null>(null)
+  const [cache, setCache] = useState<CacheStats | null>(null)
+  const [cachePct, setCachePct] = useState<number | null>(null)
+  const [cacheMsg, setCacheMsg] = useState('')
+  useEffect(() => window.mr.onCacheProgress(setCachePct), [])
+  const loadCache = (): void => {
+    window.mr.getCacheStats().then((c) => setCache(c ?? null), () => undefined)
+  }
+  const mb = (b: number): string => (b >= 1073741824 ? `${(b / 1073741824).toFixed(1)} GB` : `${Math.round(b / 1048576)} MB`)
+  const runCache = async (label: string, job: () => Promise<string>): Promise<void> => {
+    setCachePct(0)
+    setCacheMsg(label)
+    const msg = await job()
+    setCachePct(null)
+    setCacheMsg(msg)
+    loadCache()
+  }
   const [cheatMsg, setCheatMsg] = useState('')
   const [cheatPct, setCheatPct] = useState<number | null>(null)
   useEffect(() => window.mr.onCheatsProgress(setCheatPct), [])
@@ -77,7 +93,10 @@ export default function SettingsScreen({ onClose, onSaved, onPc, onRomCheck, onG
 
   // scheda Aspetto: quali console hanno già una foto nella cartella delle immagini
   useEffect(() => {
-    if (tab === 'covers') loadCovers()
+    if (tab === 'covers') {
+      loadCovers()
+      loadCache()
+    }
     if (tab === 'screen') window.mr.getSharpnessInfo().then((i) => setSharp(i ?? null), () => undefined)
     if (tab === 'look') window.mr.listConsoleImages().then(setConImgs, () => undefined)
   }, [tab])
@@ -345,6 +364,80 @@ export default function SettingsScreen({ onClose, onSaved, onPc, onRomCheck, onG
                 )
               })}
             </div>
+            <h3 className="sub-h">{t('Spazio occupato dalle immagini')}</h3>
+            <p className="hint">
+              {cache
+                ? t('{t} in totale · {d} di copertine e immagini scaricate · {l} di copie dei tuoi pacchetti Multimedia ({n} file)', { t: mb(cache.total), d: mb(cache.downloaded), l: mb(cache.localCopies), n: cache.files.toLocaleString(getLang() === 'it' ? 'it' : 'en') })
+                : t('Calcolo…')}
+              {cache ? ` — ${cache.dir}` : ''}
+            </p>
+            <div className="field-row">
+              <button
+                className="chip"
+                disabled={cachePct !== null}
+                onClick={() =>
+                  runCache(t('Comprimo le immagini…'), async () => {
+                    const r = await window.mr.optimizeCache()
+                    return t('✔ {n} immagini compresse, {m} liberati', { n: r.files.toLocaleString(getLang() === 'it' ? 'it' : 'en'), m: mb(r.saved) })
+                  })
+                }
+              >
+                {t('⚙ OTTIMIZZA (COMPRIMI)')}
+              </button>
+              <button
+                className="chip"
+                disabled={cachePct !== null || !cache || cache.localCopies === 0}
+                onClick={() => runCache(t('Tolgo le copie…'), async () => t('✔ {n} copie tolte', { n: (await window.mr.clearCache('local')).toLocaleString(getLang() === 'it' ? 'it' : 'en') }))}
+              >
+                {t('🧹 TOGLI LE COPIE DEI PACCHETTI')}
+              </button>
+              <button
+                className="chip"
+                disabled={cachePct !== null}
+                onClick={() => {
+                  if (window.confirm(t('Cancellare tutte le copertine e le immagini scaricate? Si potranno riscaricare.'))) {
+                    void runCache(t('Cancello…'), async () => t('✔ {n} file cancellati', { n: (await window.mr.clearCache('all')).toLocaleString(getLang() === 'it' ? 'it' : 'en') }))
+                  }
+                }}
+              >
+                {t('🗑 SVUOTA TUTTO')}
+              </button>
+              {cachePct !== null && <button className="chip on" onClick={() => window.mr.cancelCacheJob()}>{t('FERMA')}</button>}
+            </div>
+            {cachePct !== null && (
+              <div className="pbar" role="progressbar" aria-valuenow={cachePct}>
+                <i style={{ width: `${cachePct}%` }} />
+                <b>{cachePct}%</b>
+              </div>
+            )}
+            {cacheMsg && cachePct === null && <p className="persys-st">{cacheMsg}</p>}
+            <h3 className="sub-h">{t('Dove tenere la cache')}</h3>
+            <p className="hint">{t('Per non occupare il disco C: scegli una cartella su un altro disco. Dentro si crea «MrEmulator-artwork». Con SPOSTA le immagini già scaricate vengono portate lì (se è un altro disco può richiedere qualche minuto).')}</p>
+            {field('Cartella della cache', 'Vuota = nei dati del programma (disco C:)', 'cacheDir', 'dir')}
+            <div className="field-row">
+              <button
+                className="chip"
+                disabled={cachePct !== null}
+                onClick={() =>
+                  runCache(t('Sposto la cache…'), async () => {
+                    const r = await window.mr.moveCache(s.cacheDir)
+                    return r.ok ? t('✔ Cache spostata') : t('✘ {e}', { e: r.error ?? '' })
+                  })
+                }
+              >
+                {t('➡ SPOSTA LA CACHE QUI')}
+              </button>
+            </div>
+            <div className="field">
+              <label>{t('Limite di spazio')}</label>
+              <select value={String(s.cacheMaxGb ?? 0)} onChange={(e) => setS({ ...s, cacheMaxGb: Number(e.target.value) })}>
+                <option value="0">{t('Nessun limite')}</option>
+                {[1, 2, 5, 10, 20].map((g) => (
+                  <option key={g} value={g}>{t('Al massimo {g} GB (si tolgono le immagini più vecchie)', { g })}</option>
+                ))}
+              </select>
+            </div>
+            <p className="hint">{t('Ricorda di premere SALVA per il limite di spazio.')}</p>
           </div>
         ) : tab === 'extras' ? (
           <div className="sysopts">
