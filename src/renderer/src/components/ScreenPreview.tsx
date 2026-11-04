@@ -7,7 +7,7 @@ export const IMAGE_MODES: Array<[ImageStyle, string, string]> = [
   ['fit', 'ALTEZZA PIENA', 'Il gioco occupa tutta l\'altezza dello schermo, con le proporzioni originali. Nitido e il più grande possibile.'],
   ['pixel', 'PIXEL PERFETTI', 'Solo ingrandimenti interi (×4, ×5…): ogni pixel è un quadrato perfetto. Un po\' più piccolo.'],
   ['pixel-height', 'PIXEL PERFETTI IN ALTEZZA', 'Altezza a multipli interi, larghezza libera: pixel nitidi in verticale e immagine quasi a tutta altezza.'],
-  ['stretch', 'TUTTO SCHERMO (STIRATO)', 'Riempie tutto lo schermo ma deforma l\'immagine: cerchi che diventano ovali.']
+  ['stretch', 'TUTTO SCHERMO (STIRATO)', 'Riempie tutto lo schermo ma deforma l\'immagine: cerchi che diventano ovali. In questa modalità i bordi grafici si spengono (coprirebbero i lati).']
 ]
 
 /** Mostra come apparirebbe il gioco sul tuo schermo nelle quattro modalità, con le misure vere */

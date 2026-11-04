@@ -497,7 +497,7 @@ export const EN: Record<string, string> = {
   "RetroArch (retroarch.exe)": "RetroArch (retroarch.exe)",
   "Ricevuto: la prossima volta alzo la qualità.": "Got it: next time I will raise the quality.",
   "Ricevuto: la prossima volta uso meno effetti.": "Got it: next time I will use fewer effects.",
-  "Riempie tutto lo schermo ma deforma l'immagine: cerchi che diventano ovali.": "Fills the whole screen but distorts the image: circles become ovals.",
+  "Riempie tutto lo schermo ma deforma l'immagine: cerchi che diventano ovali. In questa modalità i bordi grafici si spengono (coprirebbero i lati).": "Fills the whole screen but distorts the image: circles become ovals. In this mode the graphic borders are turned off (they would cover the sides).",
   "SORPRENDIMI": "SURPRISE ME",
   "Scarico {c} ({i} di {n})… può richiedere un minuto": "Downloading {c} ({i} of {n})… this can take a minute",
   "Schermate": "Screenshots",

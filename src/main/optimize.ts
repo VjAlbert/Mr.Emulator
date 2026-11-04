@@ -53,20 +53,22 @@ export function profileFor(
   const delta = s.autoTune ? (s.tuning[system.id] ?? 0) : 0
   const level = shiftLevel(baseLevel(hw, s), delta)
   const shaders = findShaders(s.retroarchPath)
+  const imageStyle = s.imageBySystem?.[system.id] ?? s.imageStyle
   const profile = buildProfile({
     level,
     cost: system.cost,
     cpuTier: hw.cpu.tier,
     gpuTier: hw.gpuTier,
     display: { width: cur.width, height: cur.height, hz: cur.hz },
-    imageStyle: s.imageBySystem?.[system.id] ?? s.imageStyle,
+    imageStyle,
     fullscreen: s.fullscreen,
     biosDir: s.biosDir,
     shaderDir: shaders.dir,
     shadersAvailable: shaders.names,
     monitorIndex: monitorIndexFor(s, hw.screens, cur),
     crtChoice: s.crtShader,
-    overlay: s.overlayEnabled ? resolveOverlay(s, system.id) : undefined
+    // a tutto schermo (stirato) il bordo grafico coprirebbe i lati dell'immagine: si spegne
+    overlay: s.overlayEnabled ? (imageStyle === 'stretch' ? null : resolveOverlay(s, system.id)) : undefined
   })
   return { profile, level, delta }
 }

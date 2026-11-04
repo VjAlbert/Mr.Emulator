@@ -69,6 +69,7 @@ export const EN_MAIN: Record<string, string> = {
   'Il file scelto non è un backup valido.': 'The chosen file is not a valid backup.',
   'Troppi file per un solo ZIP': 'Too many files for a single ZIP',
   'Controllo ROM: ⚠ file difettosi': 'ROM check: ⚠ bad files',
+  '(spento: immagine stirata)': '(off: stretched image)',
   '(nessuno)': '(none)',
   'Indica prima la cartella delle ROM': 'Set the ROM folder first',
   'Indica prima retroarch.exe nelle Impostazioni': 'Set retroarch.exe in Settings first',

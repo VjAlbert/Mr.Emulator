@@ -111,7 +111,7 @@ export function buildDiagnostics(c: DiagContext): DiagnosticReport {
   // bordi grafici: quale file userà ogni sistema (utile quando "non cambia")
   if (s.overlayEnabled) {
     const list = c.systems.filter((x) => x.phase === 1 && x.core && c.gameCount(x.id) > 0)
-    const lines = list.map((x) => `${x.name} → ${resolveOverlay(s, x.id)?.replace(/^.*[\\/]/, '') ?? mt('(nessuno)')}`)
+    const lines = list.map((x) => `${x.name} → ${(s.imageBySystem?.[x.id] ?? s.imageStyle) === 'stretch' ? mt('(spento: immagine stirata)') : (resolveOverlay(s, x.id)?.replace(/^.*[\\/]/, '') ?? mt('(nessuno)'))}`)
     const any = list.some((x) => resolveOverlay(s, x.id))
     add(any ? 'ok' : 'warn', mt('Bordi grafici attivi'), lines.join(' · ') || mt('(nessun sistema con giochi)'), any ? '' : mt('Indica la cartella dei bordi o un bordo comune in Impostazioni → Aspetto.'))
   }
