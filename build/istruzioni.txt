@@ -1,4 +1,5 @@
 ﻿MR. EMULATOR — LEGGI PRIMA DI INSTALLARE (2 minuti)
+by Assistente Malpagato software
 
 Mr. Emulator è il menu a tutto schermo da cui scegli i giochi. Per farli partire servono alcune cose che il programma NON include e NON scarica di nascosto: ROM e BIOS sono file tuoi.
 

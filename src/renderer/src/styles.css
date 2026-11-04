@@ -632,10 +632,10 @@ b.warnmark { color: #ffd400; margin-right: 8px; font-weight: 400; } .row.active 
 .tt-center { display: grid; place-content: center; text-align: center; gap: 6px; }
 .tt-pre { font-family: var(--font); letter-spacing: 8px; color: #ffd400; font-size: clamp(14px, 1.8vw, 24px); -webkit-text-stroke: 1px #000; paint-order: stroke fill; }
 .tt-logo { margin: 0; display: grid; font-family: var(--font); line-height: .86; transform: skewX(-8deg); }
-.tt-mr { font-size: clamp(56px, 8.5vw, 130px); letter-spacing: 6px; color: #f4f4fa; -webkit-text-stroke: 5px #000; paint-order: stroke fill; text-shadow: 7px 7px 0 #000; }
-.tt-em { font-size: clamp(76px, 12vw, 190px); letter-spacing: 4px; color: #ff2d55; -webkit-text-stroke: 7px #000; paint-order: stroke fill; text-shadow: 10px 10px 0 #000, 0 0 60px rgba(255,45,85,.55); animation: ttglow 2.4s ease-in-out infinite alternate; }
+.tt-mr { font-size: clamp(50px, 7.4vw, 112px); letter-spacing: 6px; color: #f4f4fa; -webkit-text-stroke: 5px #000; paint-order: stroke fill; text-shadow: 7px 7px 0 #000; }
+.tt-em { font-size: clamp(66px, 10.4vw, 160px); letter-spacing: 4px; color: #ff2d55; -webkit-text-stroke: 7px #000; paint-order: stroke fill; text-shadow: 10px 10px 0 #000, 0 0 60px rgba(255,45,85,.55); animation: ttglow 2.4s ease-in-out infinite alternate; }
 @keyframes ttglow { to { text-shadow: 10px 10px 0 #000, 0 0 100px rgba(255,45,85,.9); transform: scale(1.015); } }
-.tt-start { margin: 22px auto 0; padding: 10px 40px; font-family: var(--font); letter-spacing: 6px; font-size: clamp(22px, 3vw, 42px); background: #ffd400; color: #000; clip-path: polygon(16px 0, 100% 0, calc(100% - 16px) 100%, 0 100%); animation: ttblink 1s steps(2, jump-none) infinite; }
+.tt-start { margin: 14px auto 0; padding: 10px 40px; font-family: var(--font); letter-spacing: 6px; font-size: clamp(22px, 3vw, 42px); background: #ffd400; color: #000; clip-path: polygon(16px 0, 100% 0, calc(100% - 16px) 100%, 0 100%); animation: ttblink 1s steps(2, jump-none) infinite; }
 @keyframes ttblink { 50% { opacity: .15; } }
 .tt-hint { font-size: 13px; letter-spacing: 3px; color: var(--muted); text-transform: uppercase; margin-top: 8px; }
 .tt-strip { overflow: hidden; flex: none; padding: 12px 0; border-block: 3px solid #000; background: rgba(0,0,0,.45); }
@@ -686,3 +686,8 @@ b.warnmark { color: #ffd400; margin-right: 8px; font-weight: 400; } .row.active 
 .chip.update { background: #ffd400; color: #000; animation: ttblink 1.4s steps(2, jump-none) infinite; }
 .light-fx .chip.update { animation: none; }
 .playstat { margin: 2px 0 0; font-size: 12px; letter-spacing: 1px; color: var(--muted); text-transform: uppercase; }
+
+/* firma sotto il logo */
+.brand { display: grid; gap: 0; }
+.by { font-family: Inter, 'Segoe UI', Arial, sans-serif; font-size: 11px; letter-spacing: 3px; text-transform: uppercase; color: var(--muted); margin: -4px 0 0 6px; transform: skewX(-8deg); transform-origin: left; white-space: nowrap; }
+.tt-by { font-family: Inter, 'Segoe UI', Arial, sans-serif; font-size: 15px; letter-spacing: 7px; text-transform: uppercase; color: var(--muted); margin-top: 8px; position: relative; }

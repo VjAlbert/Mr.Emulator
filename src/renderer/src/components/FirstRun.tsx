@@ -58,9 +58,12 @@ export default function FirstRun({ onDone }: { onDone: () => void }): React.JSX.
     <div className="screen firstrun" style={{ ['--accent' as string]: '#ffd400' }}>
       <Orbs />
       <header className="topbar">
-        <h1 className="logo">
-          {t('MR.')} <span>{t('EMULATOR')}</span>
-        </h1>
+        <div className="brand">
+          <h1 className="logo">
+            {t('MR.')} <span>{t('EMULATOR')}</span>
+          </h1>
+          <small className="by">by Assistente Malpagato software</small>
+        </div>
         <button className="chip" onClick={finish}>{t('SALTA LA GUIDA')}</button>
       </header>
       <div className="fr-steps">

@@ -6,6 +6,8 @@
 
 ### *Il tuo cabinato arcade personale. Scegli il sistema. Scegli il gioco. FIGHT!*
 
+<sub>**by Assistente Malpagato software**</sub>
+
 [![Scarica per Windows](https://img.shields.io/badge/%E2%AC%87_SCARICA_PER_WINDOWS-ff2d55?style=for-the-badge&logo=windows&logoColor=white&labelColor=1b1b2a)](https://github.com/VjAlbert/Mr.Emulator/releases/latest)
 
 [English](README.md) · **Italiano**

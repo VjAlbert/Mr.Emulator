@@ -58,6 +58,7 @@ export default function TitleScreen({ systems, version, onStart, onLang }: Props
           <span className="tt-mr">MR.</span>
           <span className="tt-em">EMULATOR</span>
         </h1>
+        <div className="tt-by">by Assistente Malpagato software</div>
         <div className="tt-start">{t('PREMI START')}</div>
         <div className="tt-hint">{t('tasto qualsiasi · joystick · pulsante · clic')}</div>
       </div>

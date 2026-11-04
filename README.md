@@ -6,6 +6,8 @@
 
 ### *Your personal arcade cabinet. Pick a system. Pick a game. FIGHT!*
 
+<sub>**by Assistente Malpagato software**</sub>
+
 [![Download for Windows](https://img.shields.io/badge/%E2%AC%87_DOWNLOAD_FOR_WINDOWS-ff2d55?style=for-the-badge&logo=windows&logoColor=white&labelColor=1b1b2a)](https://github.com/VjAlbert/Mr.Emulator/releases/latest)
 
 [![Latest release](https://img.shields.io/github/v/release/VjAlbert/Mr.Emulator?style=flat-square&color=ffd400&label=latest%20release)](https://github.com/VjAlbert/Mr.Emulator/releases/latest)

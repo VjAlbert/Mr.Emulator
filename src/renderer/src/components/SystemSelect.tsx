@@ -73,9 +73,12 @@ export default function SystemSelect({ systems, onOpen, onSettings, onPc, onInpu
       <Orbs />
       {sel.phase === 1 && <ArtShowcase systemId={sel.id} />}
       <header className="topbar">
-        <h1 className="logo">
-          {t('MR.')} <span>{t('EMULATOR')}</span>
-        </h1>
+        <div className="brand">
+          <h1 className="logo">
+            {t('MR.')} <span>{t('EMULATOR')}</span>
+          </h1>
+          <small className="by">by Assistente Malpagato software</small>
+        </div>
         <div className="top-actions">
           {lib?.offline && (
             <span className="scan warn" title={`Non trovo: ${lib.offline}`}>
