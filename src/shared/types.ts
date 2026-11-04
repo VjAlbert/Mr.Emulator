@@ -28,6 +28,8 @@ export interface SystemDef {
   thumbs?: string
   /** I file hanno nomi brevi (es. pbobblen.zip): il titolo si ricava dal DAT di FBNeo */
   titleDat?: boolean
+  /** Giochi spesso su più dischi: si uniscono in un solo gioco con un file .m3u */
+  multiDisc?: boolean
   /** Software List di MAME da cui ricavare i titoli dei file con nome breve (console FBNeo) */
   softlist?: string[]
 }
@@ -162,6 +164,8 @@ export interface Settings {
   hiscore: boolean
   /** Quando si apre un sistema, scarica da sola le copertine di tutti i suoi giochi (usa più dati) */
   autoCovers: boolean
+  /** Giochi a più dischi: un solo gioco nella lista (con cambio disco), invece di un gioco per disco */
+  groupDiscs: boolean
   /** Bordo scelto a mano per un sistema ("-" = nessun bordo per quel sistema) */
   overlayBySystem: Record<string, string>
   /** Tema grafico del launcher */

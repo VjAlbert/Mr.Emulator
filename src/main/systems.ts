@@ -27,12 +27,12 @@ export const SYSTEMS: SystemDef[] = [
   { id: 'gb', name: 'Game Boy', short: 'GB', folder: 'gb', extensions: ['.gb', '.zip'], core: 'gambatte_libretro', color: '#9bbc0f', cost: 'light', phase: 1, thumbs: 'Nintendo - Game Boy', softlist: ['gameboy'] },
   { id: 'gbc', name: 'Game Boy Color', short: 'GBC', folder: 'gbc', extensions: ['.gbc', '.zip'], core: 'gambatte_libretro', color: '#00c2a8', cost: 'light', phase: 1, thumbs: 'Nintendo - Game Boy Color', softlist: ['gbcolor'] },
   { id: 'gba', name: 'Game Boy Advance', short: 'GBA', folder: 'gba', extensions: ['.gba', '.zip'], core: 'mgba_libretro', color: '#ff6a00', cost: 'light', phase: 1, thumbs: 'Nintendo - Game Boy Advance', softlist: ['gba'] },
-  { id: 'dreamcast', name: 'Dreamcast', short: 'DC', folder: 'dreamcast', extensions: ['.gdi', '.cdi', '.chd', '.cue'], core: 'flycast_libretro', color: '#ff7a00', cost: 'medium', phase: 1, thumbs: 'Sega - Dreamcast', softlist: [] },
+  { id: 'dreamcast', name: 'Dreamcast', short: 'DC', folder: 'dreamcast', extensions: ['.gdi', '.cdi', '.chd', '.cue'], core: 'flycast_libretro', color: '#ff7a00', cost: 'medium', phase: 1, thumbs: 'Sega - Dreamcast', softlist: [], multiDisc: true },
   { id: 'naomi', name: 'Sega Naomi', short: 'NAOMI', folder: 'naomi', extensions: ['.zip', '.7z', '.chd'], core: 'flycast_libretro', color: '#00b4d8', cost: 'medium', phase: 1, thumbs: 'MAME', softlist: [] },
   { id: 'atomiswave', name: 'Atomiswave', short: 'AW', folder: 'atomiswave', extensions: ['.zip', '.7z'], core: 'flycast_libretro', color: '#e5383b', cost: 'medium', phase: 1, thumbs: 'MAME', softlist: [] },
-  { id: 'psx', name: 'PlayStation', short: 'PS1', folder: 'psx', extensions: ['.cue', '.chd', '.pbp', '.iso'], core: 'pcsx_rearmed_libretro', color: '#8d99ae', cost: 'medium', phase: 1, thumbs: 'Sony - PlayStation' },
+  { id: 'psx', name: 'PlayStation', short: 'PS1', folder: 'psx', extensions: ['.cue', '.chd', '.pbp', '.iso'], core: 'pcsx_rearmed_libretro', color: '#8d99ae', cost: 'medium', phase: 1, thumbs: 'Sony - PlayStation', multiDisc: true },
   { id: 'n64', name: 'Nintendo 64', short: 'N64', folder: 'n64', extensions: ['.n64', '.z64', '.v64', '.zip'], core: 'mupen64plus_next_libretro', color: '#17c964', cost: 'heavy', phase: 1, thumbs: 'Nintendo - Nintendo 64' },
   { id: 'nds', name: 'Nintendo DS', short: 'NDS', folder: 'nds', extensions: ['.nds', '.zip'], core: 'melonds_libretro', color: '#00b7ff', cost: 'medium', phase: 1, thumbs: 'Nintendo - Nintendo DS' },
   { id: 'jaguar', name: 'Atari Jaguar', short: 'JAG', folder: 'jaguar', extensions: ['.j64', '.jag', '.zip'], core: 'virtualjaguar_libretro', color: '#d62828', cost: 'light', phase: 1, thumbs: 'Atari - Jaguar' },
-  { id: '3do', name: '3DO', short: '3DO', folder: '3do', extensions: ['.iso', '.cue', '.chd'], core: 'opera_libretro', color: '#f77f00', cost: 'medium', phase: 1, thumbs: 'The 3DO Company - 3DO' }
+  { id: '3do', name: '3DO', short: '3DO', folder: '3do', extensions: ['.iso', '.cue', '.chd'], core: 'opera_libretro', color: '#f77f00', cost: 'medium', phase: 1, thumbs: 'The 3DO Company - 3DO', multiDisc: true }
 ]

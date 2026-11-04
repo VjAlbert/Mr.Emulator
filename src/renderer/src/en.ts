@@ -1,5 +1,6 @@
 // Traduzioni inglesi: la chiave è il testo italiano usato nel programma
 export const EN: Record<string, string> = {
+  "Giochi a più dischi (PlayStation, 3DO, Dreamcast): un solo gioco nella lista; il cambio disco si fa dal menu di RetroArch": "Multi-disc games (PlayStation, 3DO, Dreamcast): a single game in the list; swap discs from the RetroArch menu",
   "Scarica le copertine di tutti i giochi di questo sistema": "Download the covers of all games in this system",
   "⬇ {d}/{n} · FERMA": "⬇ {d}/{n} · STOP",
   "✔ COPERTINE {f}/{n}": "✔ COVERS {f}/{n}",

@@ -46,6 +46,7 @@ const DEFAULTS: Settings = {
   resumeArcade: {},
   hiscore: true,
   autoCovers: false,
+  groupDiscs: true,
   overlayBySystem: {},
   theme: 'fighter',
   crtShader: 'auto',

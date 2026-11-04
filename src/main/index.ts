@@ -5,7 +5,7 @@ import { Readable } from 'stream'
 import { extname } from 'path'
 import { MEDIA_MIME, parseRange } from './rangeFile'
 import { tmpdir } from 'os'
-import { basename, join } from 'path'
+import { basename, isAbsolute, join } from 'path'
 import type { ArtKind, Feedback, Game, GameEnded, LaunchOptions, SaveInfo, OptimizationReport, PickKind, Settings, SystemDef, SystemInfo, VerifyState } from '@shared/types'
 import { mkdirSync } from 'fs'
 import { SYSTEMS } from './systems'
@@ -213,6 +213,8 @@ const library = createLibrary({
   softTitles: consoleTitles,
   mame: (onProgress) => getMame(onProgress),
   signature: (sys) => {
+    // i sistemi a più dischi cambiano elenco se si accende o spegne l'unione dei dischi
+    if (sys.multiDisc) return `${sys.softlist ? loadSettings().mamePath : ''}|${loadSettings().datDir}|discs:${loadSettings().groupDiscs}`
     if (sys.softlist) return `${loadSettings().mamePath}|${loadSettings().datDir}`
     if (sys.engine !== 'mame') return ''
     const s = loadSettings()
@@ -430,6 +432,7 @@ app.whenReady().then(async () => {
     }
     applyCabinet(saved)
     if (before.datDir !== saved.datDir) clearArtMisses()
+    if (before.groupDiscs !== saved.groupDiscs) library.rescan(false)
     if (before.romsDir !== saved.romsDir || before.datDir !== saved.datDir || before.showUnsupported !== saved.showUnsupported || before.mamePath !== saved.mamePath || before.mameClones !== saved.mameClones || before.mameRomDir !== saved.mameRomDir || before.hideBadRoms !== saved.hideBadRoms) {
       library.rescan(before.romsDir !== saved.romsDir || before.mameRomDir !== saved.mameRomDir)
     }
@@ -493,7 +496,8 @@ app.whenReady().then(async () => {
     if (!system) return { ok: false, error: 'Sistema sconosciuto.' }
     const settings = loadSettings()
     // la lista contiene percorsi relativi alla cartella del sistema
-    if (!game.demo) game = { ...game, path: join(systemDir(system, settings), game.path) }
+    // i giochi a più dischi hanno già un percorso completo (il file .m3u creato dal programma)
+    if (!game.demo && !isAbsolute(game.path)) game = { ...game, path: join(systemDir(system, settings), game.path) }
     // ultimi giochi avviati (si aggiorna all'avvio, il più recente per primo)
     {
       const cur = loadSettings()
@@ -636,7 +640,7 @@ app.whenReady().then(async () => {
   })
 
   // salvataggi: informazioni per il gioco scelto, ripresa per gli arcade, cartella, backup e ripristino
-  const absGame = (game: Game, system: SystemDef, s: Settings): Game => (game.demo ? game : { ...game, path: join(systemDir(system, s), game.path) })
+  const absGame = (game: Game, system: SystemDef, s: Settings): Game => (game.demo || isAbsolute(game.path) ? game : { ...game, path: join(systemDir(system, s), game.path) })
   ipcMain.handle('saves:info', (_e, game: Game): SaveInfo | null => {
     const system = SYSTEMS.find((x) => x.id === game.systemId)
     if (!system || game.demo) return null

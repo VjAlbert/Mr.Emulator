@@ -4,6 +4,7 @@ import { join, parse } from 'path'
 import type { Game, LibraryEvent, LibraryStats, Settings, SystemDef } from '@shared/types'
 import { BIOS_SETS, prettyName, scanSystemFiles } from './scanner'
 import { systemDir } from './paths'
+import { makeDiscEntries } from './discs'
 import { familyOf, type MameData } from './mame'
 
 /**
@@ -13,7 +14,7 @@ import { familyOf, type MameData } from './mame'
  * La lista contiene percorsi relativi alla cartella del sistema.
  */
 
-const CACHE_VERSION = 6
+const CACHE_VERSION = 7
 const tick = (): Promise<void> => new Promise((r) => setImmediate(r))
 
 /** Chiave di ordinamento: minuscolo, senza accenti né simboli iniziali (molto più veloce di localeCompare) */
@@ -105,9 +106,11 @@ export function createLibrary(deps: LibraryDeps) {
       offline = offline ?? base
       return
     }
-    const files = await scanSystemFiles(base, sys, (found) => {
+    let files = await scanSystemFiles(base, sys, (found) => {
       if (gen === generation) emit({ scanning: true, systemId: sys.id, found })
     })
+    // giochi a più dischi: un solo gioco (con file .m3u) al posto di un gioco per disco
+    if (sys.multiDisc && settings.groupDiscs) files = makeDiscEntries(files, base, join(deps.cacheDir, '..', 'm3u', sys.id))
 
     let titles: Map<string, string> | null = null
     if (sys.titleDat) titles = await deps.titles()
