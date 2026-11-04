@@ -591,6 +591,50 @@ app.whenReady().then(async () => {
   })
 
   ipcMain.handle('controls:presets', () => ({ laptop: presetControls('laptop'), cabinet: presetControls('cabinet') }))
+  // copertine di un intero sistema in una volta sola (a gruppi, con avanzamento e possibilità di fermarsi)
+  let bulk: { cancel: boolean } | null = null
+  ipcMain.handle('art:bulk-start', async (_e, systemId: string) => {
+    if (bulk) return { ok: false, error: 'Un download di copertine è già in corso.' }
+    const system = SYSTEMS.find((x) => x.id === systemId)
+    const s = loadSettings()
+    if (!system || !system.thumbs) return { ok: false, error: 'Questo sistema non ha copertine online.' }
+    if (!s.downloadArt) return { ok: false, error: 'Il download delle copertine è spento nelle Impostazioni.' }
+    const games = (s.romsDir ? await library.games(systemId) : []).filter((g) => !g.demo)
+    const job = { cancel: false }
+    bulk = job
+    const st = { systemId, running: true, total: games.length, done: 0, found: 0 }
+    let last = 0
+    const emit = (force = false): void => {
+      if (force || Date.now() - last > 250) {
+        last = Date.now()
+        win?.webContents.send('art:bulk', { ...st })
+      }
+    }
+    emit(true)
+    let next = 0
+    const worker = async (): Promise<void> => {
+      while (!job.cancel && next < games.length) {
+        const g = games[next++]
+        try {
+          if (await getArt(g, system, true, 'boxart')) st.found++
+        } catch {
+          // una copertina che non arriva non ferma le altre
+        }
+        st.done++
+        emit()
+      }
+    }
+    void Promise.all(Array.from({ length: 6 }, worker)).finally(() => {
+      st.running = false
+      bulk = null
+      emit(true)
+    })
+    return { ok: true }
+  })
+  ipcMain.handle('art:bulk-cancel', () => {
+    if (bulk) bulk.cancel = true
+  })
+
   // salvataggi: informazioni per il gioco scelto, ripresa per gli arcade, cartella, backup e ripristino
   const absGame = (game: Game, system: SystemDef, s: Settings): Game => (game.demo ? game : { ...game, path: join(systemDir(system, s), game.path) })
   ipcMain.handle('saves:info', (_e, game: Game): SaveInfo | null => {

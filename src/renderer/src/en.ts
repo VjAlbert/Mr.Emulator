@@ -1,5 +1,15 @@
 // Traduzioni inglesi: la chiave è il testo italiano usato nel programma
 export const EN: Record<string, string> = {
+  "Scarica le copertine di tutti i giochi di questo sistema": "Download the covers of all games in this system",
+  "⬇ {d}/{n} · FERMA": "⬇ {d}/{n} · STOP",
+  "✔ COPERTINE {f}/{n}": "✔ COVERS {f}/{n}",
+  "🖼 COPERTINE": "🖼 COVERS",
+  "Quando apro un sistema, scarica da sola le copertine di tutti i suoi giochi (usa più dati)": "When I open a system, download the covers of all its games by itself (uses more data)",
+  "Il pad collegato è riconosciuto come standard (Xbox e simili): RetroArch lo configura da solo. L'assegnazione manuale serve per i pad non riconosciuti.": "The connected gamepad is recognized as standard (Xbox and similar): RetroArch configures it by itself. Manual assignment is for gamepads it does not recognize.",
+  "L2": "L2",
+  "R2": "R2",
+  "L3 (stick sinistro premuto)": "L3 (left stick pressed)",
+  "R3 (stick destro premuto)": "R3 (right stick pressed)",
   "\"Importa\" porta qui i salvataggi di RetroArch (dalla sua cartella saves e states) e quelli di MAME usati finora, senza sovrascrivere nulla. Quelli che RetroArch teneva accanto alle ROM vanno copiati a mano.": "\"Import\" brings here the RetroArch saves (from its saves and states folders) and the MAME ones used so far, without overwriting anything. Saves that RetroArch kept next to the ROMs must be copied by hand.",
   "Arcade (MAME): salva i punteggi record dei giochi che lo permettono": "Arcade (MAME): save the high scores of games that support it",
   "Backup in corso…": "Backing up…",

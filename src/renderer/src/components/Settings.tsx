@@ -486,6 +486,10 @@ export default function SettingsScreen({ onClose, onSaved, onPc, onRomCheck, onG
           {t('Scarica automaticamente copertine e immagini (gratuito, senza account)')}
         </label>
         <label className="check">
+          <input type="checkbox" checked={s.autoCovers} onChange={(e) => setS({ ...s, autoCovers: e.target.checked })} />
+          {t('Quando apro un sistema, scarica da sola le copertine di tutti i suoi giochi (usa più dati)')}
+        </label>
+        <label className="check">
           <input type="checkbox" checked={s.showUnsupported} onChange={(e) => setS({ ...s, showUnsupported: e.target.checked })} />
           {t('Arcade e Neo Geo: mostra anche i giochi che il motore (FBNeo) non supporta, come i set MAME completi')}
         </label>

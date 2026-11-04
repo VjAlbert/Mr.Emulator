@@ -12,6 +12,10 @@ export const ACTIONS: Array<{ id: ActionId; label: string }> = [
   { id: 'b4', label: 'Pulsante 4' },
   { id: 'b5', label: 'Pulsante 5' },
   { id: 'b6', label: 'Pulsante 6' },
+  { id: 'l2', label: 'L2' },
+  { id: 'r2', label: 'R2' },
+  { id: 'l3', label: 'L3 (stick sinistro premuto)' },
+  { id: 'r3', label: 'R3 (stick destro premuto)' },
   { id: 'start', label: 'Start' },
   { id: 'select', label: 'Moneta / Select' }
 ]
@@ -70,3 +74,29 @@ export function prettyKey(key: string): string {
   return key.length === 1 ? key.toUpperCase() : key
 }
 
+
+/** Nome dei pulsanti su un pad stile PlayStation (i pulsanti 1-6 corrispondono a B A Y X L R di RetroArch) */
+export const PAD_HINT: Partial<Record<ActionId, string>> = {
+  b1: '✕',
+  b2: '○',
+  b3: '□',
+  b4: '△',
+  b5: 'L1',
+  b6: 'R1'
+}
+
+/**
+ * Molti pad non Xbox (compresi i cloni del pad PS3) presentano la croce direzionale come un asse "hat"
+ * (indice 9) con valori fissi: -1 su, -0,43 destra, 0,14 giù, 0,71 sinistra, 1,29 a riposo.
+ */
+export function hatFromAxes(axes: readonly number[]): 'up' | 'down' | 'left' | 'right' | null | 'rest' {
+  if (axes.length < 10) return null
+  const v = axes[9]
+  if (Math.abs(v - 1.28571) < 0.05) return 'rest'
+  const near = (t: number): boolean => Math.abs(v - t) < 0.06
+  if (near(-1)) return 'up'
+  if (near(-0.42857)) return 'right'
+  if (near(0.14286)) return 'down'
+  if (near(0.71429)) return 'left'
+  return null
+}

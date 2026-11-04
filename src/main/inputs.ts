@@ -54,6 +54,7 @@ const toControls = (k: PlayerKeys): PlayerControls => ({
   up: { key: k.up }, down: { key: k.down }, left: { key: k.left }, right: { key: k.right },
   b1: { key: k.buttons[0] }, b2: { key: k.buttons[1] }, b3: { key: k.buttons[2] },
   b4: { key: k.buttons[3] }, b5: { key: k.buttons[4] }, b6: { key: k.buttons[5] },
+  l2: {}, r2: {}, l3: {}, r3: {},
   start: { key: k.start }, select: { key: k.select }
 })
 
@@ -98,7 +99,9 @@ export function buildInputConfig(scheme: InputScheme, layout: ArcadeLayout, isAr
       const base = `input_player${n}_${target}`
       if (b.key) c[base] = b.key
       if (b.btn !== undefined) c[`${base}_btn`] = String(b.btn)
-      if (b.axis && DIRS.includes(id)) c[`${base}_axis`] = b.axis
+      // croce direzionale presentata come "hat": RetroArch la chiama h0up, h0down…
+      if (b.hat && DIRS.includes(id)) c[`${base}_btn`] = `h0${b.hat}`
+      if (b.axis && (DIRS.includes(id) || id === 'l2' || id === 'r2')) c[`${base}_axis`] = b.axis
     }
   })
 
@@ -132,6 +135,7 @@ export function prettyBinding(b: Binding | undefined): string {
   if (b.key) parts.push(prettyKey(b.key))
   if (b.btn !== undefined) parts.push(`Pad ${b.btn + 1}`)
   if (b.axis) parts.push(`Asse ${b.axis[1]} ${b.axis[0] === '-' ? '−' : '+'}`)
+  if (b.hat) parts.push(`Croce ${{ up: '↑', down: '↓', left: '←', right: '→' }[b.hat]}`)
   return parts.length ? parts.join(' / ') : '—'
 }
 
@@ -199,7 +203,8 @@ function mameSeq(n: string, b: Binding | undefined, extra: string[]): string {
       parts.push(`JOYCODE_${n}_${name}_${dir}_SWITCH`)
     }
   }
-  if (b?.btn === undefined && !b?.axis) parts.push(...extra)
+  if (b?.hat) parts.push(`JOYCODE_${n}_HSWITCH_${b.hat.toUpperCase()}`)
+  if (b?.btn === undefined && !b?.axis && !b?.hat) parts.push(...extra)
   return parts.join(' OR ')
 }
 
@@ -233,6 +238,11 @@ export function buildMameCtrlr(scheme: InputScheme, layout: ArcadeLayout, custom
       body += port(`P${n}_JOYSTICK_LEFT`, mameSeq(n, pc.left, [`JOYCODE_${n}_XAXIS_LEFT_SWITCH`, `JOYCODE_${n}_DPADLEFT`]))
       body += port(`P${n}_JOYSTICK_RIGHT`, mameSeq(n, pc.right, [`JOYCODE_${n}_XAXIS_RIGHT_SWITCH`, `JOYCODE_${n}_DPADRIGHT`]))
       order.forEach((idx, b) => (body += port(`P${n}_BUTTON${b + 1}`, mameSeq(n, pc[bs[idx]], [`JOYCODE_${n}_BUTTON${b + 1}`]))))
+      // L2, R2, L3, R3 → pulsanti 7-10 (solo se assegnati)
+      ;(['l2', 'r2', 'l3', 'r3'] as const).forEach((id, j) => {
+        const seq = mameSeq(n, pc[id], [])
+        if (seq) body += port(`P${n}_BUTTON${7 + j}`, seq)
+      })
       body += port(`START${n}`, mameSeq(n, pc.start, [`JOYCODE_${n}_START`]))
       body += port(`COIN${n}`, mameSeq(n, pc.select, [`JOYCODE_${n}_SELECT`]))
     })

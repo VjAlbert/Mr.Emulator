@@ -107,6 +107,8 @@ export function retroSaveConfig(s: Settings, system: SystemDef, game: Game, fres
     sort_savefiles_by_content_enable: 'false',
     sort_savestates_by_content_enable: 'false',
     autosave_interval: '10',
+    // non fidarsi dei file "info" dei core (a volte mancano o sono vecchi) per decidere se salvare lo stato
+    core_info_savestate_bypass: 'true',
     savestate_auto_save: String(resume),
     // "nuova partita": non si carica nulla, ma all'uscita si salva la nuova
     savestate_auto_load: String(resume && !fresh)

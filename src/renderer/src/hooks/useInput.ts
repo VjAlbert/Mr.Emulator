@@ -108,6 +108,11 @@ export function useInput(handlers: InputHandlers, opts: { modal?: boolean; keybo
   kbd.current = opts.keyboard !== false
 
   useEffect(() => {
+    // pulsanti del pad già premuti quando la schermata si apre (per esempio quello che ha aperto la lista): non valgono finché non si rilasciano
+    for (const pad of navigator.getGamepads()) {
+      if (!pad) continue
+      for (const [k, v] of Object.entries(padState(pad))) if (v) blocked.add(`${pad.index}${k}`)
+    }
     const onKey = (e: KeyboardEvent): void => {
       if (!kbd.current || (modalOpen && !modal.current)) return
       const t = e.target as HTMLElement
@@ -123,6 +128,8 @@ export function useInput(handlers: InputHandlers, opts: { modal?: boolean; keybo
       const mine = customCodes?.[e.code]
       if (mine) {
         e.preventDefault()
+        // tenere premuto un tasto di conferma non deve ripeterla (solo i movimenti si ripetono)
+        if (e.repeat && (mine === 'confirm' || mine === 'back' || mine === 'menu')) return
         if (mine === 'confirm') h.onConfirm?.()
         else if (mine === 'back') h.onBack?.()
         else if (mine === 'menu') h.onMenu?.()
@@ -131,6 +138,7 @@ export function useInput(handlers: InputHandlers, opts: { modal?: boolean; keybo
       }
       if (cabinetKeys && byCode[e.code]) {
         e.preventDefault()
+        if (e.repeat) return
         byCode[e.code]()
         return
       }
@@ -152,6 +160,7 @@ export function useInput(handlers: InputHandlers, opts: { modal?: boolean; keybo
       const fn = map[e.key]
       if (fn) {
         e.preventDefault()
+        if (e.repeat && !['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'PageUp', 'PageDown'].includes(e.key)) return
         fn()
       }
     }
@@ -161,7 +170,7 @@ export function useInput(handlers: InputHandlers, opts: { modal?: boolean; keybo
     const held = new Map<string, { since: number; last: number; n: number }>()
     let raf = 0
 
-    const press = (key: string, down: boolean, now: number, fire: () => void, accel = false): void => {
+    const press = (key: string, down: boolean, now: number, fire: () => void, accel = false, repeat = true): void => {
       if (blocked.has(key)) {
         if (!down) blocked.delete(key)
         held.delete(key)
@@ -175,7 +184,7 @@ export function useInput(handlers: InputHandlers, opts: { modal?: boolean; keybo
       if (!st) {
         held.set(key, { since: now, last: now, n: 0 })
         fire()
-      } else if (now - st.since > REPEAT_FIRST && now - st.last > repeatEvery(now - st.since, accel)) {
+      } else if (repeat && now - st.since > REPEAT_FIRST && now - st.last > repeatEvery(now - st.since, accel)) {
         st.last = now
         fire()
       }
@@ -197,14 +206,14 @@ export function useInput(handlers: InputHandlers, opts: { modal?: boolean; keybo
         press(`${id}d`, !!b[13]?.pressed || ay > DEADZONE, now, () => h.onMove?.('down'), true)
         press(`${id}l`, !!b[14]?.pressed || ax < -DEADZONE, now, () => h.onMove?.('left'))
         press(`${id}r`, !!b[15]?.pressed || ax > DEADZONE, now, () => h.onMove?.('right'))
-        press(`${id}se`, !!b[3]?.pressed, now, () => h.onSearch?.())
-        press(`${id}x`, !!b[2]?.pressed, now, () => h.onAlt?.())
-        press(`${id}sel`, !!b[8]?.pressed, now, () => h.onMusic?.())
+        press(`${id}se`, !!b[3]?.pressed, now, () => h.onSearch?.(), false, false)
+        press(`${id}x`, !!b[2]?.pressed, now, () => h.onAlt?.(), false, false)
+        press(`${id}sel`, !!b[8]?.pressed, now, () => h.onMusic?.(), false, false)
         press(`${id}pl`, !!b[4]?.pressed, now, () => h.onPage?.(-1))
         press(`${id}pr`, !!b[5]?.pressed, now, () => h.onPage?.(1))
-        press(`${id}a`, !!b[0]?.pressed, now, () => h.onConfirm?.())
-        press(`${id}b`, !!b[1]?.pressed, now, () => h.onBack?.())
-        press(`${id}s`, !!b[9]?.pressed, now, () => h.onMenu?.())
+        press(`${id}a`, !!b[0]?.pressed, now, () => h.onConfirm?.(), false, false)
+        press(`${id}b`, !!b[1]?.pressed, now, () => h.onBack?.(), false, false)
+        press(`${id}s`, !!b[9]?.pressed, now, () => h.onMenu?.(), false, false)
       }
       raf = requestAnimationFrame(tick)
     }

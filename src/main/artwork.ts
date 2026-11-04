@@ -1,6 +1,7 @@
 import { app } from 'electron'
 import { join, resolve, parse, sep } from 'path'
 import { writeFileAtomic } from './atomic'
+import { loadIndex, makeMatcher, type TitleMatcher } from './thumbIndex'
 import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'fs'
 import type { ArtKind, Game, SystemDef } from '@shared/types'
 import { prettyName } from './scanner'
@@ -111,6 +112,25 @@ export async function arcadeTitles(): Promise<Map<string, string> | null> {
   return map
 }
 
+const matchers = new Map<string, TitleMatcher>()
+/** Nomi dell'archivio che corrispondono ai titoli indicati (senza ripetizioni); vuoto se l'indice non è disponibile */
+async function indexHits(repo: string, kindDir: string, titles: string[]): Promise<string[]> {
+  const key = `${repo}|${kindDir}`
+  let m = matchers.get(key)
+  if (!m) {
+    const names = await loadIndex(artRoot(), repo, kindDir)
+    if (!names) return []
+    m = makeMatcher(names)
+    matchers.set(key, m)
+  }
+  const out: string[] = []
+  for (const t of titles) {
+    const h = m(t)
+    if (h && !out.includes(h)) out.push(h)
+  }
+  return out
+}
+
 function candidates(fileName: string): string[] {
   const stem = parse(fileName).name
   const base = prettyName(fileName)
@@ -121,7 +141,7 @@ function candidates(fileName: string): string[] {
 const localPath = (systemId: string, kind: string, name: string): string =>
   join(artRoot(), systemId, kind, `${name}.png`)
 
-const missPath = (systemId: string, stem: string, kind: ArtKind): string => join(artRoot(), systemId, `${stem}.${kind}.v4.miss`)
+const missPath = (systemId: string, stem: string, kind: ArtKind): string => join(artRoot(), systemId, `${stem}.${kind}.v5.miss`)
 
 const toUrl = (systemId: string, kind: string, name: string): string =>
   `${ART_SCHEME}://art/${encodeURIComponent(systemId)}/${kind}/${encodeURIComponent(name)}.png`
@@ -193,7 +213,7 @@ export function getArt(game: Game, system: SystemDef, enabled: boolean, kind: Ar
 async function resolveArt(game: Game, system: SystemDef, enabled: boolean, stem: string, kind: ArtKind): Promise<string | null> {
   // 0) immagini locali (pacchetti Multimedia): nome breve esatto, senza rete; per le varianti si ripiega sul gioco principale
   const media = mediaProvider?.() ?? null
-  if (media && (system.engine === 'mame' || system.titleDat)) {
+  if (media) {
     const parent = system.titleSource === 'mame' && mameProvider ? (await mameProvider())?.parentOf(stem.toLowerCase()) : undefined
     const hit = await media.find(kind, [stem.toLowerCase(), parent ?? ''])
     if (hit) {
@@ -211,6 +231,8 @@ async function resolveArt(game: Game, system: SystemDef, enabled: boolean, stem:
   }
 
   let names: string[]
+  /** Titoli con cui cercare nell'indice dell'archivio (console): prima quello ufficiale se lo conosciamo, poi il nome del file */
+  let queries: string[] = []
   let fallbacks: string[] = []
   /** Altri indirizzi da provare: (archivio, nome) */
   let extra: Array<{ repo: string; name: string }> = []
@@ -246,12 +268,14 @@ async function resolveArt(game: Game, system: SystemDef, enabled: boolean, stem:
     const soft = await softProvider(system)
     const title = soft?.get(stem.toLowerCase())
     names = title ? [clean(title)] : candidates(game.fileName)
+    queries = title ? [title, parse(game.fileName).name] : [parse(game.fileName).name]
     if (title) {
       const base = title.replace(/\s*\(.*$/, '').trim()
       fallbacks = ['USA', 'USA, Europe', 'Europe', 'World', 'Japan'].map((r) => clean(`${base} (${r})`)).filter((n) => n !== names[0])
     }
   } else {
     names = candidates(game.fileName)
+    queries = [parse(game.fileName).name]
   }
 
   const dir = KIND_DIR[kind]
@@ -262,7 +286,9 @@ async function resolveArt(game: Game, system: SystemDef, enabled: boolean, stem:
   // 2) da scaricare (prima il titolo esatto, poi i giochi originali); il file si salva col nome del gioco richiesto
   return slot(async () => {
     let networkProblem = false
-    const attempts = [...names, ...fallbacks].map((name) => ({ repo: system.thumbs!, name })).concat(extra)
+    // console: il nome esatto lo dice l'indice dell'archivio (se raggiungibile), così non si tira a indovinare
+    const hits = queries.length ? await indexHits(system.thumbs!, dir, queries) : []
+    const attempts = [...hits, ...names, ...fallbacks].filter((n, i, a) => a.indexOf(n) === i).map((name) => ({ repo: system.thumbs!, name })).concat(extra)
     for (const { repo, name: n } of attempts) {
       const res = await download(repo, dir, n)
       if (res === 'error') networkProblem = true

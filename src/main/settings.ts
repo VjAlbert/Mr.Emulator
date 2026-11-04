@@ -45,6 +45,7 @@ const DEFAULTS: Settings = {
   resumeConsoles: true,
   resumeArcade: {},
   hiscore: true,
+  autoCovers: false,
   overlayBySystem: {},
   theme: 'fighter',
   crtShader: 'auto',

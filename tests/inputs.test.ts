@@ -124,3 +124,40 @@ test('MAME: cabinato (I-PAC) e combinazioni disattivate', () => {
   assert.ok(!/JOYCODE_1_SELECT JOYCODE_1_START/.test(off))
   assert.match(off, /UI_CANCEL[\s\S]*?KEYCODE_ESC OR KEYCODE_5 KEYCODE_1<\/newseq>/)
 })
+
+test('pad con più di 6 tasti (clone PS3): L2, R2, L3, R3, croce "hat" e assi arrivano a RetroArch e MAME', () => {
+  const c = presetControls('laptop')
+  c.p1.l2 = { btn: 6 }
+  c.p1.r2 = { axis: '+5' }
+  c.p1.l3 = { btn: 10 }
+  c.p1.r3 = { btn: 11 }
+  c.p1.up = { hat: 'up' }
+  c.p1.left = { axis: '-0' }
+  c.p1.b1 = { btn: 2 }
+  const cfg = buildInputConfig('custom', 'standard', false, c)
+  assert.equal(cfg.input_player1_l2_btn, '6')
+  assert.equal(cfg.input_player1_r2_axis, '+5')
+  assert.equal(cfg.input_player1_l3_btn, '10')
+  assert.equal(cfg.input_player1_r3_btn, '11')
+  assert.equal(cfg.input_player1_up_btn, 'h0up')
+  assert.equal(cfg.input_player1_left_axis, '-0')
+  assert.equal(cfg.input_player1_b_btn, '2')
+  const { xml } = buildMameCtrlr('custom', 'standard', c)
+  assert.match(xml, /P1_BUTTON7[\s\S]*?JOYCODE_1_BUTTON7<\/newseq>/)
+  assert.match(xml, /P1_BUTTON9[\s\S]*?JOYCODE_1_BUTTON11<\/newseq>/)
+  assert.match(xml, /P1_JOYSTICK_UP[\s\S]*?JOYCODE_1_HSWITCH_UP<\/newseq>/)
+  assert.ok(!/P2_BUTTON7/.test(xml)) // non assegnati: nessuna riga vuota
+  assert.equal(prettyBinding({ hat: 'left' }), 'Croce ←')
+})
+
+test('croce "hat" dei pad non Xbox: valori dell\'asse 9 riconosciuti', async () => {
+  const { hatFromAxes } = await import('../src/shared/keys')
+  const mk = (v: number): number[] => [0, 0, 0, 0, 0, 0, 0, 0, 0, v]
+  assert.equal(hatFromAxes(mk(1.28571)), 'rest')
+  assert.equal(hatFromAxes(mk(-1)), 'up')
+  assert.equal(hatFromAxes(mk(-0.42857)), 'right')
+  assert.equal(hatFromAxes(mk(0.14286)), 'down')
+  assert.equal(hatFromAxes(mk(0.71429)), 'left')
+  assert.equal(hatFromAxes(mk(0.3)), null)
+  assert.equal(hatFromAxes([0, 0, 0, 0]), null) // pad senza hat
+})

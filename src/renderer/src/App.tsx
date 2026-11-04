@@ -150,7 +150,11 @@ export default function App(): React.JSX.Element {
   }
   toastRef.current = toast
 
+  const opening = useRef(false)
   const openSystem = async (system: SystemInfo): Promise<void> => {
+    // un secondo "Invio" o clic mentre l'elenco si carica non deve aprire due volte (né finire sul primo gioco)
+    if (opening.current) return
+    opening.current = true
     // la prima volta l'elenco di un sistema (specie MAME) può richiedere qualche secondo: si avvisa
     const t = window.setTimeout(() => setBusy(true), 400)
     try {
@@ -158,6 +162,7 @@ export default function App(): React.JSX.Element {
     } finally {
       window.clearTimeout(t)
       setBusy(false)
+      opening.current = false
     }
     go({ name: 'games', system })
   }

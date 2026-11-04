@@ -56,7 +56,8 @@ export function launchGame(
   const cfg = join(app.getPath('userData'), 'retroarch-mr.cfg')
   mkdirSync(dirname(cfg), { recursive: true })
   writeFileSync(cfg, configText, 'utf-8')
-  const args = ['-L', corePath, game.path, '--appendconfig', cfg]
+  // registro di RetroArch dell'ultima partita: serve a capire cosa è successo (per esempio ai salvataggi)
+  const args = ['-L', corePath, game.path, '--appendconfig', cfg, '--verbose', '--log-file', join(app.getPath('userData'), 'retroarch-last.log')]
 
   try {
     const child = spawn(settings.retroarchPath, args, { cwd: dirname(settings.retroarchPath), stdio: 'ignore' })

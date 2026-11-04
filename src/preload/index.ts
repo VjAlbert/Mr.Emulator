@@ -1,5 +1,5 @@
 import { contextBridge, ipcRenderer } from 'electron'
-import type { Game, GameEnded, LibraryEvent, MrApi, VerifyState } from '@shared/types'
+import type { ArtBulkState, Game, GameEnded, LibraryEvent, MrApi, VerifyState } from '@shared/types'
 
 const api: MrApi = {
   getLastMameLog: () => ipcRenderer.invoke('mame:last-log'),
@@ -44,6 +44,13 @@ const api: MrApi = {
   getCoreList: () => ipcRenderer.invoke('cores:list'),
   installCore: (core: string) => ipcRenderer.invoke('cores:install', core),
   findOverlays: (dir: string) => ipcRenderer.invoke('overlays:find', dir),
+  startArtBulk: (systemId: string) => ipcRenderer.invoke('art:bulk-start', systemId),
+  cancelArtBulk: () => ipcRenderer.invoke('art:bulk-cancel'),
+  onArtBulk: (cb: (s: ArtBulkState) => void) => {
+    const fn = (_e: unknown, s: ArtBulkState): void => cb(s)
+    ipcRenderer.on('art:bulk', fn)
+    return () => ipcRenderer.removeListener('art:bulk', fn)
+  },
   getSaveInfo: (game: Game) => ipcRenderer.invoke('saves:info', game),
   setResume: (gameId: string, on: boolean) => ipcRenderer.invoke('saves:set-resume', gameId, on),
   getSaveStats: () => ipcRenderer.invoke('saves:stats'),

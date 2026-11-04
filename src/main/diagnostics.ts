@@ -1,5 +1,6 @@
-import { existsSync, readFileSync, statSync } from 'fs'
+import { existsSync, readdirSync, readFileSync, statSync } from 'fs'
 import { createHash } from 'crypto'
+import { savesRoot } from './saves'
 import { dirname, join } from 'path'
 import type { DiagnosticCheck, DiagnosticReport, Settings, SystemDef } from '@shared/types'
 import { BIOS_RULES, type BiosRule } from '@shared/bios'
@@ -113,11 +114,27 @@ export function buildDiagnostics(c: DiagContext): DiagnosticReport {
     const any = list.some((x) => resolveOverlay(s, x.id))
     add(any ? 'ok' : 'warn', 'Bordi grafici attivi', lines.join(' · ') || '(nessun sistema con giochi)', any ? '' : 'Indica la cartella dei bordi o un bordo comune in Impostazioni → Aspetto.')
   }
+  // salvataggi: cartella, stati trovati e cosa ha scritto RetroArch nell'ultima partita
+  {
+    const root = savesRoot(s)
+    let states = 0
+    try {
+      states = readdirSync(join(root, 'states')).filter((f) => /\.state\.auto$/.test(f)).length
+    } catch {
+      // cartella ancora inesistente
+    }
+    add(existsSync(root) ? 'ok' : 'warn', 'Cartella dei salvataggi', `${root} · ${states} ${states === 1 ? 'partita ripresa' : 'partite riprese'} · ripresa console ${s.resumeConsoles ? 'attiva' : 'spenta'}`, existsSync(root) ? '' : 'Si crea alla prima partita.')
+  }
   const hidden = s.hiddenSystems ?? []
   if (hidden.length) add('ok', `Sistemi nascosti: ${hidden.length}`, hidden.join(', '))
 
   const mainLog = tail(join(c.userData, 'main.log'), 4000)
   const mameLog = tail(join(c.userData, 'mame', 'last-error.log'), 3000)
+  const raLines = tail(join(c.userData, 'retroarch-last.log'), 200000)
+    .split(/\r?\n/)
+    .filter((l) => /\[State\]|auto.?sav|savestate|\.srm|\[SRAM\]|\[Core\] (Loaded|Version)|Failed|failed/i.test(l))
+    .slice(-14)
+    .join('\n')
   if (mainLog) add('warn', 'Il programma ha registrato errori imprevisti', 'vedi il testo copiabile', 'Mandami il testo della diagnostica.')
 
   const icon = { ok: '[OK]  ', warn: '[ATTENZIONE]', bad: '[PROBLEMA]' } as const
@@ -127,7 +144,8 @@ export function buildDiagnostics(c: DiagContext): DiagnosticReport {
     '',
     ...checks.map((k) => `${icon[k.level]} ${k.title}${k.detail ? ` — ${k.detail}` : ''}${k.fix ? `\n          → ${k.fix}` : ''}`),
     mainLog ? `\n--- main.log (ultime righe) ---\n${mainLog}` : '',
-    mameLog ? `\n--- ultimo errore MAME ---\n${mameLog}` : ''
+    mameLog ? `\n--- ultimo errore MAME ---\n${mameLog}` : '',
+    raLines ? `\n--- ultima partita con RetroArch (salvataggi e errori) ---\n${raLines}` : ''
   ].join('\n')
   return { checks, text, problems: checks.filter((k) => k.level === 'bad').length, warnings: checks.filter((k) => k.level === 'warn').length }
 }
