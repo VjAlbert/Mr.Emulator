@@ -4,7 +4,7 @@ import { useInput } from '../hooks/useInput'
 import { sfx } from '../sound'
 import { getLang, t } from '../i18n'
 import Orbs from './Orbs'
-import SystemArt from './SystemArt'
+import ConsoleImage from './ConsoleImage'
 
 interface Props {
   systems: SystemInfo[]
@@ -68,7 +68,7 @@ export default function TitleScreen({ systems, version, onStart, onLang }: Props
           <div className="tt-track">
             {[...strip, ...strip].map((s, i) => (
               <div key={i} className="tt-sys" style={{ ['--tile' as string]: s.color }}>
-                <SystemArt id={s.id} className="tt-art" />
+                <ConsoleImage id={s.id} color={s.color} className="tt-art" />
                 <span>{s.short}</span>
               </div>
             ))}

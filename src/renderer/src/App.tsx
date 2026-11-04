@@ -6,6 +6,7 @@ import SettingsScreen from './components/Settings'
 import SystemReport from './components/SystemReport'
 import InputTest from './components/InputTest'
 import FirstRun from './components/FirstRun'
+import { refreshConsoleArt } from './consoleArt'
 import TitleScreen from './components/TitleScreen'
 import ResumeDialog, { type ResumeChoice } from './components/ResumeDialog'
 import { getLang, setLang, useLangVersion, type LangSetting, t } from './i18n'
@@ -256,6 +257,7 @@ export default function App(): React.JSX.Element {
         onGuide={() => go({ name: 'firstrun' })}
         onSaved={() => {
           clearArtCache()
+          refreshConsoleArt()
           refresh()
           applyFx()
         }}

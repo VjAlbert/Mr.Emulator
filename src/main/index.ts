@@ -28,6 +28,7 @@ import { loadMameData, type MameData } from './mame'
 import { findOverlays } from './overlays'
 import { checkForUpdate, type UpdateInfo } from './updates'
 import { loadStats, recordPlay } from './stats'
+import { consoleImagesDir, ensureConsoleImagesDir, findConsoleImage, listConsoleImages, readConsoleImage } from './consoleImages'
 import { backupSaves, importSaves, mameSaveIni, prepareFresh, restoreSaves, retroSaveConfig, saveInfo, savesRoot, saveStats } from './saves'
 import { coreList, coresDirOf, installCore } from './cores'
 import { biosStatus, buildDiagnostics } from './diagnostics'
@@ -714,6 +715,15 @@ app.whenReady().then(async () => {
     }
   }
   void runUpdateCheck()
+  // foto delle console messe dall'utente in <dati del programma>\consoles
+  ipcMain.handle('consoles:image', (_e, id: string) => {
+    const sys = SYSTEMS.find((x) => x.id === id)
+    return sys ? readConsoleImage(findConsoleImage(consoleImagesDir(app.getPath('userData')), sys)) : null
+  })
+  ipcMain.handle('consoles:list', () => listConsoleImages(consoleImagesDir(app.getPath('userData')), SYSTEMS))
+  ipcMain.handle('consoles:open', async () => {
+    await shell.openPath(ensureConsoleImagesDir(app.getPath('userData')))
+  })
   ipcMain.handle('stats:all', () => loadStats(join(app.getPath('userData'), 'stats.json')))
   ipcMain.handle('update:get', async () => {
     await runUpdateCheck()

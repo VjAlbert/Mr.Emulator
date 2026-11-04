@@ -176,6 +176,10 @@ export interface Settings {
   groupDiscs: boolean
   /** Controlla da solo se c'è una nuova versione (una richiesta a GitHub al giorno) */
   checkUpdates: boolean
+  /** Stile della schermata dei sistemi: fumetto (poster) o palcoscenico */
+  uiStyle: 'comic' | 'stage'
+  /** Le foto delle console messe dall'utente si trasformano in stile fumetto */
+  stylizePhotos: boolean
   /** Bordo scelto a mano per un sistema ("-" = nessun bordo per quel sistema) */
   overlayBySystem: Record<string, string>
   /** Tema grafico del launcher */
@@ -462,6 +466,11 @@ export interface MrApi {
   /** Chiude il programma (anche con la chiusura bloccata) */
   quitApp(): Promise<void>
   getAppVersion(): Promise<string>
+  /** Foto della console messa dall'utente (data URL), o null */
+  getConsoleImage(systemId: string): Promise<string | null>
+  /** Per ogni sistema, il file della foto trovato (null = nessuna) */
+  listConsoleImages(): Promise<Record<string, string | null>>
+  openConsoleImages(): Promise<void>
   /** Statistiche di tutti i giochi giocati (id del gioco -> statistiche) */
   getStats(): Promise<Record<string, PlayStat>>
   /** Nuova versione disponibile (null = nessuna o non controllato) */

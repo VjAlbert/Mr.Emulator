@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { IMAGE_MODES } from './ScreenPreview'
+import { markConsoleImagesDirty, refreshConsoleArt } from '../consoleArt'
+import { SVG_FOR } from './consoleSvgs'
 import type { DiagnosticReport, ImageStyle, PickKind, Settings, SystemInfo } from '@shared/types'
 import { useInput } from '../hooks/useInput'
 import { configureSound, sfx } from '../sound'
@@ -28,6 +30,7 @@ export default function SettingsScreen({ onClose, onSaved, onPc, onRomCheck, onG
   const [saveStats, setSaveStats] = useState<{ dir: string; files: number; bytes: number } | null>(null)
   const [saveMsg, setSaveMsg] = useState('')
   const [confirmRestore, setConfirmRestore] = useState(false)
+  const [conImgs, setConImgs] = useState<Record<string, string | null>>({})
   const [ovFound, setOvFound] = useState<Record<string, string | null>>({})
 
   useEffect(() => {
@@ -53,6 +56,11 @@ export default function SettingsScreen({ onClose, onSaved, onPc, onRomCheck, onG
     const h = window.setTimeout(() => window.mr.findOverlays(ovDir).then(setOvFound), 300)
     return () => window.clearTimeout(h)
   }, [tab, ovDir])
+
+  // scheda Aspetto: quali console hanno già una foto nella cartella delle immagini
+  useEffect(() => {
+    if (tab === 'look') window.mr.listConsoleImages().then(setConImgs, () => undefined)
+  }, [tab])
 
   // scheda Salvataggi: cartella, numero di file e spazio
   useEffect(() => {
@@ -186,6 +194,54 @@ export default function SettingsScreen({ onClose, onSaved, onPc, onRomCheck, onG
           </div>
         ) : tab === 'look' ? (
           <div className="sysopts">
+            <h3 className="sub-h">{t('Stile della schermata dei sistemi')}</h3>
+            <div className="uistyles">
+              {([['comic', 'FUMETTO', 'Poster con esplosione gialla, fascia nera e retino: lo stile a fumetto.'], ['stage', 'PALCOSCENICO', 'Riflettore, anello luminoso e nome gigante dietro la console.']] as const).map(([id, name, desc]) => (
+                <button key={id} className={`uistyle ${s.uiStyle === id ? 'on' : ''}`} onClick={() => setS({ ...s, uiStyle: id })}>
+                  <b>{t(name)}</b>
+                  <small>{t(desc)}</small>
+                </button>
+              ))}
+            </div>
+            <h3 className="sub-h">{t('Immagini delle console')}</h3>
+            <p className="hint">{t('Ogni sistema mostra la sua console. Se metti nella cartella una foto (PNG, JPG o WEBP) con il nome del sistema, per esempio snes.png, il programma la usa e la trasforma in stile fumetto. Dove non c\'è una foto usa un\'illustrazione, o un simbolo.')}</p>
+            <label className="check">
+              <input type="checkbox" checked={s.stylizePhotos} onChange={(e) => setS({ ...s, stylizePhotos: e.target.checked })} />
+              {t('Trasforma le foto in stile fumetto (sfondo tolto, colori vivi, contorno nero)')}
+            </label>
+            <div className="field-row">
+              <button
+                className="chip"
+                onClick={() => {
+                  markConsoleImagesDirty()
+                  window.mr.openConsoleImages()
+                }}
+              >
+                {t('📂 APRI LA CARTELLA DELLE IMMAGINI')}
+              </button>
+              <button
+                className="chip"
+                onClick={async () => {
+                  refreshConsoleArt()
+                  setConImgs(await window.mr.listConsoleImages())
+                }}
+              >
+                {t('⟳ RILEGGI LE IMMAGINI')}
+              </button>
+            </div>
+            <div className="conlist">
+              {all.filter((x) => x.phase === 1).map((x) => {
+                const has = !!conImgs[x.id]
+                const art = has ? t('foto') : SVG_FOR[x.id] ? t('illustrazione') : t('simbolo')
+                return (
+                  <div key={x.id} className={`conrow ${has ? 'ok' : ''}`} style={{ ['--tile' as string]: x.color }}>
+                    <span className="conrow-n">{x.name}</span>
+                    <span className="conrow-s">{has ? '✔' : '·'} {art}</span>
+                    <code>{x.id}.png</code>
+                  </div>
+                )
+              })}
+            </div>
             <h3 className="sub-h">{t('Tema del launcher')}</h3>
             <div className="themes">
               {([['fighter', 'Picchiaduro', '#12121c', '#ff2d55'], ['neon', 'Neon', '#1c0b52', '#00e5ff'], ['retro', 'Fosforo verde', '#0a2812', '#5dff8f'], ['mono', 'Notte', '#181818', '#ffffff']] as const).map(([id, name, bg, fg]) => (

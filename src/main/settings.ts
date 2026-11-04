@@ -48,6 +48,8 @@ const DEFAULTS: Settings = {
   autoCovers: false,
   groupDiscs: true,
   checkUpdates: true,
+  uiStyle: 'comic',
+  stylizePhotos: true,
   overlayBySystem: {},
   theme: 'fighter',
   crtShader: 'auto',
