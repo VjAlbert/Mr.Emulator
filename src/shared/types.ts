@@ -166,6 +166,8 @@ export interface Settings {
   autoCovers: boolean
   /** Giochi a più dischi: un solo gioco nella lista (con cambio disco), invece di un gioco per disco */
   groupDiscs: boolean
+  /** Controlla da solo se c'è una nuova versione (una richiesta a GitHub al giorno) */
+  checkUpdates: boolean
   /** Bordo scelto a mano per un sistema ("-" = nessun bordo per quel sistema) */
   overlayBySystem: Record<string, string>
   /** Tema grafico del launcher */
@@ -452,6 +454,9 @@ export interface MrApi {
   /** Chiude il programma (anche con la chiusura bloccata) */
   quitApp(): Promise<void>
   getAppVersion(): Promise<string>
+  /** Nuova versione disponibile (null = nessuna o non controllato) */
+  getUpdate(): Promise<{ version: string; url: string } | null>
+  openUpdate(): Promise<void>
   /** Bordo (.cfg) trovato in una cartella per ogni sistema */
   findOverlays(dir: string): Promise<Record<string, string | null>>
   getBiosStatus(): Promise<Array<{ systemId: string; name: string; files: string[]; where: string; note: string; found: string | null; verified: 'ok' | 'unknown' | 'unchecked' | null }>>

@@ -40,8 +40,10 @@ export default function App(): React.JSX.Element {
   const lastActivity = useRef(Date.now())
   const langVersion = useLangVersion()
   const [version, setVersion] = useState('')
+  const [update, setUpdate] = useState<{ version: string; url: string } | null>(null)
   useEffect(() => {
     window.mr.getAppVersion().then(setVersion)
+    window.mr.getUpdate().then(setUpdate, () => undefined)
   }, [])
   const cursorHide = useRef(false)
   // modalità cabinato: il cursore sparisce dopo 2 secondi senza movimenti e ricompare se si muove il mouse
@@ -279,7 +281,7 @@ export default function App(): React.JSX.Element {
       <GameList system={screen.system} games={games} message={message} onLaunch={launch} onBack={() => go({ name: 'systems' })} letterJump={scheme !== 'cabinet'} onRomCheck={() => go({ name: 'romcheck' })} onToastClick={hasLog ? copyLog : undefined} />
     )
   } else {
-    view = <SystemSelect systems={systems.filter((x) => !x.hidden)} onOpen={openSystem} lib={lib} onSettings={() => go({ name: 'settings' })} onPc={() => go({ name: 'pc' })} onInput={() => go({ name: 'input' })} />
+    view = <SystemSelect update={update} onUpdate={() => window.mr.openUpdate()} systems={systems.filter((x) => !x.hidden)} onOpen={openSystem} lib={lib} onSettings={() => go({ name: 'settings' })} onPc={() => go({ name: 'pc' })} onInput={() => go({ name: 'input' })} />
   }
 
   const wipeColor = screen.name === 'games' ? screen.system.color : '#ffd400'

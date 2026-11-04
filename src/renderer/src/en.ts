@@ -1,5 +1,8 @@
 // Traduzioni inglesi: la chiave è il testo italiano usato nel programma
 export const EN: Record<string, string> = {
+  "Apre la pagina di download su GitHub": "Opens the download page on GitHub",
+  "⬆ NUOVA VERSIONE {v}": "⬆ NEW VERSION {v}",
+  "Avvisami quando esce una nuova versione (una richiesta a GitHub al giorno, non si invia nulla di tuo)": "Tell me when a new version is out (one request to GitHub per day, nothing of yours is sent)",
   "Giochi a più dischi (PlayStation, 3DO, Dreamcast): un solo gioco nella lista; il cambio disco si fa dal menu di RetroArch": "Multi-disc games (PlayStation, 3DO, Dreamcast): a single game in the list; swap discs from the RetroArch menu",
   "Scarica le copertine di tutti i giochi di questo sistema": "Download the covers of all games in this system",
   "⬇ {d}/{n} · FERMA": "⬇ {d}/{n} · STOP",

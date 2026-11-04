@@ -16,9 +16,12 @@ interface Props {
   onPc: () => void
   onInput: () => void
   lib: LibraryEvent | null
+  /** Nuova versione disponibile (se c'è) */
+  update?: { version: string; url: string } | null
+  onUpdate?: () => void
 }
 
-export default function SystemSelect({ systems, onOpen, onSettings, onPc, onInput, lib }: Props): React.JSX.Element {
+export default function SystemSelect({ systems, onOpen, onSettings, onPc, onInput, lib, update, onUpdate }: Props): React.JSX.Element {
   const [index, setIndex] = useState(0)
   const sel = systems[index]
   const firstRender = useRef(true)
@@ -83,6 +86,11 @@ export default function SystemSelect({ systems, onOpen, onSettings, onPc, onInpu
             <span className="scan" title={t('La libreria si aggiorna in background')}>
               {t('⟳ SCANSIONE')}{lib.found > 0 ? ` · ${lib.found.toLocaleString('it')}` : ''}
             </span>
+          )}
+          {update && (
+            <button className="chip update" onClick={onUpdate} title={t('Apre la pagina di download su GitHub')}>
+              {t('⬆ NUOVA VERSIONE {v}', { v: update.version })}
+            </button>
           )}
           <button className="chip" onClick={onInput}>
             {t('🎮 COMANDI')}

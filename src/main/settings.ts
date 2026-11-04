@@ -47,6 +47,7 @@ const DEFAULTS: Settings = {
   hiscore: true,
   autoCovers: false,
   groupDiscs: true,
+  checkUpdates: true,
   overlayBySystem: {},
   theme: 'fighter',
   crtShader: 'auto',

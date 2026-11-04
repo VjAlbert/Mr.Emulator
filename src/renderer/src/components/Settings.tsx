@@ -486,6 +486,10 @@ export default function SettingsScreen({ onClose, onSaved, onPc, onRomCheck, onG
           {t('Scarica automaticamente copertine e immagini (gratuito, senza account)')}
         </label>
         <label className="check">
+          <input type="checkbox" checked={s.checkUpdates} onChange={(e) => setS({ ...s, checkUpdates: e.target.checked })} />
+          {t('Avvisami quando esce una nuova versione (una richiesta a GitHub al giorno, non si invia nulla di tuo)')}
+        </label>
+        <label className="check">
           <input type="checkbox" checked={s.groupDiscs} onChange={(e) => setS({ ...s, groupDiscs: e.target.checked })} />
           {t('Giochi a più dischi (PlayStation, 3DO, Dreamcast): un solo gioco nella lista; il cambio disco si fa dal menu di RetroArch')}
         </label>

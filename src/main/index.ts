@@ -26,6 +26,7 @@ import { runVerify, type VerifyBad } from './verify'
 import { existsSync, readFileSync, writeFileSync } from 'fs'
 import { loadMameData, type MameData } from './mame'
 import { findOverlays } from './overlays'
+import { checkForUpdate, type UpdateInfo } from './updates'
 import { backupSaves, importSaves, mameSaveIni, prepareFresh, restoreSaves, retroSaveConfig, saveInfo, savesRoot, saveStats } from './saves'
 import { coreList, coresDirOf, installCore } from './cores'
 import { biosStatus, buildDiagnostics } from './diagnostics'
@@ -681,6 +682,36 @@ app.whenReady().then(async () => {
   })
   ipcMain.handle('saves:import', () => ({ copied: importSaves(loadSettings(), join(app.getPath('userData'), 'mame')) }))
   ipcMain.handle('overlays:find', (_e, dir: string) => findOverlays(dir, SYSTEMS.map((x) => x.id)))
+  // nuova versione: si controlla in background (al massimo una volta al giorno) e si ricorda il risultato
+  let update: UpdateInfo | null = null
+  const runUpdateCheck = async (): Promise<void> => {
+    const s = loadSettings()
+    if (!s.checkUpdates || !app.isPackaged) return
+    const f = join(app.getPath('userData'), 'update-check.json')
+    try {
+      const last = existsSync(f) ? (JSON.parse(readFileSync(f, 'utf8')) as { at: number; info: UpdateInfo | null }) : null
+      if (last && Date.now() - last.at < 24 * 3600 * 1000) {
+        update = last.info && last.info.version !== app.getVersion() ? last.info : null
+        return
+      }
+    } catch {
+      // copia illeggibile: si ricontrolla
+    }
+    update = await checkForUpdate(app.getVersion())
+    try {
+      writeFileAtomic(f, JSON.stringify({ at: Date.now(), info: update }))
+    } catch {
+      // la copia è un extra
+    }
+  }
+  void runUpdateCheck()
+  ipcMain.handle('update:get', async () => {
+    await runUpdateCheck()
+    return loadSettings().checkUpdates ? update : null
+  })
+  ipcMain.handle('update:open', async () => {
+    if (update && update.url.startsWith('https://github.com/VjAlbert/Mr.Emulator/')) await shell.openExternal(update.url)
+  })
   ipcMain.handle('app:version', () => app.getVersion())
   ipcMain.handle('app:quit', () => {
     allowQuit = true
