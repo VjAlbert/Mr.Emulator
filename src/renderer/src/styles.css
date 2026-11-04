@@ -689,5 +689,6 @@ b.warnmark { color: #ffd400; margin-right: 8px; font-weight: 400; } .row.active 
 
 /* firma sotto il logo */
 .brand { display: grid; gap: 0; }
-.by { font-family: Inter, 'Segoe UI', Arial, sans-serif; font-size: 11px; letter-spacing: 3px; text-transform: uppercase; color: var(--muted); margin: -4px 0 0 6px; transform: skewX(-8deg); transform-origin: left; white-space: nowrap; }
+.brand { width: max-content; }
+.by { font-family: Inter, 'Segoe UI', Arial, sans-serif; font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); margin: -2px 0 0 4px; transform: skewX(-8deg); transform-origin: left; white-space: nowrap; }
 .tt-by { font-family: Inter, 'Segoe UI', Arial, sans-serif; font-size: 15px; letter-spacing: 7px; text-transform: uppercase; color: var(--muted); margin-top: 8px; position: relative; }
