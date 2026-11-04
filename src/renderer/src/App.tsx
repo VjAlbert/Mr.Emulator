@@ -115,6 +115,7 @@ export default function App(): React.JSX.Element {
     window.mr.getSettings().then((st) => {
       document.documentElement.classList.toggle('light-fx', !!st.lightEffects)
       document.documentElement.dataset.theme = st.theme ?? 'fighter'
+      document.documentElement.dataset.ui = st.uiStyle ?? 'comic'
       setLang((st.language ?? 'auto') as LangSetting)
       cursorHide.current = !!st.cabinetHideCursor
       if (!st.cabinetHideCursor) document.documentElement.classList.remove('nocursor')

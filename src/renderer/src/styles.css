@@ -726,3 +726,61 @@ b.warnmark { color: #ffd400; margin-right: 8px; font-weight: 400; } .row.active 
 .conrow.ok { background: color-mix(in srgb, #17c964 14%, var(--card2)); }
 .conrow-s { color: var(--muted); }
 .conrow code { color: #ffd400; font-size: 12px; }
+
+/* ===== Stile FUMETTO per tutto il programma (data-ui="comic") ===== */
+:root[data-ui='comic'] { --ink: #050505; --pop: #ffd400; }
+:root[data-ui='comic'] body {
+  background:
+    radial-gradient(circle, rgba(255,255,255,.07) 1.6px, transparent 2px) 0 0 / 14px 14px,
+    radial-gradient(circle at 85% 8%, color-mix(in srgb, var(--accent) 35%, transparent) 0, transparent 38%),
+    var(--bg);
+}
+/* titoli: lettere a fumetto con contorno nero e ombra netta */
+:root[data-ui='comic'] .sys-title,
+:root[data-ui='comic'] .sub-h,
+:root[data-ui='comic'] .modal-title { color: var(--pop); -webkit-text-stroke: 1.5px var(--ink); paint-order: stroke fill; text-shadow: 3px 3px 0 var(--ink); }
+:root[data-ui='comic'] .sub-h { display: inline-block; background: var(--accent); color: #fff; padding: 3px 14px; transform: skewX(-8deg) rotate(-.6deg); border: 2px solid var(--ink); box-shadow: 4px 4px 0 var(--ink); text-shadow: 2px 2px 0 var(--ink); -webkit-text-stroke: 0; }
+/* pulsanti: bordo di china, ombra netta, si "schiacciano" */
+:root[data-ui='comic'] .chip,
+:root[data-ui='comic'] .tab,
+:root[data-ui='comic'] .uistyle,
+:root[data-ui='comic'] .theme { border: 3px solid var(--ink); box-shadow: 4px 4px 0 var(--ink); transition: transform .08s, box-shadow .08s; }
+:root[data-ui='comic'] .chip { clip-path: none; transform: skewX(-6deg); background: #fff; color: var(--ink); text-shadow: none; }
+:root[data-ui='comic'] .chip:hover { background: var(--pop); color: var(--ink); border-color: var(--ink); transform: skewX(-6deg) translate(-1px,-1px); box-shadow: 6px 6px 0 var(--ink); }
+:root[data-ui='comic'] .chip:active { transform: skewX(-6deg) translate(3px,3px); box-shadow: 1px 1px 0 var(--ink); }
+:root[data-ui='comic'] .chip.on,
+:root[data-ui='comic'] .chip.save { background: var(--accent); color: #fff; border-color: var(--ink); }
+:root[data-ui='comic'] .chip.update { background: var(--pop); color: var(--ink); }
+:root[data-ui='comic'] .tab { clip-path: none; background: #fff; color: var(--ink); transform: skewX(-6deg); }
+:root[data-ui='comic'] .tab.on { background: var(--pop); color: var(--ink); border-color: var(--ink); }
+/* elenco giochi: strisce da vignetta */
+:root[data-ui='comic'] .row { border: 3px solid var(--ink); border-left-width: 8px; background: var(--card); box-shadow: 3px 3px 0 var(--ink); }
+:root[data-ui='comic'] .row.active { background: var(--pop); color: var(--ink); border-color: var(--ink); box-shadow: 6px 6px 0 var(--ink); }
+:root[data-ui='comic'] .row.active .row-num, :root[data-ui='comic'] .row.active .row-name small { color: var(--ink); }
+/* scheda del gioco: vignetta con fumetto */
+:root[data-ui='comic'] .preview-card { background: #fff; color: var(--ink); border: 4px solid var(--ink); box-shadow: 8px 8px 0 var(--ink); padding: 14px; position: relative; background-image: radial-gradient(circle, rgba(0,0,0,.08) 1.4px, transparent 2px); background-size: 10px 10px; }
+:root[data-ui='comic'] .preview-card * { text-shadow: none; }
+/* pannelli, finestre e righe delle impostazioni */
+:root[data-ui='comic'] .modal-box,
+:root[data-ui='comic'] .dialog,
+:root[data-ui='comic'] .persys-row,
+:root[data-ui='comic'] .conrow,
+:root[data-ui='comic'] .savedir { border: 3px solid var(--ink); box-shadow: 4px 4px 0 var(--ink); }
+:root[data-ui='comic'] .persys-row, :root[data-ui='comic'] .conrow { border-left: 8px solid var(--tile, var(--accent)); }
+:root[data-ui='comic'] .modal-box, :root[data-ui='comic'] .dialog { box-shadow: 8px 8px 0 var(--ink); background-image: radial-gradient(circle, rgba(255,255,255,.06) 1.4px, transparent 2px); background-size: 12px 12px; }
+:root[data-ui='comic'] select, :root[data-ui='comic'] input[type='text'] { border: 3px solid var(--ink); box-shadow: 3px 3px 0 var(--ink); }
+:root[data-ui='comic'] .hint { border-left: 5px solid var(--pop); padding-left: 10px; }
+/* barra dei suggerimenti in basso: nastro giallo */
+:root[data-ui='comic'] .hints { border-top: 3px solid var(--ink); }
+
+/* Impostazioni: più compatte, due colonne per le righe per sistema */
+.settings-body { gap: 10px; }
+.settings-body .persys { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 8px 12px; }
+.settings-body .sub-h { margin: 18px 0 4px; justify-self: start; }
+.persys-st { font-size: 12px; opacity: .8; }
+.persys-row:has(.persys-st) { grid-template-columns: minmax(70px, 1fr) auto auto; }
+/* schermata dei sistemi: più respiro tra poster e tessere */
+.select-body { gap: clamp(36px, 5vw, 80px); }
+.select-body > .grid { padding: 24px 22px; }
+:root[data-ui='comic'] .sub-h { text-shadow: 1px 1px 0 var(--ink); letter-spacing: 1.5px; }
+.tabs .tab { padding: 8px 12px; font-size: 13px; }

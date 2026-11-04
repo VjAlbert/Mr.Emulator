@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { IMAGE_MODES } from './ScreenPreview'
 import { markConsoleImagesDirty, refreshConsoleArt } from '../consoleArt'
 import { SVG_FOR } from './consoleSvgs'
-import type { DiagnosticReport, ImageStyle, PickKind, Settings, SystemInfo } from '@shared/types'
+import type { ArtBulkState, DiagnosticReport, ImageStyle, PickKind, Settings, SystemInfo } from '@shared/types'
 import { useInput } from '../hooks/useInput'
 import { configureSound, sfx } from '../sound'
 import { getLang, setLang, t } from '../i18n'
@@ -23,10 +23,12 @@ export default function SettingsScreen({ onClose, onSaved, onPc, onRomCheck, onG
   const [mameInfo, setMameInfo] = useState<string>('')
   const [mediaInfo, setMediaInfo] = useState<string[]>([])
   const bodyRef = useRef<HTMLDivElement>(null)
-  const [tab, setTab] = useState<'general' | 'systems' | 'look' | 'saves' | 'cabinet' | 'diag'>('general')
+  const [tab, setTab] = useState<'general' | 'systems' | 'look' | 'screen' | 'covers' | 'saves' | 'cabinet' | 'diag'>('general')
   const [diag, setDiag] = useState<DiagnosticReport | null>(null)
   const [copied, setCopied] = useState(false)
   const [all, setAll] = useState<SystemInfo[]>([])
+  const [bulk, setBulk] = useState<Record<string, ArtBulkState>>({})
+  useEffect(() => window.mr.onArtBulk((b) => setBulk((o) => ({ ...o, [b.systemId]: b }))), [])
   const [saveStats, setSaveStats] = useState<{ dir: string; files: number; bytes: number } | null>(null)
   const [saveMsg, setSaveMsg] = useState('')
   const [confirmRestore, setConfirmRestore] = useState(false)
@@ -107,9 +109,10 @@ export default function SettingsScreen({ onClose, onSaved, onPc, onRomCheck, onG
       <div className="settings-body" ref={bodyRef}>
         <div className="tabs">
           <button className={`tab ${tab === 'general' ? 'on' : ''}`} onClick={() => setTab('general')}>{t('GENERALE')}</button>
-          {onGuide && <button className="tab" onClick={onGuide}>{t('▶ RIFAI LA GUIDA')}</button>}
           <button className={`tab ${tab === 'systems' ? 'on' : ''}`} onClick={() => setTab('systems')}>{t('SISTEMI IN HOME')}</button>
           <button className={`tab ${tab === 'look' ? 'on' : ''}`} onClick={() => setTab('look')}>{t('ASPETTO')}</button>
+          <button className={`tab ${tab === 'screen' ? 'on' : ''}`} onClick={() => setTab('screen')}>{t('SCHERMO')}</button>
+          <button className={`tab ${tab === 'covers' ? 'on' : ''}`} onClick={() => setTab('covers')}>{t('COPERTINE')}</button>
           <button className={`tab ${tab === 'saves' ? 'on' : ''}`} onClick={() => setTab('saves')}>{t('SALVATAGGI')}</button>
           <button className={`tab ${tab === 'cabinet' ? 'on' : ''}`} onClick={() => setTab('cabinet')}>{t('MODALITÀ CABINATO')}</button>
           <button
@@ -122,6 +125,7 @@ export default function SettingsScreen({ onClose, onSaved, onPc, onRomCheck, onG
           >
             {t('DIAGNOSTICA')}
           </button>
+          {onGuide && <button className="tab" onClick={onGuide}>{t('▶ RIFAI LA GUIDA')}</button>}
         </div>
         {tab === 'saves' ? (
           <div className="sysopts saves">
@@ -197,7 +201,10 @@ export default function SettingsScreen({ onClose, onSaved, onPc, onRomCheck, onG
             <h3 className="sub-h">{t('Stile della schermata dei sistemi')}</h3>
             <div className="uistyles">
               {([['comic', 'FUMETTO', 'Poster con esplosione gialla, fascia nera e retino: lo stile a fumetto.'], ['stage', 'PALCOSCENICO', 'Riflettore, anello luminoso e nome gigante dietro la console.']] as const).map(([id, name, desc]) => (
-                <button key={id} className={`uistyle ${s.uiStyle === id ? 'on' : ''}`} onClick={() => setS({ ...s, uiStyle: id })}>
+                <button key={id} className={`uistyle ${s.uiStyle === id ? 'on' : ''}`} onClick={() => {
+                  setS({ ...s, uiStyle: id })
+                  document.documentElement.dataset.ui = id
+                }}>
                   <b>{t(name)}</b>
                   <small>{t(desc)}</small>
                 </button>
@@ -258,6 +265,39 @@ export default function SettingsScreen({ onClose, onSaved, onPc, onRomCheck, onG
                 </button>
               ))}
             </div>
+          </div>
+        ) : tab === 'covers' ? (
+          <div className="sysopts">
+            <p className="hint">{t('Le copertine si scaricano da una fonte gratuita, senza account. Qui scegli come e per quali sistemi.')}</p>
+            <label className="check">
+          <input type="checkbox" checked={s.downloadArt} onChange={(e) => setS({ ...s, downloadArt: e.target.checked })} />
+          {t('Scarica automaticamente copertine e immagini (gratuito, senza account)')}
+        </label>
+            <label className="check">
+          <input type="checkbox" checked={s.autoCovers} onChange={(e) => setS({ ...s, autoCovers: e.target.checked })} />
+          {t('Quando apro un sistema, scarica da sola le copertine di tutti i suoi giochi (usa più dati)')}
+        </label>
+            <h3 className="sub-h">{t('Cerca le copertine di un sistema')}</h3>
+            <div className="persys">
+              {all.filter((x) => x.phase === 1 && x.thumbs).map((x) => {
+                const b = bulk[x.id]
+                const n = (v: number): string => v.toLocaleString(getLang() === 'it' ? 'it' : 'en')
+                return (
+                  <div key={x.id} className="persys-row" style={{ ['--tile' as string]: x.color }}>
+                    <span className="persys-n">{x.name}</span>
+                    <span className="persys-st">
+                      {b?.running ? `${n(b.done)}/${n(b.total)}` : b && b.total > 0 ? t('✔ {f}/{n} trovate', { f: n(b.found), n: n(b.total) }) : ''}
+                    </span>
+                    <button className={`chip ${b?.running ? 'on' : ''}`} onClick={() => (b?.running ? window.mr.cancelArtBulk() : window.mr.startArtBulk(x.id))}>
+                      {b?.running ? t('FERMA') : t('🖼 CERCA COPERTINE')}
+                    </button>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        ) : tab === 'screen' ? (
+          <div className="sysopts">
             <h3 className="sub-h">{t('Immagine dei giochi')}</h3>
             <p className="hint">{t('La modalità generale si sceglie in')} <b>{t('IL TUO PC')}</b> {t('(con l\'anteprima delle misure sul tuo schermo). Qui puoi dare a un sistema una modalità diversa: per esempio pixel perfetti per le console e altezza piena per l\'arcade.')}</p>
             <div className="persys">
@@ -538,20 +578,12 @@ export default function SettingsScreen({ onClose, onSaved, onPc, onRomCheck, onG
           {t('Avvia i giochi a schermo intero')}
         </label>
         <label className="check">
-          <input type="checkbox" checked={s.downloadArt} onChange={(e) => setS({ ...s, downloadArt: e.target.checked })} />
-          {t('Scarica automaticamente copertine e immagini (gratuito, senza account)')}
-        </label>
-        <label className="check">
           <input type="checkbox" checked={s.checkUpdates} onChange={(e) => setS({ ...s, checkUpdates: e.target.checked })} />
           {t('Avvisami quando esce una nuova versione (una richiesta a GitHub al giorno, non si invia nulla di tuo)')}
         </label>
         <label className="check">
           <input type="checkbox" checked={s.groupDiscs} onChange={(e) => setS({ ...s, groupDiscs: e.target.checked })} />
           {t('Giochi a più dischi (PlayStation, 3DO, Dreamcast): un solo gioco nella lista; il cambio disco si fa dal menu di RetroArch')}
-        </label>
-        <label className="check">
-          <input type="checkbox" checked={s.autoCovers} onChange={(e) => setS({ ...s, autoCovers: e.target.checked })} />
-          {t('Quando apro un sistema, scarica da sola le copertine di tutti i suoi giochi (usa più dati)')}
         </label>
         <label className="check">
           <input type="checkbox" checked={s.showUnsupported} onChange={(e) => setS({ ...s, showUnsupported: e.target.checked })} />

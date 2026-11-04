@@ -1,5 +1,5 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
-import type { ArtBulkState, Game, PlayStat, SaveInfo, SystemInfo } from '@shared/types'
+import type { Game, PlayStat, SaveInfo, SystemInfo } from '@shared/types'
 import { useInput } from '../hooks/useInput'
 import CoverCarousel from './CoverCarousel'
 import Orbs from './Orbs'
@@ -202,13 +202,11 @@ export default function GameList({ system, games, message, onLaunch, onBack, let
         .map(([id]) => byId.get(id)!),
     [plays, byId]
   )
-  // copertine di tutto il sistema: avanzamento del download in blocco
-  const [bulk, setBulk] = useState<ArtBulkState | null>(null)
+  // a fine download in blocco (avviato dalle impostazioni) le copertine nuove si vedono subito
   useEffect(() => {
     let was = false
     const off = window.mr.onArtBulk((st) => {
       if (st.systemId !== system.id) return
-      setBulk(st)
       // a fine download le copertine nuove si vedono subito
       if (was && !st.running) {
         clearArtCache()
@@ -453,19 +451,6 @@ export default function GameList({ system, games, message, onLaunch, onBack, let
         {system.engine === 'mame' && onRomCheck && (
           <button className="chip" onClick={onRomCheck} title={t('Controlla gli ZIP delle ROM con MAME')}>
             {t('🧪 CONTROLLO ROM')}
-          </button>
-        )}
-        {system.thumbs && (
-          <button
-            className={`chip ${bulk?.running ? 'on' : ''}`}
-            title={t('Scarica le copertine di tutti i giochi di questo sistema')}
-            onClick={() => (bulk?.running ? window.mr.cancelArtBulk() : window.mr.startArtBulk(system.id))}
-          >
-            {bulk?.running
-              ? t('⬇ {d}/{n} · FERMA', { d: bulk.done.toLocaleString(getLang() === 'it' ? 'it' : 'en'), n: bulk.total.toLocaleString(getLang() === 'it' ? 'it' : 'en') })
-              : bulk && bulk.total > 0
-                ? t('✔ COPERTINE {f}/{n}', { f: bulk.found.toLocaleString(getLang() === 'it' ? 'it' : 'en'), n: bulk.total.toLocaleString(getLang() === 'it' ? 'it' : 'en') })
-                : t('🖼 COPERTINE')}
           </button>
         )}
         <button className="chip search-btn" onClick={() => setSearchOpen(true)} title={t('Cerca un titolo ( / · Y del pad · pulsante 4 del pannello )')}>
