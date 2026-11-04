@@ -56,6 +56,14 @@ export interface SaveStats {
   bytes: number
 }
 
+/** Statistiche di un gioco */
+export interface PlayStat {
+  plays: number
+  seconds: number
+  /** Ultima partita (millisecondi) */
+  last: number
+}
+
 export interface ArtBulkState {
   systemId: string
   running: boolean
@@ -454,6 +462,8 @@ export interface MrApi {
   /** Chiude il programma (anche con la chiusura bloccata) */
   quitApp(): Promise<void>
   getAppVersion(): Promise<string>
+  /** Statistiche di tutti i giochi giocati (id del gioco -> statistiche) */
+  getStats(): Promise<Record<string, PlayStat>>
   /** Nuova versione disponibile (null = nessuna o non controllato) */
   getUpdate(): Promise<{ version: string; url: string } | null>
   openUpdate(): Promise<void>

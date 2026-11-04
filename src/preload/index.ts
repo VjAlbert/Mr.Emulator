@@ -60,6 +60,7 @@ const api: MrApi = {
   importSaves: () => ipcRenderer.invoke('saves:import'),
   getUpdate: () => ipcRenderer.invoke('update:get'),
   openUpdate: () => ipcRenderer.invoke('update:open'),
+  getStats: () => ipcRenderer.invoke('stats:all'),
   getAppVersion: () => ipcRenderer.invoke('app:version'),
   quitApp: () => ipcRenderer.invoke('app:quit'),
   getBiosStatus: () => ipcRenderer.invoke('bios:status'),

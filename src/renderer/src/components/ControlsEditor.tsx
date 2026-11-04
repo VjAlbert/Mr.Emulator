@@ -26,7 +26,7 @@ const label = (b: Binding | undefined): string => {
   return p.length ? p.join(' / ') : '—'
 }
 const sig = (b: Binding | undefined): string => (b ? `${b.key ?? ''}|${b.btn ?? ''}|${b.axis ?? ''}|${b.hat ?? ''}` : '')
-const empty = (b: Binding | undefined): boolean => !b || (b.key === undefined && b.btn === undefined && !b.axis && !b.hat)
+const empty = (b: Binding | undefined): boolean => !b || (!b.key && b.btn === undefined && !b.axis && !b.hat)
 
 /** Assegnazione manuale dei pulsanti: si sceglie l'azione, si preme il tasto (o il pulsante del pad / encoder) e il programma lo memorizza */
 export default function ControlsEditor({ start, presets, onSave, onCancel }: Props): React.JSX.Element {

@@ -50,6 +50,14 @@ export function useLangVersion(): number {
   )
 }
 
+/** Durata leggibile: "3 h 20 min", "45 min", "meno di 1 min" */
+export function formatDuration(seconds: number): string {
+  const m = Math.floor(seconds / 60)
+  if (m < 1) return t('meno di 1 min')
+  if (m < 60) return t('{m} min', { m })
+  return t('{h} h {m} min', { h: Math.floor(m / 60), m: m % 60 })
+}
+
 /** Data e ora brevi nella lingua scelta (per le date dei salvataggi) */
 export function formatDate(ms: number): string {
   try {

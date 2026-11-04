@@ -1,5 +1,5 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
-import type { ArtBulkState, Game, SaveInfo, SystemInfo } from '@shared/types'
+import type { ArtBulkState, Game, PlayStat, SaveInfo, SystemInfo } from '@shared/types'
 import { useInput } from '../hooks/useInput'
 import CoverCarousel from './CoverCarousel'
 import Orbs from './Orbs'
@@ -11,7 +11,7 @@ import { music } from '../music'
 import type { MediaTrack } from '@shared/types'
 import type { LibraryStats } from '@shared/types'
 import { decadeLabel, decadeOf, initialOf, matchAll, norm, splitTitle } from '../search'
-import { formatDate, getLang, t } from '../i18n'
+import { formatDate, formatDuration, getLang, t } from '../i18n'
 
 /** Altezza di una riga (compreso lo spazio): la lista disegna solo quelle visibili */
 const ROW_H = 58
@@ -188,6 +188,20 @@ export default function GameList({ system, games, message, onLaunch, onBack, let
       window.clearTimeout(h)
     }
   }, [gameId, sbump]) // eslint-disable-line react-hooks/exhaustive-deps
+  // statistiche di gioco (tempo e partite), aggiornate quando si torna da una partita
+  const [plays, setPlays] = useState<Record<string, PlayStat>>({})
+  useEffect(() => {
+    window.mr.getStats().then(setPlays, () => undefined)
+  }, [sbump])
+  const topGames = useMemo(
+    () =>
+      Object.entries(plays)
+        .filter(([id]) => byId.has(id))
+        .sort((a, b) => b[1].seconds - a[1].seconds)
+        .slice(0, 40)
+        .map(([id]) => byId.get(id)!),
+    [plays, byId]
+  )
   // copertine di tutto il sistema: avanzamento del download in blocco
   const [bulk, setBulk] = useState<ArtBulkState | null>(null)
   useEffect(() => {
@@ -581,6 +595,11 @@ export default function GameList({ system, games, message, onLaunch, onBack, let
                     {sinfo.sram && <div className="savebox-s">{t('Memory card / batteria: {d}', { d: formatDate(sinfo.sram.time) })}</div>}
                   </div>
                 )}
+                {game && plays[game.id] && (
+                  <div className="playstat">
+                    {t('⏱ {d} giocati · {n} partite', { d: formatDuration(plays[game.id].seconds), n: plays[game.id].plays })}
+                  </div>
+                )}
                 <div className="preview-start">{t('▶ PREMI INVIO PER GIOCARE')}</div>
               </div>
             </>
@@ -601,6 +620,7 @@ export default function GameList({ system, games, message, onLaunch, onBack, let
           decades={decades}
           favorites={favGames}
           recents={recentGames}
+          mostPlayed={topGames}
           favIds={favIds}
           onFamilyPick={(f) => {
             changeFamily(f)

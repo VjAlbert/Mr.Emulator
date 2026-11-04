@@ -67,21 +67,23 @@ Sistemi: Arcade (MAME, FBNeo), Neo Geo, Master System, Mega Drive, NES, SNES, Ga
 - [x] Filtri (famiglia, anno), preferiti e ultimi giochi
 - [x] Shader CRT e overlay
 - [x] Temi grafici alternativi
-- [ ] Statistiche di gioco (tempo giocato, più giocati, "continua a giocare" nella home)
+- [x] Statistiche di gioco: tempo giocato e partite nell'anteprima, lista "più giocati" nella ricerca
 - [x] Installer per Windows (electron-builder + flusso automatico su GitHub; da provare su Windows)
 
 ## Da fare (in ordine di valore)
 **In verifica con l'hardware reale**
 - [ ] Salvataggi delle console: prova con RetroArch reale (finestra "continua / nuova partita", copia .prev, memory card)
 - [ ] Verifica con pad Xbox ed encoder I-PAC: uscita, menu, assegnazione manuale
-- [ ] Bordi, modalità schermo e shader su RetroArch e schermi reali
-- [ ] Crash di MAME su alcuni giochi (Captain America, Street Fighter EX): in attesa delle prove `-nodrc`, `-video none`
+- [x] Bordi, modalità schermo e shader provati su RetroArch e schermi reali
+- [x] Crash di MAME su alcuni giochi: risolto
+- [ ] Salvataggi delle console: la ripresa su PlayStation non riparte da dove si era (Crash Bandicoot): in analisi, il registro di RetroArch è nella Diagnostica
 
 **Funzioni**
-- [ ] Giochi a più dischi (PlayStation, 3DO, Saturn…): generare i file .m3u per cambiare disco senza uscire
-- [ ] Controllo degli aggiornamenti (avviso quando c'è una nuova release su GitHub)
-- [ ] Immagini locali anche per le console (oggi solo Arcade, MAME e Neo Geo; per le altre c'è la cartella `artwork`)
-- [ ] Download in blocco delle copertine di un intero sistema
+- [x] Giochi a più dischi (PlayStation, 3DO, Dreamcast): un solo gioco con file .m3u generato (da provare con RetroArch reale)
+- [x] Controllo degli aggiornamenti (avviso quando c'è una nuova release su GitHub)
+- [x] Immagini locali anche per le console (cartella Multimedia, per nome del file)
+- [x] Copertine delle console: ricerca nell'indice ufficiale e download in blocco per sistema
+- [x] Pad completo: L2, R2, L3, R3, croce "hat", grilletti analogici (cloni PS3)
 - [ ] Ripresa automatica scelta per singola console (oggi è un solo interruttore per tutte)
 - [ ] Messaggi di errore del motore interno (Diagnostica, avvio giochi) in inglese
 - [ ] Scaricamento di RetroArch dal programma

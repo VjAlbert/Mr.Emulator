@@ -27,6 +27,7 @@ import { existsSync, readFileSync, writeFileSync } from 'fs'
 import { loadMameData, type MameData } from './mame'
 import { findOverlays } from './overlays'
 import { checkForUpdate, type UpdateInfo } from './updates'
+import { loadStats, recordPlay } from './stats'
 import { backupSaves, importSaves, mameSaveIni, prepareFresh, restoreSaves, retroSaveConfig, saveInfo, savesRoot, saveStats } from './saves'
 import { coreList, coresDirOf, installCore } from './cores'
 import { biosStatus, buildDiagnostics } from './diagnostics'
@@ -510,6 +511,14 @@ app.whenReady().then(async () => {
       win?.show()
       win?.focus()
       const seconds = startedAt.t ? Math.round((Date.now() - startedAt.t) / 1000) : 0
+      // statistiche: solo le partite vere (almeno 20 secondi)
+      if (seconds >= 20 && !game.demo) {
+        try {
+          recordPlay(join(app.getPath('userData'), 'stats.json'), game.id, seconds)
+        } catch (e) {
+          logCrash('statistiche', e)
+        }
+      }
       startedAt.t = 0
       // il parere dell'utente si chiede solo dopo una partita vera
       if (seconds >= 45 && settings.autoTune) {
@@ -705,6 +714,7 @@ app.whenReady().then(async () => {
     }
   }
   void runUpdateCheck()
+  ipcMain.handle('stats:all', () => loadStats(join(app.getPath('userData'), 'stats.json')))
   ipcMain.handle('update:get', async () => {
     await runUpdateCheck()
     return loadSettings().checkUpdates ? update : null

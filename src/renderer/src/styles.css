@@ -685,3 +685,4 @@ b.warnmark { color: #ffd400; margin-right: 8px; font-weight: 400; } .row.active 
 .ce-h { margin-left: 8px; font-style: normal; font-family: var(--font); letter-spacing: 1px; font-size: 13px; color: var(--accent); }
 .chip.update { background: #ffd400; color: #000; animation: ttblink 1.4s steps(2, jump-none) infinite; }
 .light-fx .chip.update { animation: none; }
+.playstat { margin: 2px 0 0; font-size: 12px; letter-spacing: 1px; color: var(--muted); text-transform: uppercase; }

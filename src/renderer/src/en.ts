@@ -1,5 +1,11 @@
 // Traduzioni inglesi: la chiave è il testo italiano usato nel programma
 export const EN: Record<string, string> = {
+  "meno di 1 min": "less than 1 min",
+  "{m} min": "{m} min",
+  "{h} h {m} min": "{h} h {m} min",
+  "⏱ {d} giocati · {n} partite": "⏱ {d} played · {n} games",
+  "PIÙ GIOCATI": "MOST PLAYED",
+  "🔥 PIÙ GIOCATI": "🔥 MOST PLAYED",
   "Apre la pagina di download su GitHub": "Opens the download page on GitHub",
   "⬆ NUOVA VERSIONE {v}": "⬆ NEW VERSION {v}",
   "Avvisami quando esce una nuova versione (una richiesta a GitHub al giorno, non si invia nulla di tuo)": "Tell me when a new version is out (one request to GitHub per day, nothing of yours is sent)",

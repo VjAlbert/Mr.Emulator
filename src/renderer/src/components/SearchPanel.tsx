@@ -10,7 +10,7 @@ import { getLang, t } from '../i18n'
 
 type Zone = 'initials' | 'keys' | 'pane'
 type Layout = 'qwerty' | 'alfa'
-type View = null | 'fav' | 'recent'
+type View = null | 'fav' | 'recent' | 'top'
 
 const LAYOUTS: Record<Layout, string[][]> = {
   qwerty: ['1234567890', 'QWERTYUIOP', 'ASDFGHJKL', 'ZXCVBNM'].map((r) => r.split('')),
@@ -47,6 +47,8 @@ interface Props {
   decades: Array<[string, number]>
   favorites: Game[]
   recents: Game[]
+  /** I giochi più giocati di questo sistema (dal più giocato) */
+  mostPlayed: Game[]
   favIds: Set<string>
   onFamily: () => void
   onFamilyPick: (f: string) => void
@@ -120,7 +122,7 @@ export default function SearchPanel(p: Props): React.JSX.Element {
   const allowed = useMemo(() => nextChars(p.keys, query), [p.keys, query])
   const initialsPresent = useMemo(() => new Set(p.keys.map(initialOf)), [p.keys])
 
-  const items: Game[] = query ? hits.top.map((i) => p.games[i]) : view === 'fav' ? p.favorites : view === 'recent' ? p.recents : []
+  const items: Game[] = query ? hits.top.map((i) => p.games[i]) : view === 'fav' ? p.favorites : view === 'recent' ? p.recents : view === 'top' ? p.mostPlayed : []
   const showTiles = !query && !view
 
   const random = (): void => {
@@ -129,11 +131,12 @@ export default function SearchPanel(p: Props): React.JSX.Element {
   const tiles: Tile[] = useMemo(() => {
     const out: Tile[] = [{ id: 'rnd', icon: '🎲', label: t('SORPRENDIMI'), sub: t('un gioco a caso'), run: random }]
     if (p.favorites.length) out.push({ id: 'fav', icon: '★', label: t('PREFERITI'), sub: t('{n} giochi', { n: p.favorites.length.toLocaleString(getLang() === 'it' ? 'it' : 'en') }), run: () => enterView('fav') })
+    if (p.mostPlayed.length) out.push({ id: 'top', icon: '🔥', label: t('PIÙ GIOCATI'), sub: t('{n} giochi', { n: p.mostPlayed.length.toLocaleString(getLang() === 'it' ? 'it' : 'en') }), run: () => enterView('top') })
     if (p.recents.length) out.push({ id: 'rec', icon: '⏱', label: t('ULTIMI GIOCATI'), sub: t('{n} giochi', { n: p.recents.length.toLocaleString(getLang() === 'it' ? 'it' : 'en') }), run: () => enterView('recent') })
     p.families.slice(0, 6).forEach(([n, c]) => out.push({ id: `f:${n}`, icon: '◆', label: n.toUpperCase(), sub: t('{n} giochi', { n: c.toLocaleString(getLang() === 'it' ? 'it' : 'en') }), run: () => p.onFamilyPick(n) }))
     p.decades.forEach(([d, c]) => out.push({ id: `d:${d}`, icon: '◷', label: decadeLabel(d), sub: t('{n} giochi', { n: c.toLocaleString(getLang() === 'it' ? 'it' : 'en') }), run: () => p.onDecadePick(d) }))
     return out
-  }, [p.favorites, p.recents, p.families, p.decades, p.games]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [p.favorites, p.recents, p.mostPlayed, p.families, p.decades, p.games]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const enterView = (v: View): void => {
     setView(v)
@@ -499,7 +502,7 @@ export default function SearchPanel(p: Props): React.JSX.Element {
           <div className="sp-pane" ref={paneRef}>
             {view && (
               <div className="sp-viewhead">
-                {view === 'fav' ? t('★ PREFERITI') : t('⏱ ULTIMI GIOCATI')}
+                {view === 'fav' ? t('★ PREFERITI') : view === 'top' ? t('🔥 PIÙ GIOCATI') : t('⏱ ULTIMI GIOCATI')}
                 <button onClick={() => setView(null)}>{t('◀ INDIETRO')}</button>
               </div>
             )}
