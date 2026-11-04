@@ -1,4 +1,4 @@
-## Mr. Emulator 0.2.4
+## Mr. Emulator 0.2.5
 
 **Download:** `Mr-Emulator-Setup-<version>.exe` below. Windows may warn that the app is unsigned: **More info → Run anyway**.
 
