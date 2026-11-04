@@ -64,6 +64,17 @@ export interface PlayStat {
   last: number
 }
 
+/** Nitidezza dei pixel (RetroArch): nessuna, morbida (sharp-bilinear) o alta qualità (xBRZ) */
+export type Sharpness = 'off' | 'soft' | 'high'
+
+/** Cosa permette questo PC per la nitidezza dei pixel, e cosa c'è installato */
+export interface SharpnessInfo {
+  soft: { ok: boolean; reason: string }
+  high: { ok: boolean; reason: string }
+  installed: { soft: boolean; high: boolean }
+  retroarch: boolean
+}
+
 export interface ArtBulkState {
   systemId: string
   running: boolean
@@ -166,6 +177,8 @@ export interface Settings {
   savesDir: string
   /** Console: salva da sola lo stato all'uscita e propone di continuare all'avvio (sostituisce la Memory Card) */
   resumeConsoles: boolean
+  /** Nitidezza dei pixel con gli shader di RetroArch (si applica solo dove il PC lo permette) */
+  sharpness: Sharpness
   /** Console: scelta per singolo sistema (id del sistema -> sì/no); se manca vale l'interruttore generale */
   resumeBySystem: Record<string, boolean>
   /** RetroAchievements: trofei dentro i giochi di RetroArch */
@@ -470,6 +483,7 @@ export interface MrApi {
   detectTool(kind: 'retroarch' | 'mame'): Promise<string[]>
   openToolSite(kind: 'retroarch' | 'mame'): Promise<void>
   onCheatsProgress(cb: (pct: number) => void): () => void
+  getSharpnessInfo(): Promise<SharpnessInfo>
   getCoverCounts(): Promise<Record<string, { have: number; total: number }>>
   installCheats(): Promise<{ ok: boolean; files: number; error?: string }>
   installCore(core: string): Promise<{ core: string; ok: boolean; error?: string }>

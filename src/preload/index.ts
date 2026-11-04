@@ -50,6 +50,7 @@ const api: MrApi = {
     return () => ipcRenderer.removeListener('cheats:progress', h)
   },
   getCoverCounts: () => ipcRenderer.invoke('art:counts'),
+  getSharpnessInfo: () => ipcRenderer.invoke('sharpness:info'),
   installCheats: () => ipcRenderer.invoke('cheats:install'),
   installCore: (core: string) => ipcRenderer.invoke('cores:install', core),
   findOverlays: (dir: string) => ipcRenderer.invoke('overlays:find', dir),

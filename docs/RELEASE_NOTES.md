@@ -3,6 +3,7 @@
 **Download:** `Mr-Emulator-Setup-<version>.exe` below. Windows may warn that the app is unsigned: **More info → Run anyway**.
 
 ### New and fixed
+- ✨ **Pixel sharpness** (Settings → Screen): Soft (sharp-bilinear) or High quality (xBRZ), usable together with the CRT effect. An option is offered only if this PC can handle it and the shader is installed; heavy systems step down automatically.
 - 🛠️ **Fixed**: with *Full screen (stretched)* the graphic border covered the sides of the picture, so the game still looked "full height". The border is now turned off in that mode (Diagnostics shows it).
 
 ## Mr. Emulator 0.2.3

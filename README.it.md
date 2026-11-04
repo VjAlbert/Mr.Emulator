@@ -54,6 +54,7 @@ Un launcher grafico veloce e spettacolare per giochi arcade e console classiche,
 - 🕹️ **Comandi**: preset per tastiera, gamepad e pannello arcade, **assegnazione manuale** per due giocatori (anche per pad non Xbox come i cloni PS3: L1/R1/L2/R2/L3/R3, croce "hat", grilletti analogici), controllo dei conflitti e schermata "Comandi" per provarli.
 - 🚪 **Uscita e menu senza tastiera**: Select + Start sul pad, Moneta + Start sul pannello arcade (configurabili).
 - 🖥️ **Schermo**: quattro modalità (altezza piena, pixel perfetti, pixel perfetti in altezza, stirata) con anteprima sul tuo schermo, per sistema, monitor verticale per MAME, **bordi (overlay)** scelti da soli per sistema e **shader CRT**.
+- ✨ **Nitidezza dei pixel** (Morbida o Alta qualità xBRZ, combinabile con il CRT): si offre solo se il PC la regge.
 - ⚡ **Autoguida**: riconosce PC e schermi, sceglie un profilo Leggero / Bilanciato / Massimo per sistema, usa la scheda video potente sui portatili con due GPU e si adatta alla domanda "com'è andata?".
 - 🏠 **Modalità cabinato**: avvio con Windows, schermo intero senza bordi, cursore nascosto, uscita protetta.
 

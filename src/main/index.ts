@@ -16,7 +16,7 @@ import { launchGame } from './launcher'
 import { platform } from './platform'
 import { ensureFolders } from './folders'
 import { detectHardware } from './hardware'
-import { buildReport, mameProfileFor, profileFor } from './optimize'
+import { buildReport, mameProfileFor, profileFor, sharpnessInfo } from './optimize'
 import { toConfigText } from './profiles'
 import { setHighPerformanceGpu } from './gpuPref'
 import { buildInputConfig, buildInputMap, buildMameCtrlr, presetControls } from './inputs'
@@ -746,6 +746,7 @@ app.whenReady().then(async () => {
     if (kind in OFFICIAL) await shell.openExternal(OFFICIAL[kind])
   })
   ipcMain.handle('art:counts', () => Object.fromEntries(SYSTEMS.filter((x) => x.thumbs).map((x) => [x.id, { have: coverCount(x.id), total: library.count(x.id) }])))
+  ipcMain.handle('sharpness:info', async () => sharpnessInfo(loadSettings(), await detectHardware(true)))
   let cheatsBusy = false
   ipcMain.handle('cheats:install', async () => {
     const dir = cheatsDirOf(loadSettings())

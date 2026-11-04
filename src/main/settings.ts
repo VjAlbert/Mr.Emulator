@@ -45,6 +45,7 @@ const DEFAULTS: Settings = {
   savesDir: '',
   resumeConsoles: true,
   resumeArcade: {},
+  sharpness: 'off',
   resumeBySystem: {},
   raEnabled: false,
   raUser: '',

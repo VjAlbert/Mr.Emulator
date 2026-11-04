@@ -64,6 +64,7 @@ A fast, flashy launcher for arcade and classic console games, built for people w
 - 🕹️ **Controls**: keyboard, gamepad and arcade-panel presets, **manual button mapping** for two players (covers non-Xbox pads such as PS3 clones: L1/R1/L2/R2/L3/R3, hat D-pads, analog triggers), conflict detection, and a live "Controls" test screen.
 - 🚪 **Exit and game menu without a keyboard**: Select + Start on a gamepad, Coin + Start on an arcade panel (configurable).
 - 🖥️ **Screen**: four image modes (full height, pixel perfect, pixel perfect in height, stretched) with a live preview on your real screen, per-system overrides, vertical-monitor mode for MAME, **borders (overlays)** picked automatically per system, and **CRT shaders**.
+- ✨ **Pixel sharpness** (Soft or High quality xBRZ, combinable with CRT): offered only when the PC can handle it.
 - ⚡ **Auto-tuning**: detects your PC and screens, picks a Light / Balanced / Max profile per system, uses the powerful GPU on dual-GPU laptops, and adapts after the question "how did it go?".
 - 🏠 **Cabinet mode**: start with Windows, borderless full screen, hidden cursor, protected exit.
 

@@ -1,4 +1,4 @@
-import type { CoreCost, ImageStyle, PerfLevel, Tier } from '@shared/types'
+import type { CoreCost, ImageStyle, PerfLevel, Sharpness, Tier } from '@shared/types'
 import { LEVEL_LABEL } from './tiers'
 
 /** Funzione pura: dato PC, schermo e sistema, decide le impostazioni di RetroArch. */
@@ -23,11 +23,27 @@ export interface ProfileInput {
   crtChoice?: string
   /** Bordo grafico (percorso del file .cfg di RetroArch), se attivo */
   overlay?: string | null
+  /** Nitidezza dei pixel voluta e shader installati per ottenerla (percorsi dei .slangp) */
+  sharpness?: Sharpness
+  upscalers?: { soft: string | null; high: string | null }
+}
+
+/** La nitidezza si offre solo dove la macchina la regge: "morbida" costa pochissimo, "alta" richiede una scheda video adeguata */
+export function sharpnessAllowed(which: 'soft' | 'high', i: { level: PerfLevel; gpuTier: Tier; cost: CoreCost }): { ok: boolean; reason: string } {
+  if (which === 'soft') return { ok: true, reason: '' }
+  if (i.gpuTier === 'low') return { ok: false, reason: 'serve una scheda video più potente' }
+  if (i.level === 'light') return { ok: false, reason: 'su questo PC il programma tiene il livello leggero' }
+  if (i.cost === 'heavy' || (i.cost === 'medium' && i.gpuTier !== 'high')) return { ok: false, reason: 'questo sistema è troppo pesante per l\'opzione' }
+  return { ok: true, reason: '' }
 }
 
 export interface Profile {
   config: Record<string, string>
   shader: string | null
+  /** Shader da applicare in ordine (nitidezza, poi CRT): se sono più di uno vanno uniti in un preset solo */
+  presets: string[]
+  /** Nitidezza davvero applicata (può essere più bassa di quella voluta) */
+  sharpness: Sharpness
   runAhead: boolean
   summary: string
 }
@@ -110,14 +126,25 @@ export function buildProfile(i: ProfileInput): Profile {
       }
     }
   }
-  c['video_shader_enable'] = String(shader !== null)
-  if (shader && i.shaderDir) c['video_shader'] = `${i.shaderDir}/${shader}.slangp`
+  // nitidezza dei pixel: se la macchina non regge quella voluta si scende di un gradino
+  let sharp: Sharpness = i.sharpness ?? 'off'
+  if (sharp === 'high' && !sharpnessAllowed('high', i).ok) sharp = 'soft'
+  let up = sharp === 'high' ? i.upscalers?.high ?? null : sharp === 'soft' ? i.upscalers?.soft ?? null : null
+  if (sharp === 'high' && !up) {
+    sharp = 'soft'
+    up = i.upscalers?.soft ?? null
+  }
+  if (!up) sharp = 'off'
+  const presets = [up, shader && i.shaderDir ? `${i.shaderDir}/${shader}.slangp` : null].filter((p): p is string => !!p)
+  c['video_shader_enable'] = String(presets.length > 0)
+  if (presets.length) c['video_shader'] = presets[presets.length - 1]
 
   const parts = [LEVEL_LABEL[i.level]]
   parts.push(shader ? SHADER_LABEL[shader] : 'nessuno shader')
+  if (sharp !== 'off') parts.push(sharp === 'high' ? 'nitidezza alta' : 'nitidezza morbida')
   if (runAhead) parts.push('meno ritardo comandi')
   parts.push(IMAGE_LABEL[i.imageStyle])
-  return { config: c, shader, runAhead, summary: parts.join(' · ') }
+  return { config: c, shader, presets, sharpness: sharp, runAhead, summary: parts.join(' · ') }
 }
 
 /** Testo per il file di configurazione aggiuntivo di RetroArch */

@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { IMAGE_MODES } from './ScreenPreview'
 import { markConsoleImagesDirty, refreshConsoleArt } from '../consoleArt'
 import { SVG_FOR } from './consoleSvgs'
-import type { ArtBulkState, DiagnosticReport, ImageStyle, PickKind, Settings, SystemInfo } from '@shared/types'
+import type { ArtBulkState, DiagnosticReport, ImageStyle, PickKind, Settings, SharpnessInfo, SystemInfo } from '@shared/types'
 import { ToolFinder } from './ToolFinder'
 import { useInput } from '../hooks/useInput'
 import { configureSound, sfx } from '../sound'
@@ -28,6 +28,7 @@ export default function SettingsScreen({ onClose, onSaved, onPc, onRomCheck, onG
   const [diag, setDiag] = useState<DiagnosticReport | null>(null)
   const [copied, setCopied] = useState(false)
   const [all, setAll] = useState<SystemInfo[]>([])
+  const [sharp, setSharp] = useState<SharpnessInfo | null>(null)
   const [cheatMsg, setCheatMsg] = useState('')
   const [cheatPct, setCheatPct] = useState<number | null>(null)
   useEffect(() => window.mr.onCheatsProgress(setCheatPct), [])
@@ -77,6 +78,7 @@ export default function SettingsScreen({ onClose, onSaved, onPc, onRomCheck, onG
   // scheda Aspetto: quali console hanno già una foto nella cartella delle immagini
   useEffect(() => {
     if (tab === 'covers') loadCovers()
+    if (tab === 'screen') window.mr.getSharpnessInfo().then((i) => setSharp(i ?? null), () => undefined)
     if (tab === 'look') window.mr.listConsoleImages().then(setConImgs, () => undefined)
   }, [tab])
 
@@ -468,6 +470,24 @@ export default function SettingsScreen({ onClose, onSaved, onPc, onRomCheck, onG
                 )
               })}
             </div>
+            <h3 className="sub-h">{t('Nitidezza dei pixel (RetroArch)')}</h3>
+            <div className="field">
+              <select value={s.sharpness ?? 'off'} onChange={(e) => setS({ ...s, sharpness: e.target.value as Settings['sharpness'] })}>
+                <option value="off">{t('Nessuna (pixel come sono)')}</option>
+                <option value="soft" disabled={!!sharp && (!sharp.soft.ok || !sharp.installed.soft)}>
+                  {t('Morbida (bordi dei pixel più dolci, leggerissima)')}
+                  {sharp && !sharp.soft.ok ? ` — ${t(sharp.soft.reason)}` : sharp && !sharp.installed.soft ? ` — ${t('shader non installato')}` : ''}
+                </option>
+                <option value="high" disabled={!!sharp && (!sharp.high.ok || !sharp.installed.high)}>
+                  {t('Alta qualità (xBRZ: linee pulite, richiede una buona scheda video)')}
+                  {sharp && !sharp.high.ok ? ` — ${t(sharp.high.reason)}` : sharp && !sharp.installed.high ? ` — ${t('shader non installato')}` : ''}
+                </option>
+              </select>
+            </div>
+            <p className="hint">
+              {t('Migliora l\'aspetto dei pixel ingranditi. Le opzioni compaiono solo se questo PC le regge e se gli shader sono installati (RetroArch → Aggiornamenti online → Aggiorna shader Slang). Si può usare insieme all\'effetto CRT. Se un sistema è troppo pesante, il programma sceglie da solo un gradino più leggero. Vale per i giochi lanciati con RetroArch, non per MAME.')}
+              {sharp && !sharp.retroarch ? ` ${t('Indica prima retroarch.exe nelle Impostazioni')}.` : ''}
+            </p>
             <h3 className="sub-h">{t('Effetto schermo a tubo (CRT) nei giochi')}</h3>
             <div className="field">
               <select value={s.crtShader} onChange={(e) => setS({ ...s, crtShader: e.target.value as Settings['crtShader'] })}>
