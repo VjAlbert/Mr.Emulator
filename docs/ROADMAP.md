@@ -26,9 +26,10 @@ Sistemi: Arcade (MAME, FBNeo), Neo Geo, Master System, Mega Drive, NES, SNES, Ga
 
 ## Fase 2 — Configurazione guidata e sistemi più pesanti
 - [x] Cartelle ROM e BIOS create automaticamente al primo avvio (Documenti\MrEmulator)
-- [ ] Procedura guidata completa al primo avvio
-- [ ] Scaricamento di RetroArch e dei core dalle fonti ufficiali
-- [ ] Verifica dei BIOS tramite hash (senza scaricarli)
+- [x] Procedura guidata al primo avvio (cartelle, RetroArch, core, BIOS, MAME) e schermata iniziale "premi start"
+- [x] Scaricamento dei core di RetroArch dall'archivio ufficiale (RetroArch stesso lo scarica ancora l'utente)
+- [x] Verifica dei BIOS tramite MD5 noti (PlayStation, Dreamcast, FDS; gli altri solo presenza del file), senza scaricarli
+- [x] Lingua italiano/inglese nel programma
 - [x] Autoguida: rilevamento di PC e schermi, profili Leggero/Bilanciato/Massimo per sistema, file di configurazione generato per RetroArch
 - [x] Scheda video potente per i giochi sui portatili con due GPU (Windows)
 - [x] Domanda "com'è andata?" dopo ogni partita: il livello di ogni sistema si adatta
@@ -62,11 +63,37 @@ Sistemi: Arcade (MAME, FBNeo), Neo Geo, Master System, Mega Drive, NES, SNES, Ga
 - [ ] GameCube e Wii (da verificare sulle prestazioni)
 
 ## Fase 3 — Estensioni
-- [ ] Atari Jaguar e 3DO
-- [ ] Filtri avanzati, preferiti e statistiche di gioco
-- [ ] Shader CRT preconfigurati e overlay
-- [ ] Temi grafici alternativi
+- [x] Atari Jaguar e 3DO
+- [x] Filtri (famiglia, anno), preferiti e ultimi giochi
+- [x] Shader CRT e overlay
+- [x] Temi grafici alternativi
+- [ ] Statistiche di gioco (tempo giocato, più giocati, "continua a giocare" nella home)
 - [x] Installer per Windows (electron-builder + flusso automatico su GitHub; da provare su Windows)
+
+## Da fare (in ordine di valore)
+**In verifica con l'hardware reale**
+- [ ] Salvataggi delle console: prova con RetroArch reale (finestra "continua / nuova partita", copia .prev, memory card)
+- [ ] Verifica con pad Xbox ed encoder I-PAC: uscita, menu, assegnazione manuale
+- [ ] Bordi, modalità schermo e shader su RetroArch e schermi reali
+- [ ] Crash di MAME su alcuni giochi (Captain America, Street Fighter EX): in attesa delle prove `-nodrc`, `-video none`
+
+**Funzioni**
+- [ ] Giochi a più dischi (PlayStation, 3DO, Saturn…): generare i file .m3u per cambiare disco senza uscire
+- [ ] Controllo degli aggiornamenti (avviso quando c'è una nuova release su GitHub)
+- [ ] Immagini locali anche per le console (oggi solo Arcade, MAME e Neo Geo; per le altre c'è la cartella `artwork`)
+- [ ] Download in blocco delle copertine di un intero sistema
+- [ ] Ripresa automatica scelta per singola console (oggi è un solo interruttore per tutte)
+- [ ] Messaggi di errore del motore interno (Diagnostica, avvio giochi) in inglese
+- [ ] Scaricamento di RetroArch dal programma
+- [ ] Mega CD, Sega Saturn
+- [ ] GameCube e Wii, PlayStation 2, PSP (da verificare sulle prestazioni)
+- [ ] Trofei (RetroAchievements) e trucchi (cheat)
+
+**Rimandate o escluse**
+- Sostituzione della shell di Windows (avvio senza desktop): rimandata, rischiosa senza un ripristino chiaro
+- Firma digitale dell'installer (a pagamento): per ora si spiega l'avviso di Windows
+- Demul e altri emulatori autonomi: esclusi, si usano i core di RetroArch (Flycast per Dreamcast e Naomi)
+- macOS e Linux: esclusi
 
 ## Principi del progetto
 - Nessun costo e nessuna API a pagamento: i dati devono funzionare offline o da fonti gratuite.
