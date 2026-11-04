@@ -784,3 +784,20 @@ b.warnmark { color: #ffd400; margin-right: 8px; font-weight: 400; } .row.active 
 .select-body > .grid { padding: 24px 22px; }
 :root[data-ui='comic'] .sub-h { text-shadow: 1px 1px 0 var(--ink); letter-spacing: 1.5px; }
 .tabs .tab { padding: 8px 12px; font-size: 13px; }
+
+/* sfondo a pagina di fumetto: retino colorato, vignette separate da canali obliqui, linee cinetiche */
+:root[data-ui='comic']::before {
+  content: ''; position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  background:
+    /* canali tra le vignette (bordo nero + filo chiaro) */
+    linear-gradient(104deg, transparent 0 31.2%, #000 31.2% 31.9%, rgba(255,255,255,.14) 31.9% 33.4%, #000 33.4% 34.1%, transparent 34.1%),
+    linear-gradient(104deg, transparent 0 66.2%, #000 66.2% 66.9%, rgba(255,255,255,.14) 66.9% 68.1%, #000 68.1% 68.8%, transparent 68.8%),
+    linear-gradient(0deg, transparent 0 56%, #000 56% 56.6%, rgba(255,255,255,.12) 56.6% 58%, #000 58% 58.6%, transparent 58.6%),
+    /* retino grosso in colore accento, sfumato verso il centro */
+    radial-gradient(circle, color-mix(in srgb, var(--accent) 60%, #000) 24%, transparent 26%) 0 0 / 18px 18px,
+    /* linee cinetiche */
+    repeating-conic-gradient(from 8deg at 82% 14%, rgba(255,255,255,.06) 0 2deg, transparent 2deg 9deg);
+  opacity: .5;
+  mask-image: radial-gradient(ellipse at 78% 22%, #000 0%, rgba(0,0,0,.65) 45%, rgba(0,0,0,.25) 100%);
+}
+:root[data-ui='comic'] body { background: radial-gradient(circle at 85% 8%, color-mix(in srgb, var(--accent) 28%, transparent) 0, transparent 40%), var(--bg); }
