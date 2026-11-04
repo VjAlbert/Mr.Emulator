@@ -138,7 +138,7 @@ npm test           # automated tests
 npm run dist       # Windows installer (run on Windows) → release\
 ```
 
-The installer is also built on GitHub (free Windows runner): **Actions → Installer for Windows → Run workflow**. Tick **"Publish a GitHub Release"** to publish it in *Releases* (this is what powers the download button), or push a tag such as `v0.2.7`.
+The installer is also built on GitHub (free Windows runner): **Actions → Installer for Windows → Run workflow**. Tick **"Publish a GitHub Release"** to publish it in *Releases* (this is what powers the download button), or push a tag such as `v0.2.8`.
 
 Roadmap: [`docs/ROADMAP.md`](docs/ROADMAP.md).
 

@@ -157,9 +157,10 @@ export function buildDiagnostics(c: DiagContext): DiagnosticReport {
   const mameIni = pick(join(c.userData, 'mame', 'mame.ini'), /^(keepaspect|unevenstretch|unevenstretchx|video|window|maximize|autoror|autorol)\s/i)
   const raVideo = tail(join(c.userData, 'retroarch-last.log'), 200000)
     .split(/\r?\n/)
-    .filter((l) => /\[Video\]|aspect|viewport/i.test(l))
-    .slice(-8)
+    .filter((l) => /\[Video\]|aspect|viewport|shader|slang|preset/i.test(l))
+    .slice(-14)
     .join('\n')
+  const combo = pick(join(c.userData, 'shader-combo.slangp'), /^(shaders|shader\d+|scale\w*\d+)\s*=/i)
   if (mainLog) add('warn', mt('Il programma ha registrato errori imprevisti'), mt('vedi il testo copiabile'), mt('Mandami il testo della diagnostica.'))
 
   const icon = { ok: '[OK]  ', warn: '[ATTENZIONE]', bad: '[PROBLEMA]' } as const
@@ -172,6 +173,7 @@ export function buildDiagnostics(c: DiagContext): DiagnosticReport {
     mameLog ? `\n--- ultimo errore MAME ---\n${mameLog}` : '',
     raLines ? `\n--- ultima partita con RetroArch (salvataggi e errori) ---\n${raLines}` : '',
     raCfg ? `\n--- immagine richiesta a RetroArch (ultima partita) ---\n${raCfg}${raVideo ? `\n${raVideo}` : ''}` : '',
+    combo ? `\n--- preset di shader unito (nitidezza + CRT) ---\n${combo}` : '',
     mameIni ? `\n--- immagine richiesta a MAME (ultima partita) ---\n${mameIni}` : ''
   ].join('\n')
   return { checks, text, problems: checks.filter((k) => k.level === 'bad').length, warnings: checks.filter((k) => k.level === 'warn').length }

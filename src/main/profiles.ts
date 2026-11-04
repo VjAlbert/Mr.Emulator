@@ -132,6 +132,7 @@ export function buildProfile(i: ProfileInput): Profile {
     }
   }
   // nitidezza dei pixel: se la macchina non regge quella voluta si scende di un gradino
+  // (con il CRT su "automatico" la nitidezza ha la precedenza: le righe del CRT coprirebbero l'effetto; scegliendo un CRT a mano si hanno entrambi)
   let sharp: Sharpness = i.sharpness ?? 'off'
   if (sharp === 'high' && !sharpnessAllowed('high', i).ok) sharp = 'soft'
   let up = sharp === 'high' ? i.upscalers?.high ?? null : sharp === 'soft' ? i.upscalers?.soft ?? null : null
@@ -140,7 +141,8 @@ export function buildProfile(i: ProfileInput): Profile {
     up = i.upscalers?.soft ?? null
   }
   if (!up) sharp = 'off'
-  const presets = [up, shader && i.shaderDir ? `${i.shaderDir}/${shader}.slangp` : null].filter((p): p is string => !!p)
+  const crtOn = shader && i.shaderDir && !(up && (i.crtChoice ?? 'auto') === 'auto')
+  const presets = [up, crtOn ? `${i.shaderDir}/${shader}.slangp` : null].filter((p): p is string => !!p)
   c['video_shader_enable'] = String(presets.length > 0)
   if (presets.length) c['video_shader'] = presets[presets.length - 1]
 

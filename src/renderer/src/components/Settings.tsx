@@ -485,7 +485,7 @@ export default function SettingsScreen({ onClose, onSaved, onPc, onRomCheck, onG
               </select>
             </div>
             <p className="hint">
-              {t('Migliora l\'aspetto dei pixel ingranditi. Le opzioni compaiono solo se questo PC le regge e se gli shader sono installati (RetroArch → Aggiornamenti online → Aggiorna shader Slang). Si può usare insieme all\'effetto CRT. Se un sistema è troppo pesante, il programma sceglie da solo un gradino più leggero. Vale per i giochi lanciati con RetroArch, non per MAME.')}
+              {t('Migliora l\'aspetto dei pixel ingranditi. Le opzioni compaiono solo se questo PC le regge e se gli shader sono installati (RetroArch → Aggiornamenti online → Aggiorna shader Slang). Con l\'effetto CRT su Automatico la nitidezza ha la precedenza; scegli un CRT a mano per averli insieme. Se un sistema è troppo pesante, il programma sceglie da solo un gradino più leggero. Vale per i giochi lanciati con RetroArch, non per MAME.')}
               {sharp && !sharp.retroarch ? ` ${t('Indica prima retroarch.exe nelle Impostazioni')}.` : ''}
             </p>
             <h3 className="sub-h">{t('Effetto schermo a tubo (CRT) nei giochi')}</h3>

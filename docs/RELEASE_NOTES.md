@@ -1,3 +1,11 @@
+## Mr. Emulator 0.2.8
+
+**Download:** `Mr-Emulator-Setup-<version>.exe` below. Windows may warn that the app is unsigned: **More info → Run anyway**.
+
+### New and fixed
+- ✨ **Pixel sharpness**: with the CRT effect on *Automatic*, sharpness now takes priority (the CRT lines were hiding it). Pick a CRT by hand to have both.
+- 🩺 Diagnostics shows RetroArch's shader messages and the merged shader preset.
+
 ## Mr. Emulator 0.2.7
 
 **Download:** `Mr-Emulator-Setup-<version>.exe` below. Windows may warn that the app is unsigned: **More info → Run anyway**.

@@ -60,7 +60,7 @@ test('nitidezza: "morbida" sempre, "alta" solo con una scheda video adeguata e s
   assert.equal(sharpnessAllowed('high', { ...ok, cost: 'medium', gpuTier: 'high' }).ok, true)
 })
 
-const base = { level: 'balanced' as const, cost: 'light' as const, cpuTier: 'mid' as const, gpuTier: 'high' as const, display: { width: 2560, height: 1440, hz: 60 }, imageStyle: 'fit' as const, fullscreen: true, biosDir: 'C:/bios', shaderDir: 'C:/ra/crt', shadersAvailable: new Set(['crt-easymode']), monitorIndex: 0 }
+const base = { crtChoice: 'crt-easymode', level: 'balanced' as const, cost: 'light' as const, cpuTier: 'mid' as const, gpuTier: 'high' as const, display: { width: 2560, height: 1440, hz: 60 }, imageStyle: 'fit' as const, fullscreen: true, biosDir: 'C:/bios', shaderDir: 'C:/ra/crt', shadersAvailable: new Set(['crt-easymode']), monitorIndex: 0 }
 const ups = { soft: 'C:/ra/sb.slangp', high: 'C:/ra/xbrz.slangp' }
 
 test('profilo: nitidezza sola, insieme al CRT, declassata o assente', () => {
@@ -69,6 +69,9 @@ test('profilo: nitidezza sola, insieme al CRT, declassata o assente', () => {
   const high = buildProfile({ ...base, sharpness: 'high', upscalers: ups })
   assert.deepEqual(high.presets, ['C:/ra/xbrz.slangp', 'C:/ra/crt/crt-easymode.slangp'])
   assert.equal(high.sharpness, 'high')
+  // con il CRT su automatico la nitidezza ha la precedenza
+  assert.deepEqual(buildProfile({ ...base, crtChoice: 'auto', sharpness: 'high', upscalers: ups }).presets, ['C:/ra/xbrz.slangp'])
+  assert.deepEqual(buildProfile({ ...base, crtChoice: 'auto', sharpness: 'off', upscalers: ups }).presets, ['C:/ra/crt/crt-easymode.slangp'])
   const only = buildProfile({ ...base, shadersAvailable: new Set<string>(), sharpness: 'high', upscalers: ups })
   assert.deepEqual(only.presets, ['C:/ra/xbrz.slangp'])
   assert.equal(only.config.video_shader, 'C:/ra/xbrz.slangp')
