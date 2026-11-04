@@ -46,7 +46,9 @@ const base = { level: 'balanced' as const, cost: 'light' as const, cpuTier: 'mid
 test('RetroArch: le quattro modalità e il bordo grafico', () => {
   const fit = buildProfile({ ...base, imageStyle: 'fit' }).config
   assert.equal(fit.video_scale_integer, 'false')
-  assert.equal(fit.aspect_ratio_index, undefined)
+  assert.equal(fit.aspect_ratio_index, '22')
+  assert.equal(fit.config_save_on_exit, 'false')
+  assert.equal(fit.video_scale_integer_axis, '0')
   const px = buildProfile({ ...base, imageStyle: 'pixel' }).config
   assert.equal(px.video_scale_integer, 'true')
   const ph = buildProfile({ ...base, imageStyle: 'pixel-height' }).config

@@ -85,8 +85,13 @@ export function buildProfile(i: ProfileInput): Profile {
   c['video_smooth'] = 'false'
   c['video_scale_integer'] = String(i.imageStyle === 'pixel' || i.imageStyle === 'pixel-height')
   // solo altezza intera: l'asse Y soltanto (RetroArch recente); a tutto schermo: proporzione "Full" dell'elenco di RetroArch
-  if (i.imageStyle === 'pixel-height') c['video_scale_integer_axis'] = '1'
-  if (i.imageStyle === 'stretch') c['aspect_ratio_index'] = '24'
+  // sempre scritti, anche quando sono "normali": RetroArch salva da solo l'ultimo valore usato (config_save_on_exit) e lo
+  // ripropone alla partita dopo, quindi uscendo da "stirato" l'immagine restava stirata
+  c['video_scale_integer_axis'] = i.imageStyle === 'pixel-height' ? '1' : '0'
+  // 24 = "Full" (tutto lo schermo), 22 = proporzione data dal core (quella normale di RetroArch)
+  c['aspect_ratio_index'] = i.imageStyle === 'stretch' ? '24' : '22'
+  // le scelte del programma non devono finire nel file di RetroArch dell'utente
+  c['config_save_on_exit'] = 'false'
   if (i.overlay) {
     c['input_overlay_enable'] = 'true'
     c['input_overlay'] = i.overlay.replace(/\\/g, '/')

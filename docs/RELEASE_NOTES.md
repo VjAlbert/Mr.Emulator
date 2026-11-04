@@ -1,3 +1,10 @@
+## Mr. Emulator 0.2.6
+
+**Download:** `Mr-Emulator-Setup-<version>.exe` below. Windows may warn that the app is unsigned: **More info → Run anyway**.
+
+### New and fixed
+- 🛠️ **Fixed**: after playing in *Full screen (stretched)*, other image modes kept showing the stretched picture. RetroArch remembered the last aspect ratio on exit; the program now always sets it (and stops RetroArch from saving its own config on exit).
+
 ## Mr. Emulator 0.2.5
 
 **Download:** `Mr-Emulator-Setup-<version>.exe` below. Windows may warn that the app is unsigned: **More info → Run anyway**.
