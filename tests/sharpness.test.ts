@@ -1,4 +1,5 @@
 import { test } from 'node:test'
+import { resolve } from 'node:path'
 import assert from 'node:assert/strict'
 import { mergePresets, parsePreset, combinePresetFiles } from '../src/main/shaderchain'
 import { buildProfile, sharpnessAllowed } from '../src/main/profiles'
@@ -6,11 +7,15 @@ import { buildProfile, sharpnessAllowed } from '../src/main/profiles'
 const EASYMODE = 'shaders = 1\n\nshader0 = shaders/crt-easymode.slang\nfilter_linear0 = false\nscale_type0 = viewport\n'
 const XBRZ = 'shaders = 1\n\nshader0 = shaders/xbrz-freescale.slang\nfilter_linear0 = false\nscale_type0 = viewport\nscale0 = 1.0\n'
 const none = (): string | null => null
+/** Percorso come lo produce il programma sul sistema in uso (su Windows /ra diventa D:/ra) */
+const R = (p: string): string => resolve(p).replace(/\\/g, '/')
+const esc = (p: string): string => R(p).replace(/[.*+?^${}()|[\]\\/]/g, '\\$&')
+const fwd = (p: string): string => p.replace(/\\/g, '/').replace(/^[A-Za-z]:/, '')
 
 test('preset: percorsi dei passaggi resi assoluti, proprietà per passaggio lette', () => {
   const p = parsePreset(EASYMODE, '/ra/shaders/shaders_slang/crt', none)
   assert.equal(p.passes.length, 1)
-  assert.equal(p.passes[0].shader, '/ra/shaders/shaders_slang/crt/shaders/crt-easymode.slang')
+  assert.equal(p.passes[0].shader, R('/ra/shaders/shaders_slang/crt/shaders/crt-easymode.slang'))
   assert.equal(p.passes[0].scale_type, 'viewport')
   assert.equal(p.passes[0].filter_linear, 'false')
 })
@@ -18,14 +23,14 @@ test('preset: percorsi dei passaggi resi assoluti, proprietà per passaggio lett
 test('preset: due preset uniti = passaggi in sequenza e numerazione rifatta', () => {
   const text = mergePresets([parsePreset(XBRZ, '/ra/s/edge-smoothing/xbrz', none), parsePreset(EASYMODE, '/ra/s/crt', none)])
   assert.match(text, /^shaders = 2\n/)
-  assert.match(text, /shader0 = "\/ra\/s\/edge-smoothing\/xbrz\/shaders\/xbrz-freescale\.slang"/)
+  assert.match(text, new RegExp(`shader0 = "${esc('/ra/s/edge-smoothing/xbrz/shaders/xbrz-freescale.slang')}"`))
   assert.match(text, /scale0 = "1\.0"/)
-  assert.match(text, /shader1 = "\/ra\/s\/crt\/shaders\/crt-easymode\.slang"/)
+  assert.match(text, new RegExp(`shader1 = "${esc('/ra/s/crt/shaders/crt-easymode.slang')}"`))
   assert.match(text, /scale_type1 = "viewport"/)
   // il risultato si rilegge uguale
   const again = parsePreset(text, '/altrove', none)
   assert.equal(again.passes.length, 2)
-  assert.equal(again.passes[1].shader, '/ra/s/crt/shaders/crt-easymode.slang')
+  assert.equal(again.passes[1].shader, R('/ra/s/crt/shaders/crt-easymode.slang'))
 })
 
 test('preset: "#reference" e parametri/texture dei due preset si fondono', () => {
@@ -34,12 +39,12 @@ test('preset: "#reference" e parametri/texture dei due preset si fondono', () =>
     '/ra/a/ref.slangp': '#reference "base.slangp"\nbrightness = 1.5\n',
     '/ra/b/crt.slangp': 'shaders = 1\nshader0 = crt.slang\ntextures = "mask"\nmask = mask.png\n'
   }
-  const read = (f: string): string | null => files[f] ?? null
+  const read = (f: string): string | null => files[fwd(f)] ?? null
   const text = combinePresetFiles(['/ra/a/ref.slangp', '/ra/b/crt.slangp'], read)!
-  assert.match(text, /shader0 = "\/ra\/stock\.slang"/)
+  assert.match(text, new RegExp(`shader0 = "${esc('/ra/stock.slang')}"`))
   assert.match(text, /textures = "lut;mask"/)
-  assert.match(text, /lut = "\/ra\/lut\.png"/)
-  assert.match(text, /mask = "\/ra\/b\/mask\.png"/)
+  assert.match(text, new RegExp(`lut = "${esc('/ra/lut.png')}"`))
+  assert.match(text, new RegExp(`mask = "${esc('/ra/b/mask.png')}"`))
   assert.match(text, /brightness = "1\.5"/)
   assert.equal(combinePresetFiles(['/non/esiste.slangp'], read), null)
 })
