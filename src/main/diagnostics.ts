@@ -136,6 +136,21 @@ export function buildDiagnostics(c: DiagContext): DiagnosticReport {
     .filter((l) => /\[State\]|auto.?sav|savestate|\.srm|\[SRAM\]|\[Core\] (Loaded|Version)|Failed|failed/i.test(l))
     .slice(-14)
     .join('\n')
+  // cosa ha chiesto il programma all'ultima partita per l'immagine (utile quando "la modalità non cambia")
+  const pick = (file: string, re: RegExp): string => {
+    try {
+      return readFileSync(file, 'utf-8').split(/\r?\n/).filter((l) => re.test(l)).join('\n')
+    } catch {
+      return ''
+    }
+  }
+  const raCfg = pick(join(c.userData, 'retroarch-mr.cfg'), /aspect|scale_integer|windowed_fullscreen|video_fullscreen|overlay_enable|viewport/i)
+  const mameIni = pick(join(c.userData, 'mame', 'mame.ini'), /^(keepaspect|unevenstretch|unevenstretchx|video|window|maximize|autoror|autorol)\s/i)
+  const raVideo = tail(join(c.userData, 'retroarch-last.log'), 200000)
+    .split(/\r?\n/)
+    .filter((l) => /\[Video\]|aspect|viewport/i.test(l))
+    .slice(-8)
+    .join('\n')
   if (mainLog) add('warn', mt('Il programma ha registrato errori imprevisti'), mt('vedi il testo copiabile'), mt('Mandami il testo della diagnostica.'))
 
   const icon = { ok: '[OK]  ', warn: '[ATTENZIONE]', bad: '[PROBLEMA]' } as const
@@ -146,7 +161,9 @@ export function buildDiagnostics(c: DiagContext): DiagnosticReport {
     ...checks.map((k) => `${icon[k.level]} ${k.title}${k.detail ? ` — ${k.detail}` : ''}${k.fix ? `\n          → ${k.fix}` : ''}`),
     mainLog ? `\n--- main.log (ultime righe) ---\n${mainLog}` : '',
     mameLog ? `\n--- ultimo errore MAME ---\n${mameLog}` : '',
-    raLines ? `\n--- ultima partita con RetroArch (salvataggi e errori) ---\n${raLines}` : ''
+    raLines ? `\n--- ultima partita con RetroArch (salvataggi e errori) ---\n${raLines}` : '',
+    raCfg ? `\n--- immagine richiesta a RetroArch (ultima partita) ---\n${raCfg}${raVideo ? `\n${raVideo}` : ''}` : '',
+    mameIni ? `\n--- immagine richiesta a MAME (ultima partita) ---\n${mameIni}` : ''
   ].join('\n')
   return { checks, text, problems: checks.filter((k) => k.level === 'bad').length, warnings: checks.filter((k) => k.level === 'warn').length }
 }

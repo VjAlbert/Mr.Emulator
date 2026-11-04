@@ -902,3 +902,10 @@ b.warnmark { color: #ffd400; margin-right: 8px; font-weight: 400; } .row.active 
 :root[data-ui='comic'] .preview-card .sp-star, :root[data-ui='comic'] .preview-card .chip { background: var(--pop); color: var(--ink); }
 :root[data-ui='comic'] .tt-strip { margin-top: 14px; }
 :root[data-ui='comic'] .tt-hint { position: relative; z-index: 2; }
+
+/* prestazioni: niente sfocatura né fusione di colori a tutto schermo; i livelli che si animano restano sulla scheda video */
+.backdrop img { filter: none !important; will-change: opacity, transform; transform: translateZ(0); }
+:root[data-ui='comic'] .backdrop img { mix-blend-mode: normal; }
+.tt-rays { will-change: transform; }
+.comic-bg, .poster, .stage { will-change: transform, opacity; }
+.select .tile { will-change: transform; }
