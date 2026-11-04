@@ -3,6 +3,7 @@ import type { BrowserWindow } from 'electron'
 import { cpus, totalmem } from 'os'
 import type { GpuInfo, HardwareReport, ScreenInfo, Tier } from '@shared/types'
 import { classifyCpu, classifyGpu, overallLevel, vendorFromId } from './tiers'
+import { mt } from './mt'
 
 const RANK: Record<Tier, number> = { low: 0, mid: 1, high: 2 }
 
@@ -37,7 +38,7 @@ async function detectGpus(): Promise<GpuInfo[]> {
     return { name, vendor, active, tier: classifyGpu(name, vendor) }
   })
   if (gpus.length === 0) {
-    const name = renderer || 'Scheda video sconosciuta'
+    const name = renderer || mt('Scheda video sconosciuta')
     gpus.push({ name, vendor: 'other', active: true, tier: classifyGpu(name, 'other') })
   }
   return gpus

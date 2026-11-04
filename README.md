@@ -40,21 +40,38 @@ A fast, flashy launcher for arcade and classic console games, built for people w
 >
 > Windows may show *"Windows protected your PC"* because the app is not signed with a paid certificate. Click **More info → Run anyway**.
 
-## What's new
+## Features
 
-- 🌍 **English and Italian** in the program, switchable any time (Settings → General, or the IT/EN buttons on the title screen).
-- 🎬 **New "PRESS START" title screen** with the system parade.
-- 🧭 **First-run guide**: folders, RetroArch, **one-click core download**, BIOS checklist (with known-file verification) and MAME.
-- 💾 **Saves, done properly**: one saves folder next to your ROMs, automatic save every 10 s, **"Continue / New game"** question before launching a console game with a save (replaces the Memory Card), per-game **Resume** switch in the arcade preview, MAME **high scores**, plus backup/restore to a ZIP.
-- 🕹️ **Exit and game menu without a keyboard**: Select + Start on a gamepad, Coin + Start on an arcade panel; fixed Start/Coin on Xbox gamepads in MAME.
-- 🎛️ **Manual button mapping** for keyboards, pads and arcade encoders, for two players, with conflict detection. It applies to RetroArch, MAME and the launcher menu.
-- 🖼️ **Border (overlay) for each system**: point the program to a folder of RetroArch borders and it picks the right one for every console by itself, or choose one by hand.
-- 🖥️ **Screen modes** (full height, pixel perfect, pixel perfect in height, stretched) with a live preview using your real screen size, per-system overrides, vertical-monitor mode for MAME and RetroArch overlays.
-- 🕹️ **New systems**: Dreamcast, Sega Naomi, Atomiswave, PlayStation, Nintendo 64, Nintendo DS, Atari Jaguar, 3DO, PC Engine/TurboGrafx-16, SuperGrafx, Game Gear, SG-1000, Famicom Disk System, Neo Geo Pocket, ColecoVision, MSX, ZX Spectrum, Channel F and Astrocade.
-- 🎨 **Themes** (Fighter, Neon, Green phosphor, Night) and a manual **CRT shader** choice.
+### Look and feel
+- 🎨 **Two visual styles for the whole program**: **Comic** (poster with a yellow burst, halftone dots, panel-page background, hard-shadow buttons) and **Stage** (spotlight and glowing ring). Switch any time in *Settings → Look*.
+- 🏠 **System select screen**: every system shows its console as a poster, with pop-out tiles around it. Illustrations are included; you can add **your own photos** (`snes.png`, `psx.png`…) and the program turns them into comic art (background removed, bold outline), or shows them as they are.
+- 🌈 **Themes** (Fighter, Neon, Green phosphor, Night), sound effects, "PRESS START" title screen, INSERT COIN sequence and an **attract mode** that rotates covers when idle.
+- 🌍 **English and Italian**, switchable any time.
+
+### Library
+- 📚 Scans huge collections in the background (tested on 54,000 files) with instant search, jump by letter or decade, families (Capcom, Sega, Taito…), **favorites**, **recent games** and a **most played** list.
+- 🖼️ **Covers and screenshots, free and automatic**: picked from the official libretro lists even when your file names differ (regions, discs, "Zelda, The"…). One button per system downloads them all (*Settings → Covers*); a comic-style cover is generated when none exists. Local image packs (snap, flyers, titles) take priority.
+- 💿 **Multi-disc games** (PlayStation, 3DO, Dreamcast): one entry per game with an automatic `.m3u`.
+- 🎬 **Multimedia pack**: video snaps in a frame on the selected game and a soundtrack player.
+- 🏷️ Real game names from DAT files (FinalBurn Neo, MAME) and MAME Software Lists.
+- ⏱ **Play statistics**: time played and number of sessions.
+- 🧪 **ROM check** with MAME's verifier: lists broken ZIPs and which files to replace.
+
+### Playing
+- 💾 **Saves, done properly**: one saves folder next to your ROMs; console progress is saved on exit and every 10 s. Before a game with a save you choose **Continue** or **New game** (the old save is kept as a safety copy). **Resume can be set for each console**. Arcade has a per-game **Resume** switch, MAME **high scores** are kept, and *Settings → Saves* backs up and restores everything as a ZIP.
+- 🏆 **Trophies (RetroAchievements)**: log in with your free account and games launched with RetroArch award trophies (optional hardcore mode).
+- 🪄 **Cheats**: one click downloads RetroArch's cheat database; when there is a file for the game you start, it is loaded automatically.
+- 🕹️ **Controls**: keyboard, gamepad and arcade-panel presets, **manual button mapping** for two players (covers non-Xbox pads such as PS3 clones: L1/R1/L2/R2/L3/R3, hat D-pads, analog triggers), conflict detection, and a live "Controls" test screen.
+- 🚪 **Exit and game menu without a keyboard**: Select + Start on a gamepad, Coin + Start on an arcade panel (configurable).
+- 🖥️ **Screen**: four image modes (full height, pixel perfect, pixel perfect in height, stretched) with a live preview on your real screen, per-system overrides, vertical-monitor mode for MAME, **borders (overlays)** picked automatically per system, and **CRT shaders**.
+- ⚡ **Auto-tuning**: detects your PC and screens, picks a Light / Balanced / Max profile per system, uses the powerful GPU on dual-GPU laptops, and adapts after the question "how did it go?".
 - 🏠 **Cabinet mode**: start with Windows, borderless full screen, hidden cursor, protected exit.
-- 🖼️ **Covers everywhere**: other regions and repositories are searched, and a generated comic-style cover appears when none exists.
-- 🩺 **Diagnostics** screen that checks folders, cores, BIOS files and logs, and a text report you can copy.
+
+### Setup and care
+- 🧭 **First-run guide**: folders, RetroArch, **one-click core download**, BIOS checklist (with known-file verification) and MAME. It can be run again at the end of *Settings*.
+- ⬇ **One-click download of RetroArch and MAME** from their official sites (*Settings → General*).
+- 🩺 **Diagnostics** screen that checks folders, cores, BIOS files and RetroArch's log, plus a copyable report; error messages follow the program's language.
+- 🔔 **Update notice** when a new release is out (one request a day, can be turned off).
 - 🛡️ Safer saving (settings survive power cuts), error log, single instance.
 
 ## Supported systems
@@ -73,7 +90,7 @@ The list can change as the project grows. Systems you do not use can be hidden i
 ## Quick start
 
 1. **Games** – the first-run guide creates one folder per system (`nes`, `snes`, `megadrive`, `psx`…) in `Documents\MrEmulator` or on any drive you choose. Copy your ROMs there.
-2. **RetroArch** – download it from [retroarch.com](https://www.retroarch.com/) (Windows 64-bit, just extract it) and point the guide to `retroarch.exe`. Mr. Emulator downloads the **cores** for you from the official archive.
+2. **RetroArch** – press **Download RetroArch** in *Settings → General* (or in the guide), or install it yourself from [retroarch.com](https://www.retroarch.com/) and point the guide to `retroarch.exe`. Mr. Emulator downloads the **cores** for you from the official archive.
 3. **BIOS** – only a few systems need one. The guide shows a checklist:
 
 | System | File | Folder |
@@ -85,7 +102,7 @@ The list can change as the project grows. Systems you do not use can be hidden i
 | Famicom Disk System | `disksys.rom` | `bios` |
 | 3DO | `panafz10.bin` | `bios` |
 
-4. **MAME** *(optional)* – for the Arcade (MAME) system and for proper game names; use the same version as your ROM set.
+4. **MAME** *(optional)* – for the Arcade (MAME) system and for proper game names. **Download MAME** installs the latest version, but your ROM set only works with *its own* MAME version: if you already have a set, point the program to the matching `mame.exe` instead.
 
 Something not working? Open **Settings → Diagnostics**: it tells you what is missing and how to fix it.
 

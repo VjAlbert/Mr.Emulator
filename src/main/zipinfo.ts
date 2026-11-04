@@ -69,12 +69,12 @@ export interface ZipEntry {
 
 export interface ZipArchive {
   file: string
-  /** Chiave: nome del file senza cartelle e senza estensione, in minuscolo */
+  /** Chiave: nome del file senza cartelle e senza estensione, in minuscolo (con fullNames: percorso completo nello ZIP) */
   entries: Map<string, ZipEntry>
 }
 
 /** Legge la directory centrale di uno ZIP con i dati necessari a estrarre i singoli file (no ZIP64) */
-export async function openZip(file: string, accept: (ext: string) => boolean): Promise<ZipArchive | null> {
+export async function openZip(file: string, accept: (ext: string) => boolean, fullNames = false): Promise<ZipArchive | null> {
   let fh
   try {
     fh = await fsp.open(file, 'r')
@@ -115,7 +115,7 @@ export async function openZip(file: string, accept: (ext: string) => boolean): P
       const dot = base.lastIndexOf('.')
       const ext = dot >= 0 ? base.slice(dot).toLowerCase() : ''
       if (!accept(ext)) continue
-      const key = (dot >= 0 ? base.slice(0, dot) : base).toLowerCase()
+      const key = fullNames ? name : (dot >= 0 ? base.slice(0, dot) : base).toLowerCase()
       if (!entries.has(key)) entries.set(key, { name, method, csize, size: usize, offset })
     }
     return { file, entries }

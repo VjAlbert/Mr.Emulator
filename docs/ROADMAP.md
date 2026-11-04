@@ -19,7 +19,7 @@ Sistemi: Arcade (MAME, FBNeo), Neo Geo, Master System, Mega Drive, NES, SNES, Ga
 - [x] File BIOS (es. neogeo.zip) nascosti dalla lista
 - [x] Carosello 3D di copertine, sfondo a rotazione, tendine ed effetti luce (con modalità "effetti ridotti")
 - [x] Archivi completi: scansione in background, indice salvato su disco, lista virtuale, ricerca e salti di pagina (provato su 54.000 file finti)
-- [ ] Download in blocco delle copertine di un intero sistema (opzionale: occupa molto spazio)
+- [x] Download in blocco delle copertine di un intero sistema (Impostazioni → Copertine)
 - [x] Schermata di selezione sistema in stile "character select"
 - [x] Avvio dei giochi tramite RetroArch e ritorno al launcher (da verificare con RetroArch reale)
 - [x] Navigazione con tastiera, mouse e gamepad (da verificare con pad reali ed encoder arcade)
@@ -76,7 +76,7 @@ Sistemi: Arcade (MAME, FBNeo), Neo Geo, Master System, Mega Drive, NES, SNES, Ga
 - [ ] Verifica con pad Xbox ed encoder I-PAC: uscita, menu, assegnazione manuale
 - [x] Bordi, modalità schermo e shader provati su RetroArch e schermi reali
 - [x] Crash di MAME su alcuni giochi: risolto
-- [ ] Salvataggi delle console: la ripresa su PlayStation non riparte da dove si era (Crash Bandicoot): in analisi, il registro di RetroArch è nella Diagnostica
+- [x] Salvataggi delle console: la ripresa su PlayStation (Crash Bandicoot) ora funziona
 
 **Funzioni**
 - [x] Giochi a più dischi (PlayStation, 3DO, Dreamcast): un solo gioco con file .m3u generato (da provare con RetroArch reale)
@@ -84,16 +84,17 @@ Sistemi: Arcade (MAME, FBNeo), Neo Geo, Master System, Mega Drive, NES, SNES, Ga
 - [x] Immagini locali anche per le console (cartella Multimedia, per nome del file)
 - [x] Copertine delle console: ricerca nell'indice ufficiale e download in blocco per sistema
 - [x] Pad completo: L2, R2, L3, R3, croce "hat", grilletti analogici (cloni PS3)
-- [ ] Ripresa automatica scelta per singola console (oggi è un solo interruttore per tutte)
-- [ ] Messaggi di errore del motore interno (Diagnostica, avvio giochi) in inglese
-- [ ] Scaricamento di RetroArch dal programma
-- [ ] Mega CD, Sega Saturn
-- [ ] GameCube e Wii, PlayStation 2, PSP (da verificare sulle prestazioni)
-- [ ] Trofei (RetroAchievements) e trucchi (cheat)
+- [x] Ripresa automatica scelta per singola console
+- [x] Pad dei cloni PS3 (Xsail) provato: funziona
+- [x] Messaggi di errore del motore interno (Diagnostica, avvio giochi) in inglese
+- [x] Scaricamento di RetroArch e MAME dal programma (siti ufficiali; da provare su Windows)
+- [x] Trofei (RetroAchievements) e trucchi (cheat): accesso e database scaricabile dal programma (da provare con un account reale)
+- [x] Grafica a fumetto in tutto il programma, schermata dei sistemi a poster e Impostazioni riorganizzate
 
 **Rimandate o escluse**
+- Mega CD, Sega Saturn, GameCube, Wii, PlayStation 2, PSP: fuori da questa versione
 - Sostituzione della shell di Windows (avvio senza desktop): rimandata, rischiosa senza un ripristino chiaro
-- Firma digitale dell'installer (a pagamento): per ora si spiega l'avviso di Windows
+- Firma digitale dell'installer: ultimo passo, dopo il collaudo (richiede un certificato a pagamento; per ora si spiega l'avviso di Windows)
 - Demul e altri emulatori autonomi: esclusi, si usano i core di RetroArch (Flycast per Dreamcast e Naomi)
 - macOS e Linux: esclusi
 

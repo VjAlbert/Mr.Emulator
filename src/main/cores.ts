@@ -5,6 +5,7 @@ import type { Settings, SystemDef } from '@shared/types'
 import { writeFileAtomic } from './atomic'
 import { openZip, readZipEntry } from './zipinfo'
 import { platform } from './platform'
+import { mt } from './mt'
 
 /** Archivio ufficiale dei core di RetroArch (versioni per Windows a 64 bit) */
 export const CORE_BASE = 'https://buildbot.libretro.com/nightly/windows/x86_64/latest/'
@@ -54,20 +55,20 @@ export interface CoreResult {
 
 /** Scarica un core dall'archivio ufficiale, lo estrae nella cartella dei core di RetroArch e controlla che il file sia valido */
 export async function installCore(core: string, dir: string, base = CORE_BASE, fetchFn: typeof fetch = fetch): Promise<CoreResult> {
-  if (!/^[a-z0-9_]+_libretro$/.test(core)) return { core, ok: false, error: 'nome del core non valido' }
+  if (!/^[a-z0-9_]+_libretro$/.test(core)) return { core, ok: false, error: mt('nome del core non valido') }
   const tmp = join(tmpdir(), `mr-core-${process.pid}-${core}.zip`)
   try {
     const res = await fetchFn(`${base}${core}${platform.coreExt}.zip`, { signal: AbortSignal.timeout(180000) })
-    if (!res.ok) return { core, ok: false, error: res.status === 404 ? 'non esiste per Windows nell’archivio ufficiale' : `risposta ${res.status}` }
+    if (!res.ok) return { core, ok: false, error: res.status === 404 ? mt('non esiste per Windows nell’archivio ufficiale') : mt('risposta {n}', { n: res.status }) }
     const zip = Buffer.from(await res.arrayBuffer())
-    if (zip.length < 1000) return { core, ok: false, error: 'file scaricato troppo piccolo' }
+    if (zip.length < 1000) return { core, ok: false, error: mt('file scaricato troppo piccolo') }
     writeFileSync(tmp, zip)
     const arc = await openZip(tmp, (ext) => ext === platform.coreExt)
     const entry = arc?.entries.get(core)
-    if (!arc || !entry) return { core, ok: false, error: 'il file scaricato non contiene il core' }
+    if (!arc || !entry) return { core, ok: false, error: mt('il file scaricato non contiene il core') }
     const data = await readZipEntry(tmp, entry)
     // una DLL di Windows comincia con "MZ": se no, il download è danneggiato
-    if (data.length < 1000 || data[0] !== 0x4d || data[1] !== 0x5a) return { core, ok: false, error: 'il core scaricato è danneggiato' }
+    if (data.length < 1000 || data[0] !== 0x4d || data[1] !== 0x5a) return { core, ok: false, error: mt('il core scaricato è danneggiato') }
     mkdirSync(dir, { recursive: true })
     writeFileAtomic(join(dir, core + platform.coreExt), data)
     return { core, ok: true }

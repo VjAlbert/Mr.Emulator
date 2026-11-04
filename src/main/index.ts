@@ -29,6 +29,9 @@ import { findOverlays } from './overlays'
 import { checkForUpdate, type UpdateInfo } from './updates'
 import { loadStats, recordPlay } from './stats'
 import { consoleImagesDir, ensureConsoleImagesDir, findConsoleImage, listConsoleImages, readConsoleImage } from './consoleImages'
+import { installMame, installRetroArch } from './tools'
+import { defaultRoot } from './folders'
+import { achievementsConfig, cheatsConfig, cheatsDirOf, installCheats } from './extras'
 import { backupSaves, importSaves, mameSaveIni, prepareFresh, restoreSaves, retroSaveConfig, saveInfo, savesRoot, saveStats } from './saves'
 import { coreList, coresDirOf, installCore } from './cores'
 import { biosStatus, buildDiagnostics } from './diagnostics'
@@ -37,6 +40,7 @@ import { softTitles } from './softlist'
 import { datTitles } from './datfiles'
 import { launchMame } from './mameLauncher'
 import { mameFolderName, systemDir } from './paths'
+import { mt } from './mt'
 
 protocol.registerSchemesAsPrivileged([
   { scheme: ART_SCHEME, privileges: { standard: true, secure: true, supportFetchAPI: true } },
@@ -325,7 +329,7 @@ app.whenReady().then(async () => {
   // analisi della cartella delle immagini locali: dice cosa riconosce (cartelle, archivi, quante immagini)
   ipcMain.handle('media:analyze', async () => {
     const dir = loadSettings().mediaDir
-    if (!dir) return { base: '', found: [], other: [], unsupported: [], error: 'Indica prima la cartella delle immagini e premi SALVA.' }
+    if (!dir) return { base: '', found: [], other: [], unsupported: [], error: mt('Indica prima la cartella delle immagini e premi SALVA.') }
     mediaSrc = { dir, src: new MediaSource(dir) }
     return mediaSrc.src.analyze()
   })
@@ -356,8 +360,8 @@ app.whenReady().then(async () => {
 
   ipcMain.handle('verify:start', async () => {
     const s = loadSettings()
-    if (verifyRun) return { ok: false, error: 'Il controllo è già in corso.' }
-    if (!s.mamePath || !existsSync(s.mamePath)) return { ok: false, error: 'Indica prima il percorso di mame.exe nelle Impostazioni.' }
+    if (verifyRun) return { ok: false, error: mt('Il controllo è già in corso.') }
+    if (!s.mamePath || !existsSync(s.mamePath)) return { ok: false, error: mt('Indica prima il percorso di mame.exe nelle Impostazioni.') }
     const data = await getMame()
     const job = runVerify(s.mamePath, ['-verifyroms', '-inipath', verifyIni(s)], (checked, bad) => {
       verifyState = { ...verifyState, running: true, checked, bad }
@@ -397,7 +401,7 @@ app.whenReady().then(async () => {
   // un solo gioco: pochi secondi
   ipcMain.handle('verify:machine', async (_e, name: string) => {
     const s = loadSettings()
-    if (!s.mamePath || !existsSync(s.mamePath)) return { ok: false, issues: [], error: 'MAME non trovato.' }
+    if (!s.mamePath || !existsSync(s.mamePath)) return { ok: false, issues: [], error: mt('MAME non trovato.') }
     const r = await runVerify(s.mamePath, ['-verifyroms', name, '-inipath', verifyIni(s)]).done
     const hit = r.bad.find((b) => b.name === name)
     return { ok: true, issues: hit?.issues ?? [] }
@@ -449,9 +453,9 @@ app.whenReady().then(async () => {
 
   /** Cartella dedicata alla versione di MAME (es. roms\mame0229), creata accanto alle altre cartelle ROM */
   async function mameVersionFolder(s: Settings): Promise<{ ok: boolean; path: string; error?: string }> {
-    if (!s.mamePath) return { ok: false, path: '', error: 'Indica prima il percorso di mame.exe e premi VERIFICA MAME.' }
+    if (!s.mamePath) return { ok: false, path: '', error: mt('Indica prima il percorso di mame.exe e premi VERIFICA MAME.') }
     const d = await getMame()
-    if (!d) return { ok: false, path: '', error: 'MAME non risponde: controlla il percorso di mame.exe.' }
+    if (!d) return { ok: false, path: '', error: mt('MAME non risponde: controlla il percorso di mame.exe.') }
     const path = join(s.romsDir, mameFolderName(d.version))
     mkdirSync(path, { recursive: true })
     return { ok: true, path }
@@ -496,7 +500,7 @@ app.whenReady().then(async () => {
 
   ipcMain.handle('game:launch', async (_e, game: Game, opts?: LaunchOptions) => {
     const system = SYSTEMS.find((s) => s.id === game.systemId)
-    if (!system) return { ok: false, error: 'Sistema sconosciuto.' }
+    if (!system) return { ok: false, error: mt('Sistema sconosciuto.') }
     const settings = loadSettings()
     // la lista contiene percorsi relativi alla cartella del sistema
     // i giochi a più dischi hanno già un percorso completo (il file .m3u creato dal programma)
@@ -548,8 +552,8 @@ app.whenReady().then(async () => {
         async () => {
           const r = await runVerify(settings.mamePath, ['-verifyroms', game.machine ?? '', '-inipath', verifyIni(settings)]).done
           const hit = r.bad.find((b) => b.name === game.machine)
-          if (hit) return `Controllo ROM: ⚠ file difettosi (${hit.issues.slice(0, 3).map((i) => `${i.set}.zip → ${i.file}`).join(' · ')}).`
-          return r.checked > 0 ? 'Controllo ROM: ✔ i file del gioco sono a posto, il problema è altrove.' : ''
+          if (hit) return mt('Controllo ROM: ⚠ file difettosi ({list}).', { list: hit.issues.slice(0, 3).map((i) => `${i.set}.zip → ${i.file}`).join(' · ') })
+          return r.checked > 0 ? mt('Controllo ROM: ✔ i file del gioco sono a posto, il problema è altrove.') : ''
         },
         // giochi che sono partiti solo con un profilo prudente: si riparte direttamente da quel livello
         Math.max(settings.launchFix[game.machine ?? ''] ?? 0, settings.launchFloor),
@@ -577,7 +581,7 @@ app.whenReady().then(async () => {
       game,
       system,
       settings,
-      toConfigText({ ...profile.config, ...input, ...save }),
+      toConfigText({ ...profile.config, ...input, ...save, ...achievementsConfig(settings), ...cheatsConfig(settings, system, game).config }),
       () => {
         t.t = Date.now()
         win?.hide()
@@ -594,14 +598,14 @@ app.whenReady().then(async () => {
   // controllo di mame.exe: versione e quante macchine conosce (rilegge l'elenco da capo)
   ipcMain.handle('mame:check', async () => {
     const s = loadSettings()
-    if (!s.mamePath) return { ok: false, version: '', machines: 0, error: 'Indica prima il percorso di mame.exe.' }
+    if (!s.mamePath) return { ok: false, version: '', machines: 0, error: mt('Indica prima il percorso di mame.exe.') }
     const d = await getMame(undefined, true)
-    if (!d) return { ok: false, version: '', machines: 0, error: 'MAME non risponde: controlla che il file sia mame.exe e che si avvii.' }
+    if (!d) return { ok: false, version: '', machines: 0, error: mt('MAME non risponde: controlla che il file sia mame.exe e che si avvii.') }
     library.rescan(false)
     // la cartella dei giochi porta spesso il nome della versione (mame0229): se non coincide con MAME, si avvisa
     const folder = /^mame(\d+)$/i.exec(basename(s.mameRomDir || ''))
     const exeNum = /\(mame(\d+)\)/i.exec(d.version)
-    const warning = folder && exeNum && folder[1] !== exeNum[1] ? `La cartella dei giochi si chiama ${basename(s.mameRomDir)} ma questo MAME è ${d.version}: i set ROM valgono solo per la loro versione.` : undefined
+    const warning = folder && exeNum && folder[1] !== exeNum[1] ? mt('La cartella dei giochi si chiama {folder} ma questo MAME è {version}: i set ROM valgono solo per la loro versione.', { folder: basename(s.mameRomDir), version: d.version }) : undefined
     return { ok: true, version: d.version, machines: d.machines.size, warning }
   })
 
@@ -609,11 +613,11 @@ app.whenReady().then(async () => {
   // copertine di un intero sistema in una volta sola (a gruppi, con avanzamento e possibilità di fermarsi)
   let bulk: { cancel: boolean } | null = null
   ipcMain.handle('art:bulk-start', async (_e, systemId: string) => {
-    if (bulk) return { ok: false, error: 'Un download di copertine è già in corso.' }
+    if (bulk) return { ok: false, error: mt('Un download di copertine è già in corso.') }
     const system = SYSTEMS.find((x) => x.id === systemId)
     const s = loadSettings()
-    if (!system || !system.thumbs) return { ok: false, error: 'Questo sistema non ha copertine online.' }
-    if (!s.downloadArt) return { ok: false, error: 'Il download delle copertine è spento nelle Impostazioni.' }
+    if (!system || !system.thumbs) return { ok: false, error: mt('Questo sistema non ha copertine online.') }
+    if (!s.downloadArt) return { ok: false, error: mt('Il download delle copertine è spento nelle Impostazioni.') }
     const games = (s.romsDir ? await library.games(systemId) : []).filter((g) => !g.demo)
     const job = { cancel: false }
     bulk = job
@@ -737,10 +741,33 @@ app.whenReady().then(async () => {
     allowQuit = true
     app.quit()
   })
+  // RetroArch e MAME scaricati dai siti ufficiali in Documenti\MrEmulator\Emulatori
+  let toolBusy = false
+  ipcMain.handle('tools:install', async (_e, kind: 'retroarch' | 'mame') => {
+    if (toolBusy) return { ok: false, path: '', version: '', error: mt('Un download è già in corso.') }
+    toolBusy = true
+    try {
+      const dest = join(defaultRoot(), 'Emulatori', kind === 'mame' ? 'MAME' : 'RetroArch')
+      const send = (pct: number): void => win?.webContents.send('tools:progress', { kind, pct })
+      const r = kind === 'mame' ? await installMame(dest, send) : await installRetroArch(dest, send)
+      if (r.ok) {
+        const cur = loadSettings()
+        saveSettings(kind === 'mame' ? { ...cur, mamePath: r.path } : { ...cur, retroarchPath: r.path })
+      }
+      send(100)
+      return r
+    } finally {
+      toolBusy = false
+    }
+  })
+  ipcMain.handle('cheats:install', () => {
+    const dir = cheatsDirOf(loadSettings())
+    return dir ? installCheats(dir) : { ok: false, files: 0, error: mt('Indica prima retroarch.exe') }
+  })
   ipcMain.handle('cores:list', () => coreList(loadSettings(), SYSTEMS, (id) => library.count(id)))
   ipcMain.handle('cores:install', (_e, core: string) => {
     const dir = coresDirOf(loadSettings())
-    return dir ? installCore(core, dir) : { core, ok: false, error: 'Indica prima retroarch.exe' }
+    return dir ? installCore(core, dir) : { core, ok: false, error: mt('Indica prima retroarch.exe') }
   })
   ipcMain.handle('bios:status', () => biosStatus(loadSettings()).map(({ rule, found, verified }) => ({ systemId: rule.systemId, name: rule.name, files: rule.anyOf, where: rule.where, note: rule.note, found, verified })))
   ipcMain.handle('diagnostics:get', () =>

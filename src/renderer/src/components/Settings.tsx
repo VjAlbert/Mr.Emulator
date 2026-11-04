@@ -23,10 +23,13 @@ export default function SettingsScreen({ onClose, onSaved, onPc, onRomCheck, onG
   const [mameInfo, setMameInfo] = useState<string>('')
   const [mediaInfo, setMediaInfo] = useState<string[]>([])
   const bodyRef = useRef<HTMLDivElement>(null)
-  const [tab, setTab] = useState<'general' | 'systems' | 'look' | 'screen' | 'covers' | 'saves' | 'cabinet' | 'diag'>('general')
+  const [tab, setTab] = useState<'general' | 'systems' | 'look' | 'screen' | 'covers' | 'extras' | 'saves' | 'cabinet' | 'diag'>('general')
   const [diag, setDiag] = useState<DiagnosticReport | null>(null)
   const [copied, setCopied] = useState(false)
   const [all, setAll] = useState<SystemInfo[]>([])
+  const [tool, setTool] = useState<{ kind: string; pct: number; msg: string } | null>(null)
+  useEffect(() => window.mr.onToolProgress((p) => setTool((o) => (o && o.kind === p.kind ? { ...o, pct: p.pct } : o))), [])
+  const [cheatMsg, setCheatMsg] = useState('')
   const [bulk, setBulk] = useState<Record<string, ArtBulkState>>({})
   useEffect(() => window.mr.onArtBulk((b) => setBulk((o) => ({ ...o, [b.systemId]: b }))), [])
   const [saveStats, setSaveStats] = useState<{ dir: string; files: number; bytes: number } | null>(null)
@@ -83,6 +86,12 @@ export default function SettingsScreen({ onClose, onSaved, onPc, onRomCheck, onG
     setTimeout(() => setSaved(false), 1800)
   }
 
+  const download = async (kind: 'retroarch' | 'mame'): Promise<void> => {
+    setTool({ kind, pct: 0, msg: '' })
+    const r = await window.mr.installTool(kind)
+    if (r.ok) setS((o) => (o ? { ...o, ...(kind === 'mame' ? { mamePath: r.path } : { retroarchPath: r.path }) } : o))
+    setTool({ kind, pct: 100, msg: r.ok ? t('✔ Installato: {p}', { p: r.path }) : t('✘ {e}', { e: r.error ?? '' }) })
+  }
   const field = (label: string, hint: string, key: PathKey, kind: PickKind): React.JSX.Element => (
     <div className="field">
       <label>{t(label)}</label>
@@ -113,6 +122,7 @@ export default function SettingsScreen({ onClose, onSaved, onPc, onRomCheck, onG
           <button className={`tab ${tab === 'look' ? 'on' : ''}`} onClick={() => setTab('look')}>{t('ASPETTO')}</button>
           <button className={`tab ${tab === 'screen' ? 'on' : ''}`} onClick={() => setTab('screen')}>{t('SCHERMO')}</button>
           <button className={`tab ${tab === 'covers' ? 'on' : ''}`} onClick={() => setTab('covers')}>{t('COPERTINE')}</button>
+          <button className={`tab ${tab === 'extras' ? 'on' : ''}`} onClick={() => setTab('extras')}>{t('TROFEI E TRUCCHI')}</button>
           <button className={`tab ${tab === 'saves' ? 'on' : ''}`} onClick={() => setTab('saves')}>{t('SALVATAGGI')}</button>
           <button className={`tab ${tab === 'cabinet' ? 'on' : ''}`} onClick={() => setTab('cabinet')}>{t('MODALITÀ CABINATO')}</button>
           <button
@@ -141,6 +151,27 @@ export default function SettingsScreen({ onClose, onSaved, onPc, onRomCheck, onG
               <input type="checkbox" checked={s.resumeConsoles} onChange={(e) => setS({ ...s, resumeConsoles: e.target.checked })} />
               {t('Console: continua da dove eri (sostituisce la Memory Card). Salva da solo quando esci e, se trova un salvataggio, ti chiede se continuare o iniziare una nuova partita')}
             </label>
+            <h3 className="sub-h">{t('Ripresa per singola console')}</h3>
+            <div className="persys">
+              {all.filter((x) => x.phase === 1 && x.core && x.engine !== 'mame' && x.id !== 'arcade' && x.id !== 'neogeo').map((x) => (
+                <label key={x.id} className="persys-row" style={{ ['--tile' as string]: x.color }}>
+                  <span className="persys-n">{x.name}</span>
+                  <select
+                    value={s.resumeBySystem?.[x.id] === undefined ? '' : s.resumeBySystem[x.id] ? 'on' : 'off'}
+                    onChange={(e) => {
+                      const next = { ...(s.resumeBySystem ?? {}) }
+                      if (e.target.value) next[x.id] = e.target.value === 'on'
+                      else delete next[x.id]
+                      setS({ ...s, resumeBySystem: next })
+                    }}
+                  >
+                    <option value="">{t('Come l\'interruttore generale')}</option>
+                    <option value="on">{t('Sì, continua da dove eri')}</option>
+                    <option value="off">{t('No, parti sempre da capo')}</option>
+                  </select>
+                </label>
+              ))}
+            </div>
             <label className="check">
               <input type="checkbox" checked={s.hiscore} onChange={(e) => setS({ ...s, hiscore: e.target.checked })} />
               {t('Arcade (MAME): salva i punteggi record dei giochi che lo permettono')}
@@ -295,6 +326,47 @@ export default function SettingsScreen({ onClose, onSaved, onPc, onRomCheck, onG
                 )
               })}
             </div>
+          </div>
+        ) : tab === 'extras' ? (
+          <div className="sysopts">
+            <h3 className="sub-h">{t('Trofei (RetroAchievements)')}</h3>
+            <p className="hint">{t('RetroAchievements dà trofei nei giochi delle console (RetroArch). Serve un account gratuito su retroachievements.org: qui inserisci il nome utente e la password. La password resta solo su questo PC. I giochi devono essere le versioni riconosciute dal sito.')}</p>
+            <label className="check">
+              <input type="checkbox" checked={s.raEnabled} onChange={(e) => setS({ ...s, raEnabled: e.target.checked })} />
+              {t('Attiva i trofei nei giochi')}
+            </label>
+            <div className="field">
+              <label>{t('Nome utente')}</label>
+              <input value={s.raUser} onChange={(e) => setS({ ...s, raUser: e.target.value })} />
+            </div>
+            <div className="field">
+              <label>{t('Password')}</label>
+              <input type="password" value={s.raPassword} onChange={(e) => setS({ ...s, raPassword: e.target.value })} />
+            </div>
+            <label className="check">
+              <input type="checkbox" checked={s.raHardcore} onChange={(e) => setS({ ...s, raHardcore: e.target.checked })} />
+              {t('Modalità hardcore (trofei con più valore, ma niente salvataggi di stato né trucchi: il "continua da dove eri" non funziona)')}
+            </label>
+            <h3 className="sub-h">{t('Trucchi (cheat)')}</h3>
+            <p className="hint">{t('Scarica il database dei trucchi di RetroArch (gratuito). Se c\'è un file per il gioco che avvii, i trucchi vengono caricati da soli e li attivi o disattivi dal menu di RetroArch (Menu rapido → Trucchi). Non funziona con la modalità hardcore.')}</p>
+            <label className="check">
+              <input type="checkbox" checked={s.cheatsAuto} onChange={(e) => setS({ ...s, cheatsAuto: e.target.checked })} />
+              {t('Carica da soli i trucchi del gioco, se ci sono')}
+            </label>
+            <div className="field-row">
+              <button
+                className="chip"
+                onClick={async () => {
+                  setCheatMsg(t('Scarico…'))
+                  const r = await window.mr.installCheats()
+                  setCheatMsg(r.ok ? t('✔ {n} file di trucchi installati', { n: r.files.toLocaleString(getLang() === 'it' ? 'it' : 'en') }) : t('✘ {e}', { e: r.error ?? '' }))
+                }}
+              >
+                {t('⬇ SCARICA I TRUCCHI')}
+              </button>
+              <span className="persys-st">{cheatMsg}</span>
+            </div>
+            <p className="hint">{t('Ricorda di premere SALVA. I trucchi e i trofei valgono per i giochi lanciati con RetroArch; MAME ha i suoi trucchi nel menu interno.')}</p>
           </div>
         ) : tab === 'screen' ? (
           <div className="sysopts">
@@ -494,6 +566,12 @@ export default function SettingsScreen({ onClose, onSaved, onPc, onRomCheck, onG
         </div>
         {field('RetroArch (retroarch.exe)', 'Es. C:\\RetroArch-Win64\\retroarch.exe', 'retroarchPath', 'file')}
         {field('MAME (mame.exe)', 'Es. D:\\MAME\\mame.exe — serve per il sistema Arcade (MAME); usa la stessa versione del tuo set ROM', 'mamePath', 'file')}
+        <div className="field-row">
+          <button className="chip" disabled={!!tool && tool.pct < 100} onClick={() => download('retroarch')}>{t('⬇ SCARICA RETROARCH')}</button>
+          <button className="chip" disabled={!!tool && tool.pct < 100} onClick={() => download('mame')}>{t('⬇ SCARICA MAME')}</button>
+          {tool && <span className="persys-st">{tool.pct < 100 ? t('{k}: {n}%', { k: tool.kind === 'mame' ? 'MAME' : 'RetroArch', n: tool.pct }) : tool.msg}</span>}
+        </div>
+        <p className="hint">{t('Si scaricano dai siti ufficiali (RetroArch: archivio stabile di libretro; MAME: ultima versione su GitHub) in Documenti\\MrEmulator\\Emulatori. Attenzione: l\'ultimo MAME può non corrispondere al tuo set di ROM, che vale solo per la sua versione.')}</p>
         <div className="field-row">
           <button
             className="chip"

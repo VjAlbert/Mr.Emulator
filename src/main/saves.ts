@@ -5,6 +5,7 @@ import { writeFileAtomic } from './atomic'
 import { defaultRoot } from './folders'
 import { readZipEntry } from './zipinfo'
 import { createZip, listZip } from './zipwrite'
+import { mt } from './mt'
 
 /** Sistemi "arcade" di RetroArch (FBNeo): la scelta di riprendere si fa nell'anteprima, non all'avvio */
 const ARCADE_RETRO = new Set(['arcade', 'neogeo'])
@@ -23,7 +24,7 @@ const machineOf = (game: Game): string => game.machine ?? contentName(game)
 
 /** Console: impostazione generale; arcade e MAME: scelta fatta per quel gioco */
 export function resumeFor(s: Settings, system: SystemDef, game: Game): boolean {
-  return kindOf(system) === 'console' ? s.resumeConsoles : !!s.resumeArcade?.[game.id]
+  return kindOf(system) === 'console' ? (s.resumeBySystem?.[system.id] ?? s.resumeConsoles) : !!s.resumeArcade?.[game.id]
 }
 
 /** File dello stato che viene salvato all'uscita (e caricato all'avvio) */
@@ -80,7 +81,7 @@ export function saveInfo(s: Settings, system: SystemDef, game: Game): SaveInfo {
     state: st === null ? null : { time: st },
     sram: sr === null ? null : { time: sr },
     hiscore: kindOf(system) === 'mame' && s.hiscore && hiscoreSupported(s.mamePath, machineOf(game)),
-    ask: kind === 'console' && s.resumeConsoles && st !== null
+    ask: kind === 'console' && resume && st !== null
   }
 }
 
@@ -166,14 +167,14 @@ export function saveStats(s: Settings): SaveStats {
 export function backupSaves(s: Settings, dest: string): number {
   const root = savesRoot(s)
   const files = walk(root).map((p) => ({ name: relative(root, p).split(sep).join('/'), path: p }))
-  if (!files.length) throw new Error('Non ci sono salvataggi da salvare.')
+  if (!files.length) throw new Error(mt('Non ci sono salvataggi da salvare.'))
   return createZip(dest, files)
 }
 
 /** Ripristina uno ZIP di backup nella cartella dei salvataggi. Rifiuta i percorsi che uscirebbero dalla cartella. */
 export async function restoreSaves(s: Settings, zip: string): Promise<{ files: number; skipped: number }> {
   const entries = await listZip(zip)
-  if (!entries) throw new Error('Il file scelto non è un backup valido.')
+  if (!entries) throw new Error(mt('Il file scelto non è un backup valido.'))
   const root = resolve(savesRoot(s))
   let files = 0
   let skipped = 0

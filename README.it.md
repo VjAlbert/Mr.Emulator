@@ -30,23 +30,46 @@ Un launcher grafico veloce e spettacolare per giochi arcade e console classiche,
 
 > Windows può mostrare *"Windows ha protetto il PC"* perché il programma non ha una firma digitale a pagamento: premi **Ulteriori informazioni → Esegui comunque**.
 
-## Novità
+## Funzioni
 
-- 🌍 **Italiano e inglese** nel programma (Impostazioni → Generale, oppure i pulsanti IT/EN della schermata iniziale).
-- 🎬 **Nuova schermata iniziale "PREMI START"** con la fila di console.
-- 🧭 **Procedura guidata** del primo avvio con **download dei core** e controllo dei BIOS.
-- 🎛️ **Assegnazione manuale dei pulsanti** per tastiera, pad ed encoder, per due giocatori.
-- 🖥️ **Modalità schermo** (altezza piena, pixel perfetti, pixel perfetti in altezza, stirata) con anteprima sulle misure reali, per sistema, monitor verticale e overlay.
-- 🕹️ **Nuovi sistemi**: Dreamcast, Naomi, Atomiswave, PlayStation, Nintendo 64, Nintendo DS, Atari Jaguar, 3DO, PC Engine, Game Gear, MSX e altri.
-- 🎨 **Temi**, scelta dello **shader CRT**, **modalità cabinato** (avvio con Windows, schermo intero, cursore nascosto).
-- 🖼️ **Copertine sempre presenti** (altre regioni, oppure una copertina generata) e schermata **Diagnostica**.
+### Aspetto
+- 🎨 **Due stili per tutto il programma**: **Fumetto** (poster con esplosione gialla, retino, sfondo a pagina di fumetto, pulsanti con ombra netta) e **Palcoscenico** (riflettore e anello luminoso). Si cambia quando vuoi in *Impostazioni → Aspetto*.
+- 🏠 **Schermata dei sistemi**: ogni sistema mostra la sua console come poster, con tessere a sbalzo intorno. Le illustrazioni sono incluse; puoi aggiungere **le tue foto** (`snes.png`, `psx.png`…) e il programma le trasforma in stile fumetto (sfondo tolto, contorno nero) oppure le mostra così come sono.
+- 🌈 **Temi** (Picchiaduro, Neon, Fosforo verde, Notte), suoni, schermata "PREMI START", sequenza INSERT COIN e **attract mode** a riposo.
+- 🌍 **Italiano e inglese**, cambiabili quando vuoi.
+
+### Libreria
+- 📚 Scansione in background di raccolte enormi (provata su 54.000 file), ricerca immediata, salti per lettera o per anno, famiglie (Capcom, Sega, Taito…), **preferiti**, **ultimi giochi** e **più giocati**.
+- 🖼️ **Copertine e immagini gratuite e automatiche**: scelte dalle liste ufficiali di libretro anche se i nomi dei tuoi file sono diversi (regioni, dischi, "Zelda, The"…). Un pulsante per sistema le scarica tutte (*Impostazioni → Copertine*); se manca tutto si genera una copertina a fumetto. Le immagini locali (snap, flyers, titles) hanno la precedenza.
+- 💿 **Giochi a più dischi** (PlayStation, 3DO, Dreamcast): una sola voce con `.m3u` automatico.
+- 🎬 **Pacchetto Multimedia**: filmati in cornice sul gioco selezionato e lettore della colonna sonora.
+- 🏷️ Nomi veri dei giochi da DAT (FinalBurn Neo, MAME) e Software List di MAME.
+- ⏱ **Statistiche**: tempo giocato e partite.
+- 🧪 **Controllo ROM** con il verificatore di MAME: elenca gli ZIP difettosi e i file da sostituire.
+
+### Giocare
+- 💾 **Salvataggi fatti bene**: una cartella accanto alle ROM; le console salvano all'uscita e ogni 10 s. Prima di un gioco con salvataggio scegli **Continua** o **Nuova partita** (il vecchio resta come copia). **La ripresa si sceglie per singola console**. Gli arcade hanno l'interruttore **Riprendi** per gioco, MAME conserva i **record**, e *Impostazioni → Salvataggi* fa backup e ripristino in ZIP.
+- 🏆 **Trofei (RetroAchievements)**: accedi con il tuo account gratuito e i giochi lanciati con RetroArch assegnano trofei (modalità hardcore facoltativa).
+- 🪄 **Trucchi (cheat)**: un clic scarica il database dei trucchi di RetroArch; se c'è un file per il gioco che avvii, viene caricato da solo.
+- 🕹️ **Comandi**: preset per tastiera, gamepad e pannello arcade, **assegnazione manuale** per due giocatori (anche per pad non Xbox come i cloni PS3: L1/R1/L2/R2/L3/R3, croce "hat", grilletti analogici), controllo dei conflitti e schermata "Comandi" per provarli.
+- 🚪 **Uscita e menu senza tastiera**: Select + Start sul pad, Moneta + Start sul pannello arcade (configurabili).
+- 🖥️ **Schermo**: quattro modalità (altezza piena, pixel perfetti, pixel perfetti in altezza, stirata) con anteprima sul tuo schermo, per sistema, monitor verticale per MAME, **bordi (overlay)** scelti da soli per sistema e **shader CRT**.
+- ⚡ **Autoguida**: riconosce PC e schermi, sceglie un profilo Leggero / Bilanciato / Massimo per sistema, usa la scheda video potente sui portatili con due GPU e si adatta alla domanda "com'è andata?".
+- 🏠 **Modalità cabinato**: avvio con Windows, schermo intero senza bordi, cursore nascosto, uscita protetta.
+
+### Installazione e cura
+- 🧭 **Procedura guidata** del primo avvio: cartelle, RetroArch, **download dei core con un clic**, BIOS (con verifica dei file noti) e MAME. Si rifà dal fondo delle Impostazioni.
+- ⬇ **Download di RetroArch e MAME con un clic** dai siti ufficiali (*Impostazioni → Generale*).
+- 🩺 **Diagnostica** di cartelle, core, BIOS e registro di RetroArch, con testo copiabile; i messaggi di errore seguono la lingua del programma.
+- 🔔 **Avviso di nuova versione** (una richiesta al giorno, si può spegnere).
+- 🛡️ Salvataggio sicuro delle impostazioni, registro degli errori, istanza unica.
 
 ## Primi passi
 
 1. **Giochi**: la guida crea una cartella per sistema in `Documenti\MrEmulator` o sul disco che scegli. Copiaci le tue ROM.
-2. **RetroArch**: scaricalo da [retroarch.com](https://www.retroarch.com/) (Windows 64 bit, si estrae e basta) e indica `retroarch.exe`. I **core** li scarica il programma.
+2. **RetroArch**: premi **Scarica RetroArch** in *Impostazioni → Generale* (o nella guida), oppure installalo da [retroarch.com](https://www.retroarch.com/) e indica `retroarch.exe`. I **core** li scarica il programma.
 3. **BIOS**: servono solo a pochi sistemi (Neo Geo `neogeo.zip`, PlayStation `scph5501.bin`, Dreamcast `dc_boot.bin` + `dc_flash.bin`, Naomi/Atomiswave `naomi.zip` + `awbios.zip`, FDS `disksys.rom`, 3DO `panafz10.bin`). La guida mostra cosa manca e dove metterlo.
-4. **MAME** (facoltativo) per il sistema Arcade (MAME) e per i nomi dei giochi.
+4. **MAME** (facoltativo) per il sistema Arcade (MAME) e per i nomi dei giochi. **Scarica MAME** installa l'ultima versione, ma il tuo set di ROM vale solo per *la sua* versione di MAME: se hai già un set, indica il `mame.exe` corrispondente.
 
 Se qualcosa non va: **Impostazioni → Diagnostica**.
 

@@ -1,6 +1,7 @@
 import { promises as fsp } from 'fs'
 import { join } from 'path'
 import { openZip, readZipEntry, type ZipArchive } from './zipinfo'
+import { mt } from './mt'
 
 /**
  * Immagini locali (pacchetti Multimedia / EXTRAs di MAME): file col nome breve del gioco,
@@ -113,7 +114,7 @@ export class MediaSource {
     try {
       await fsp.access(this.base)
     } catch {
-      return { base: this.base, found: [], other: [], unsupported: [], error: 'La cartella non esiste o non è raggiungibile.' }
+      return { base: this.base, found: [], other: [], unsupported: [], error: mt('La cartella non esiste o non è raggiungibile.') }
     }
     const d = await this.detect()
     const found: MediaReport['found'] = []

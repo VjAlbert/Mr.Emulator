@@ -3,6 +3,7 @@ import { join, dirname } from 'path'
 import { existsSync, readFileSync, mkdirSync, copyFileSync } from 'fs'
 import { writeFileAtomic } from './atomic'
 import type { Settings } from '@shared/types'
+import { setMainLang } from './mt'
 
 const DEFAULTS: Settings = {
   romsDir: '',
@@ -44,6 +45,12 @@ const DEFAULTS: Settings = {
   savesDir: '',
   resumeConsoles: true,
   resumeArcade: {},
+  resumeBySystem: {},
+  raEnabled: false,
+  raUser: '',
+  raPassword: '',
+  raHardcore: false,
+  cheatsAuto: false,
   hiscore: true,
   autoCovers: false,
   groupDiscs: true,
@@ -70,7 +77,7 @@ const DEFAULTS: Settings = {
 
 const file = (): string => join(app.getPath('userData'), 'settings.json')
 
-export function loadSettings(): Settings {
+function readSettings(): Settings {
   // file principale, poi la copia di sicurezza; solo se entrambi sono illeggibili si riparte dai valori di default
   for (const f of [file(), `${file()}.bak`]) {
     try {
@@ -82,6 +89,12 @@ export function loadSettings(): Settings {
   return { ...DEFAULTS }
 }
 
+export function loadSettings(): Settings {
+  const s = readSettings()
+  setMainLang(s.language)
+  return s
+}
+
 export function saveSettings(s: Settings): Settings {
   const merged = { ...DEFAULTS, ...s }
   mkdirSync(dirname(file()), { recursive: true })
@@ -91,5 +104,6 @@ export function saveSettings(s: Settings): Settings {
     // la copia è un extra: se non riesce si salva comunque
   }
   writeFileAtomic(file(), JSON.stringify(merged, null, 2))
+  setMainLang(merged.language)
   return merged
 }

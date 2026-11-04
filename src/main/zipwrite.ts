@@ -3,6 +3,7 @@ import { dirname } from 'path'
 import { promises as fsp } from 'fs'
 import { crc32, deflateRawSync } from 'zlib'
 import type { ZipEntry } from './zipinfo'
+import { mt } from './mt'
 
 /** Ora e data nel formato DOS usato dagli ZIP */
 function dosTime(d: Date): { time: number; date: number } {
@@ -21,7 +22,7 @@ export interface ZipSource {
 
 /** Crea uno ZIP (compressione deflate). Pensato per i salvataggi: niente ZIP64, quindi al massimo ~4 GB e 65.000 file. */
 export function createZip(dest: string, files: ZipSource[]): number {
-  if (files.length > 65000) throw new Error('Troppi file per un solo ZIP')
+  if (files.length > 65000) throw new Error(mt('Troppi file per un solo ZIP'))
   mkdirSync(dirname(dest), { recursive: true })
   const fd = openSync(dest, 'w')
   const central: Buffer[] = []

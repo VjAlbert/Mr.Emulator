@@ -166,6 +166,16 @@ export interface Settings {
   savesDir: string
   /** Console: salva da sola lo stato all'uscita e propone di continuare all'avvio (sostituisce la Memory Card) */
   resumeConsoles: boolean
+  /** Console: scelta per singolo sistema (id del sistema -> sì/no); se manca vale l'interruttore generale */
+  resumeBySystem: Record<string, boolean>
+  /** RetroAchievements: trofei dentro i giochi di RetroArch */
+  raEnabled: boolean
+  raUser: string
+  raPassword: string
+  /** Modalità "hardcore": niente salvataggi di stato né trucchi (le regole di RetroAchievements) */
+  raHardcore: boolean
+  /** Trucchi (cheat): applica da solo quelli del database di RetroArch, se ce n'è uno per il gioco */
+  cheatsAuto: boolean
   /** Arcade: per ogni gioco, se riprendere la partita (id del gioco -> sì/no) */
   resumeArcade: Record<string, boolean>
   /** MAME: salva i punteggi record dei giochi arcade (plugin hiscore) */
@@ -457,6 +467,9 @@ export interface MrApi {
   /** Core di RetroArch usati dai sistemi, con lo stato di installazione */
   getCoreList(): Promise<Array<{ core: string; systems: string[]; installed: boolean; games: number }>>
   /** Scarica un core dall'archivio ufficiale di RetroArch */
+  installTool(kind: 'retroarch' | 'mame'): Promise<{ ok: boolean; path: string; version: string; error?: string }>
+  onToolProgress(cb: (p: { kind: string; pct: number }) => void): () => void
+  installCheats(): Promise<{ ok: boolean; files: number; error?: string }>
   installCore(core: string): Promise<{ core: string; ok: boolean; error?: string }>
   /** Chiude il programma (anche con la chiusura bloccata) */
   quitApp(): Promise<void>

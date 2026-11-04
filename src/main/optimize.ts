@@ -15,6 +15,7 @@ import { SYSTEMS } from './systems'
 import { buildMameProfile, buildProfile, type MameProfile, type Profile } from './profiles'
 import { currentScreen } from './hardware'
 import { LEVEL_LABEL, shiftLevel } from './tiers'
+import { mt } from './mt'
 
 /** Livello di partenza: la scelta manuale ha la precedenza su quello consigliato */
 export function baseLevel(hw: HardwareReport, s: Settings): PerfLevel {
@@ -108,15 +109,15 @@ export function buildReport(
   })
 
   const notes: string[] = []
-  if (!s.retroarchPath) notes.push('Indica il percorso di RetroArch nelle Impostazioni per applicare queste scelte.')
+  if (!s.retroarchPath) notes.push(mt('Indica il percorso di RetroArch nelle Impostazioni per applicare queste scelte.'))
   else if (!shaders.dir) {
-    notes.push('Gli shader CRT non sono installati: in RetroArch apri Aggiornatore online e scegli "Aggiorna shader Slang". Poi gli effetti si attivano da soli.')
+    notes.push(mt('Gli shader CRT non sono installati: in RetroArch apri Aggiornatore online e scegli "Aggiorna shader Slang". Poi gli effetti si attivano da soli.'))
   }
-  if (hw.hybridGpu && gpuPreference === 'off') notes.push('Hai due schede video: attiva l\'opzione per far usare quella potente a RetroArch.')
+  if (hw.hybridGpu && gpuPreference === 'off') notes.push(mt('Hai due schede video: attiva l\'opzione per far usare quella potente a RetroArch.'))
   if (hw.screens.length > 1) notes.push(`Rilevati ${hw.screens.length} schermi: i giochi partono su quello dove si trova Mr. Emulator (o su quello scelto).`)
-  if (cur.height >= 2000 && hw.gpuTier !== 'high') notes.push('Schermo 4K con una scheda video media: gli effetti pesanti sono limitati per mantenere la fluidità.')
+  if (cur.height >= 2000 && hw.gpuTier !== 'high') notes.push(mt('Schermo 4K con una scheda video media: gli effetti pesanti sono limitati per mantenere la fluidità.'))
   if (cur.hz >= 110 && Math.abs(cur.hz - Math.round(cur.hz / 60) * 60) > 2) {
-    notes.push(`Il tuo schermo è a ${cur.hz} Hz, non multiplo di 60: i giochi a 60 Hz potrebbero avere micro-scatti. Se li noti, imposta lo schermo a 120 o 60 Hz.`)
+    notes.push(mt('Il tuo schermo è a {hz} Hz, non multiplo di 60: i giochi a 60 Hz potrebbero avere micro-scatti. Se li noti, imposta lo schermo a 120 o 60 Hz.', { hz: cur.hz }))
   }
 
   return {

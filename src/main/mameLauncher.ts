@@ -6,6 +6,7 @@ import type { Game, LaunchResult, Settings, SystemDef } from '@shared/types'
 import { toIniText } from './profiles'
 import { systemDir } from './paths'
 import { readZipInfo } from './zipinfo'
+import { mt } from './mt'
 
 /** Se MAME si chiude entro questo tempo, quasi sicuramente non è partito (anche senza messaggi di errore) */
 const QUICK_EXIT_MS = 4000
@@ -66,9 +67,9 @@ export function launchMame(
   /** Impostazioni aggiuntive di mame.ini (salvataggi, ripresa automatica, record) */
   extraIni: Record<string, string> = {}
 ): LaunchResult {
-  if (game.demo) return { ok: false, error: 'Questo è un gioco di esempio. Imposta la cartella ROM nelle impostazioni.' }
+  if (game.demo) return { ok: false, error: mt('Questo è un gioco di esempio. Imposta la cartella ROM nelle impostazioni.') }
   if (!settings.mamePath || !existsSync(settings.mamePath)) {
-    return { ok: false, error: 'MAME non trovato. Indica il percorso di mame.exe nelle impostazioni.' }
+    return { ok: false, error: mt('MAME non trovato. Indica il percorso di mame.exe nelle impostazioni.') }
   }
   const machine = game.machine ?? parse(game.path).name
   // game.path è già assoluto: la cartella dello ZIP può essere una sottocartella
@@ -147,13 +148,13 @@ export function launchMame(
     const ok = setTimeout(() => {
       if (level > 0 && level !== startLevel) {
         onProfile(level)
-        onNote(`Il gioco è partito ${LEVELS[level].note}: ricordo questa scelta per questo gioco.`)
+        onNote(mt('Il gioco è partito {note}: ricordo questa scelta per questo gioco.', { note: mt(LEVELS[level].note) }))
       }
     }, SUCCESS_AFTER_MS)
     child.once('error', () => {
       clearTimeout(ok)
       onExit()
-      onFail('MAME non si è avviato. Controlla il percorso di mame.exe nelle impostazioni.')
+      onFail(mt('MAME non si è avviato. Controlla il percorso di mame.exe nelle impostazioni.'))
     })
     child.once('close', (code) => {
       clearTimeout(ok)
@@ -164,7 +165,7 @@ export function launchMame(
       // (con file mancanti o sbagliati riprovare non serve: l'errore sarebbe lo stesso)
       const romProblem = /NOT FOUND|Required files are missing|INCORRECT/.test(out)
       if (level < LEVELS.length - 1 && !romProblem && (crashed || code !== 0) && elapsed < RETRY_WITHIN_MS) {
-        onNote(`MAME si è chiuso con un errore: riprovo ${LEVELS[level + 1].note}…`)
+        onNote(mt('MAME si è chiuso con un errore: riprovo {note}…', { note: mt(LEVELS[level + 1].note) }))
         run(level + 1)
         return
       }
@@ -200,8 +201,8 @@ export async function diagnose(out: string, paths: string[], gameName: string, c
   const absent = [...tried].filter((n) => !locate(n))
   if (absent.length) {
     return (
-      `Manca ${absent.map((n) => `${n}.zip`).join(' e ')} (serve a "${gameName}"). Non lo trovo in: ${paths.join(' · ')}. ` +
-      'Copialo direttamente in una di queste cartelle, non in una sottocartella.'
+      mt('Manca {files} (serve a "{game}"). Non lo trovo in: {paths}. ', { files: absent.map((n) => `${n}.zip`).join(' + '), game: gameName, paths: paths.join(' · ') }) +
+      mt('Copialo direttamente in una di queste cartelle, non in una sottocartella.')
     )
   }
 
@@ -216,7 +217,7 @@ export async function diagnose(out: string, paths: string[], gameName: string, c
     if (!info) unreadable.push(`${set}.zip`)
   }
   if (unreadable.length) {
-    return `MAME non ha avviato "${gameName}": ${unreadable.join(', ')} non si riesce a leggere come ZIP (file danneggiato o copia interrotta). Ricopialo dalla sorgente.`
+    return mt('MAME non ha avviato "{game}": {files} non si riesce a leggere come ZIP (file danneggiato o copia interrotta). Ricopialo dalla sorgente.', { game: gameName, files: unreadable.join(', ') })
   }
 
   const lacking: string[] = []
@@ -230,13 +231,13 @@ export async function diagnose(out: string, paths: string[], gameName: string, c
   if (lacking.length || different.length) {
     const where = [...infos.entries()].map(([set, i]) => (i ? `${set}.zip ${fmtSize(i.size)}, ${i.names.length} file` : set)).join(' · ')
     const parts: string[] = []
-    if (lacking.length) parts.push(`dentro agli ZIP (${where}) mancano: ${lacking.join(', ')}`)
-    if (different.length) parts.push(`questi file ci sono ma con contenuto diverso da quello atteso: ${different.join(', ')}`)
+    if (lacking.length) parts.push(mt('dentro agli ZIP ({where}) mancano: {list}', { where, list: lacking.join(', ') }))
+    if (different.length) parts.push(mt('questi file ci sono ma con contenuto diverso da quello atteso: {list}', { list: different.join(', ') }))
     return (
-      `MAME non ha avviato "${gameName}": ${parts.join(' · ')}. ` +
+      mt('MAME non ha avviato "{game}": {parts}. ', { game: gameName, parts: parts.join(' · ') }) +
       (lacking.length
-        ? 'Probabile copia incompleta dello ZIP, oppure set di un\'altra versione di MAME: ricopialo dalla sorgente e controlla che sia il set della versione di MAME in uso.'
-        : 'Il set non corrisponde alla versione di MAME in uso.')
+        ? mt('Probabile copia incompleta dello ZIP, oppure set di un\'altra versione di MAME: ricopialo dalla sorgente e controlla che sia il set della versione di MAME in uso.')
+        : mt('Il set non corrisponde alla versione di MAME in uso.'))
     )
   }
   const { info, crashed } = analyzeOutput(out)
@@ -247,15 +248,15 @@ export async function diagnose(out: string, paths: string[], gameName: string, c
     // un offset enorme dal simbolo più vicino = l'indirizzo è fuori dal codice di MAME: libreria di Windows o driver
     const external = /\+0x[0-9a-f]{7,}\)/i.test(key ?? '')
     return (
-      `MAME è andato in crash avviando "${gameName}"${level > 0 ? ` (anche ${LEVELS[level].note})` : ''}: non è un file mancante.` +
-      (external ? ' Il blocco avviene in una libreria esterna a MAME (di Windows o del driver video/audio): prova ad aggiornare i driver della scheda video e dell\'audio.' : '') +
-      (tail ? ` Messaggio: ${tail}.` : '') +
-      ' Clicca questo avviso per copiare i dettagli completi.'
+      mt('MAME è andato in crash avviando "{game}"{also}: non è un file mancante.', { game: gameName, also: level > 0 ? mt(' (anche {note})', { note: mt(LEVELS[level].note) }) : '' }) +
+      (external ? mt(' Il blocco avviene in una libreria esterna a MAME (di Windows o del driver video/audio): prova ad aggiornare i driver della scheda video e dell\'audio.') : '') +
+      (tail ? mt(' Messaggio: {tail}.', { tail }) : '') +
+      mt(' Clicca questo avviso per copiare i dettagli completi.')
     )
   }
   if (!tail && (code === 0 || code === null)) {
     const sec = Math.max(1, Math.round(elapsed / 1000))
-    return `MAME si è chiuso dopo ${sec} second${sec === 1 ? 'o' : 'i'} senza scrivere errori: il gioco non è partito. Se non l'hai chiuso tu, prova "Controlla questo gioco" e il Controllo ROM.`
+    return mt('MAME si è chiuso dopo {sec} {unit} senza scrivere errori: il gioco non è partito. Se non l\'hai chiuso tu, prova "Controlla questo gioco" e il Controllo ROM.', { sec, unit: sec === 1 ? mt('secondo') : mt('secondi') })
   }
-  return `MAME non ha avviato "${gameName}": ${tail || `uscito con errore ${code}`}`
+  return mt('MAME non ha avviato "{game}": {tail}', { game: gameName, tail: tail || mt('uscito con errore {code}', { code: code ?? '?' }) })
 }
