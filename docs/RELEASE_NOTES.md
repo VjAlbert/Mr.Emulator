@@ -1,4 +1,15 @@
-## Mr. Emulator 0.1.5
+## Mr. Emulator 0.2.0
+
+**Download:** `Mr-Emulator-Setup-<version>.exe` below. Windows may warn that the app is unsigned: **More info → Run anyway**.
+
+### New
+- 🎨 **New home screen**: every system shows its console in a comic **poster** (burst, "1P START!" tag, ribbon) with **pop-out tiles** and a comic background that keeps the fade effects.
+- 🎭 **Two styles**: *Comic* or *Stage* (spotlight). Choose in **Settings → Look**.
+- 🕹️ **Console illustrations** for arcade, NES, SNES, Mega Drive, PlayStation and Game Boy.
+- 📷 **Your own console photos**: drop `<system>.png` (e.g. `snes.png`) in the consoles folder (Settings → Look → open folder). Photos are automatically stylised (background removed, comic outline); can be turned off.
+- 🧹 Code cleanup: unused code and styles removed.
+
+### Previous: 0.1.5
 
 **Download:** `Mr-Emulator-Setup-<version>.exe` below. Windows may warn that the app is unsigned: **More info → Run anyway**.
 

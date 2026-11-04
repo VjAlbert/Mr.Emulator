@@ -187,15 +187,6 @@ async function download(sys: string, kind: string, file: string): Promise<Fetche
   return 'error'
 }
 
-/** Sostituisce i nomi brevi (kof98) con i titoli completi del DAT FBNeo e riordina */
-export async function withFullTitles(games: Game[]): Promise<Game[]> {
-  const titles = await arcadeTitles()
-  if (!titles) return games
-  return games
-    .map((g) => ({ ...g, name: titles.get(parse(g.fileName).name.toLowerCase()) ?? g.name }))
-    .sort((a, b) => a.name.localeCompare(b.name, 'it'))
-}
-
 const inflight = new Map<string, Promise<string | null>>()
 
 export function getArt(game: Game, system: SystemDef, enabled: boolean, kind: ArtKind): Promise<string | null> {

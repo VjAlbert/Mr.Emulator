@@ -100,11 +100,3 @@ export function datTitles(dir: string, systemId: string, extraKeys: RegExp = KEY
   return out
 }
 
-/** Quanti DAT letti e per quali sistemi sono stati riconosciuti (per il controllo nelle impostazioni) */
-export function datSummary(dir: string): Array<{ header: string; count: number; systems: string[] }> {
-  return loadDats(dir).map((d) => ({
-    header: d.header,
-    count: d.titles.size,
-    systems: Object.keys(KEYWORDS).filter((k) => KEYWORDS[k].test(`${d.header} ${d.file}`))
-  }))
-}

@@ -343,11 +343,6 @@ export interface GameEnded {
 
 export type Feedback = 'ok' | 'slow' | 'better'
 
-export interface FolderInfo {
-  romsDir: string
-  biosDir: string
-}
-
 export interface LaunchResult {
   ok: boolean
   error?: string
