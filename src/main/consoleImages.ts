@@ -7,7 +7,8 @@ const MAX_BYTES = 12 * 1024 * 1024
 
 const norm = (s: string): string => s.toLowerCase().replace(/[^a-z0-9]/g, '')
 
-export const consoleImagesDir = (userData: string): string => join(userData, 'consoles')
+/** Cartella delle foto delle console: dentro la cartella della cache se l'utente l'ha spostata, altrimenti nei dati del programma */
+export const consoleImagesDir = (userData: string, cacheRoot = ''): string => (cacheRoot ? join(cacheRoot, '_consoles') : join(userData, 'consoles'))
 
 interface Named {
   id: string
@@ -51,8 +52,8 @@ export function readConsoleImage(path: string | null): string | null {
   }
 }
 
-export function ensureConsoleImagesDir(userData: string): string {
-  const dir = consoleImagesDir(userData)
+export function ensureConsoleImagesDir(userData: string, cacheRoot = ''): string {
+  const dir = consoleImagesDir(userData, cacheRoot)
   mkdirSync(dir, { recursive: true })
   return dir
 }

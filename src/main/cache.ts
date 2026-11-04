@@ -143,6 +143,16 @@ export async function clearImages(root: string): Promise<number> {
   return all.length
 }
 
+/** Porta i file di una cartella dentro un'altra (anche su un altro disco) e toglie la cartella di partenza */
+export function mergeDir(from: string, to: string): void {
+  const a = resolve(from)
+  const b = resolve(to)
+  if (a === b || !existsSync(a)) return
+  mkdirSync(b, { recursive: true })
+  cpSync(a, b, { recursive: true, force: false })
+  rmSync(a, { recursive: true, force: true })
+}
+
 export interface MoveResult {
   ok: boolean
   error?: string

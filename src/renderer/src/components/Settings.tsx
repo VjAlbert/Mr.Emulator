@@ -412,7 +412,7 @@ export default function SettingsScreen({ onClose, onSaved, onPc, onRomCheck, onG
             )}
             {cacheMsg && cachePct === null && <p className="persys-st">{cacheMsg}</p>}
             <h3 className="sub-h">{t('Dove tenere la cache')}</h3>
-            <p className="hint">{t('Per non occupare il disco C: scegli una cartella su un altro disco. Dentro si crea «MrEmulator-artwork». Con SPOSTA le immagini già scaricate vengono portate lì (se è un altro disco può richiedere qualche minuto).')}</p>
+            <p className="hint">{t('Per non occupare il disco C: scegli una cartella su un altro disco. Dentro si crea «MrEmulator-artwork». Con SPOSTA le immagini già scaricate e le foto delle console vengono portate lì (se è un altro disco può richiedere qualche minuto).')}</p>
             {field('Cartella della cache', 'Vuota = nei dati del programma (disco C:)', 'cacheDir', 'dir')}
             <div className="field-row">
               <button

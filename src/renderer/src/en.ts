@@ -404,7 +404,7 @@ export const EN: Record<string, string> = {
   "✔ {n} file cancellati": "✔ {n} files deleted",
   "🗑 SVUOTA TUTTO": "🗑 EMPTY ALL",
   "Dove tenere la cache": "Where to keep the cache",
-  "Per non occupare il disco C: scegli una cartella su un altro disco. Dentro si crea «MrEmulator-artwork». Con SPOSTA le immagini già scaricate vengono portate lì (se è un altro disco può richiedere qualche minuto).": "To avoid filling drive C:, pick a folder on another drive. «MrEmulator-artwork» is created inside. SPOSTA moves the images already downloaded there (it may take a few minutes on another drive).",
+  "Per non occupare il disco C: scegli una cartella su un altro disco. Dentro si crea «MrEmulator-artwork». Con SPOSTA le immagini già scaricate e le foto delle console vengono portate lì (se è un altro disco può richiedere qualche minuto).": "To avoid filling drive C:, pick a folder on another drive. «MrEmulator-artwork» is created inside. SPOSTA moves the images already downloaded and the console photos there (it may take a few minutes on another drive).",
   "Cartella della cache": "Cache folder",
   "Vuota = nei dati del programma (disco C:)": "Empty = in the program data (drive C:)",
   "Sposto la cache…": "Moving the cache…",

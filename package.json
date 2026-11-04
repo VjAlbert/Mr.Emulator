@@ -1,7 +1,7 @@
 {
   "name": "mr-emulator",
   "productName": "Mr. Emulator",
-  "version": "0.2.10",
+  "version": "0.2.11",
   "description": "Launcher grafico per giochi arcade e console classiche, in stile picchiaduro.",
   "main": "./out/main/index.js",
   "author": "VjAlbert",

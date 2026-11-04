@@ -1,3 +1,10 @@
+## Mr. Emulator 0.2.11
+
+**Download:** `Mr-Emulator-Setup-<version>.exe` below. Windows may warn that the app is unsigned: **More info → Run anyway**.
+
+### New and fixed
+- 📁 **Console photos move with the cache**: when you choose another folder for the cache (Settings → Covers), the folder with your console photos goes there too, so everything lives on the same drive.
+
 ## Mr. Emulator 0.2.10
 
 **Download:** `Mr-Emulator-Setup-<version>.exe` below. Windows may warn that the app is unsigned: **More info → Run anyway**.
