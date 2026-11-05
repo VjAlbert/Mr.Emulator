@@ -2,13 +2,13 @@ import { useEffect, useRef, useState } from 'react'
 import { IMAGE_MODES } from './ScreenPreview'
 import { markConsoleImagesDirty, refreshConsoleArt } from '../consoleArt'
 import { SVG_FOR } from './consoleSvgs'
-import type { ArtBulkState, CacheStats, DiagnosticReport, ImageStyle, PickKind, Settings, SharpnessInfo, SystemInfo } from '@shared/types'
+import type { ArtBulkState, CacheStats, CoverCount, DiagnosticReport, ImageStyle, PickKind, Settings, SharpnessInfo, SystemInfo } from '@shared/types'
 import { ToolFinder } from './ToolFinder'
 import { useInput } from '../hooks/useInput'
 import { configureSound, sfx } from '../sound'
 import { getLang, setLang, t } from '../i18n'
 
-type PathKey = 'romsDir' | 'biosDir' | 'retroarchPath' | 'coresDir' | 'mamePath' | 'mameChdDir' | 'mameRomDir' | 'mediaDir' | 'datDir' | 'overlayPath' | 'overlayDir' | 'savesDir' | 'cacheDir'
+type PathKey = 'romsDir' | 'biosDir' | 'retroarchPath' | 'coresDir' | 'mamePath' | 'mameChdDir' | 'mameRomDir' | 'mediaDir' | 'datDir' | 'overlayPath' | 'overlayDir' | 'savesDir' | 'cacheDir' | 'consoleImagesPath'
 
 interface Props {
   onClose: () => void
@@ -48,7 +48,21 @@ export default function SettingsScreen({ onClose, onSaved, onPc, onRomCheck, onG
   const [cheatMsg, setCheatMsg] = useState('')
   const [cheatPct, setCheatPct] = useState<number | null>(null)
   useEffect(() => window.mr.onCheatsProgress(setCheatPct), [])
-  const [covers, setCovers] = useState<Record<string, { have: number; total: number }>>({})
+  const [covers, setCovers] = useState<Record<string, CoverCount>>({})
+  const [queue, setQueue] = useState<string[]>([])
+  const queueRef = useRef<string[]>([])
+  const [covMsg, setCovMsg] = useState('')
+  // ricerca "tutti": un sistema alla volta, in coda
+  const startNext = async (): Promise<void> => {
+    const id = queueRef.current[0]
+    if (!id) return
+    const r = await window.mr.startArtBulk(id)
+    if (r && !r.ok) {
+      queueRef.current = []
+      setQueue([])
+      setCovMsg(r.error ?? '')
+    }
+  }
   const loadCovers = (): void => {
     window.mr.getCoverCounts().then((c) => setCovers(c ?? {}), () => undefined)
   }
@@ -57,7 +71,14 @@ export default function SettingsScreen({ onClose, onSaved, onPc, onRomCheck, onG
     () =>
       window.mr.onArtBulk((b) => {
         setBulk((o) => ({ ...o, [b.systemId]: b }))
-        if (!b.running) loadCovers()
+        if (!b.running) {
+          loadCovers()
+          if (queueRef.current[0] === b.systemId) {
+            queueRef.current = queueRef.current.slice(1)
+            setQueue(queueRef.current)
+            void startNext()
+          }
+        }
       }),
     [] // eslint-disable-line react-hooks/exhaustive-deps
   )
@@ -83,7 +104,7 @@ export default function SettingsScreen({ onClose, onSaved, onPc, onRomCheck, onG
   // bordi trovati da soli nella cartella indicata (si aggiornano quando cambia la cartella)
   const ovDir = s?.overlayDir ?? ''
   useEffect(() => {
-    if (tab !== 'look' || !ovDir) {
+    if (tab !== 'screen' || !ovDir) {
       setOvFound({})
       return
     }
@@ -115,6 +136,8 @@ export default function SettingsScreen({ onClose, onSaved, onPc, onRomCheck, onG
 
   const save = async (): Promise<void> => {
     await window.mr.saveSettings(s)
+    // se è cambiata la cartella delle foto delle console, la home le rilegge
+    refreshConsoleArt()
     setSaved(true)
     onSaved()
     setTimeout(() => setSaved(false), 1800)
@@ -271,6 +294,7 @@ export default function SettingsScreen({ onClose, onSaved, onPc, onRomCheck, onG
             </div>
             <h3 className="sub-h">{t('Immagini delle console')}</h3>
             <p className="hint">{t('Ogni sistema mostra la sua console. Se metti nella cartella una foto (PNG, JPG o WEBP) con il nome del sistema, per esempio snes.png, il programma la usa e la trasforma in stile fumetto. Dove non c\'è una foto usa un\'illustrazione, o un simbolo.')}</p>
+            {field('Cartella delle foto delle console', 'Vuota = quella standard (vicino alla cache). Scegli una cartella tua con snes.png, psx.png…', 'consoleImagesPath', 'dir')}
             <label className="check">
               <input type="checkbox" checked={s.stylizePhotos} onChange={(e) => setS({ ...s, stylizePhotos: e.target.checked })} />
               {t('Trasforma le foto in stile fumetto (sfondo tolto, colori vivi, contorno nero)')}
@@ -336,34 +360,98 @@ export default function SettingsScreen({ onClose, onSaved, onPc, onRomCheck, onG
           <input type="checkbox" checked={s.autoCovers} onChange={(e) => setS({ ...s, autoCovers: e.target.checked })} />
           {t('Quando apro un sistema, scarica da sola le copertine di tutti i suoi giochi (usa più dati)')}
         </label>
-            <h3 className="sub-h">{t('Cerca le copertine di un sistema')}</h3>
-            <div className="persys">
-              {all.filter((x) => x.phase === 1 && x.thumbs).map((x) => {
-                const b = bulk[x.id]
+            <h3 className="sub-h">{t('Copertine per sistema')}</h3>
+            {(() => {
+              const n = (v: number): string => v.toLocaleString(getLang() === 'it' ? 'it' : 'en')
+              const list = all.filter((x) => x.phase === 1 && x.thumbs)
+              const info = (x: SystemInfo): { total: number; done: number; missing: number; handled: number; pct: number; state: 'empty' | 'running' | 'complete' | 'partial' | 'none'; at: number | null } => {
                 const c = covers[x.id]
-                const n = (v: number): string => v.toLocaleString(getLang() === 'it' ? 'it' : 'en')
-                const status = b?.running
-                  ? `${n(b.done)}/${n(b.total)}`
-                  : c && c.total > 0
-                    ? c.have >= c.total * 0.95
-                      ? t('✔ completa: {h}/{n}', { h: n(c.have), n: n(c.total) })
-                      : c.have > 0
-                        ? t('{h} di {n} presenti', { h: n(c.have), n: n(c.total) })
-                        : t('nessuna ancora ({n} giochi)', { n: n(c.total) })
-                    : ''
-                return (
-                  <div key={x.id} className="persys-row" style={{ ['--tile' as string]: x.color }}>
-                    <span className="persys-n">{x.name}</span>
-                    <span className="persys-st">
-                      {status}
-                    </span>
-                    <button className={`chip ${b?.running ? 'on' : ''}`} onClick={() => (b?.running ? window.mr.cancelArtBulk() : window.mr.startArtBulk(x.id))}>
-                      {b?.running ? t('FERMA') : t('🖼 CERCA COPERTINE')}
-                    </button>
+                const b = bulk[x.id]
+                const total = c?.total ?? 0
+                const done = Math.max(c?.have ?? 0, c?.last?.found ?? 0)
+                const missing = c?.missing ?? 0
+                const handled = Math.min(total, done + missing)
+                const pct = total ? Math.round((handled / total) * 100) : 0
+                const state = b?.running ? 'running' : total === 0 ? 'empty' : handled >= total * 0.98 ? 'complete' : handled > 0 ? 'partial' : 'none'
+                return { total, done, missing, handled, pct, state, at: c?.last?.at ?? null }
+              }
+              const rows = list.map((x) => ({ x, i: info(x) }))
+              const sumDone = rows.reduce((a, r) => a + Math.min(r.i.done, r.i.total), 0)
+              const sumTotal = rows.reduce((a, r) => a + r.i.total, 0)
+              const complete = rows.filter((r) => r.i.state === 'complete').length
+              const busy = queue.length > 0 || rows.some((r) => r.i.state === 'running')
+              const runAll = async (): Promise<void> => {
+                let ids = rows.filter((r) => r.i.total > 0 && r.i.state !== 'complete').map((r) => r.x.id)
+                if (!ids.length) ids = rows.filter((r) => r.i.total > 0).map((r) => r.x.id)
+                queueRef.current = ids
+                setQueue(ids)
+                setCovMsg('')
+                await startNext()
+              }
+              const stopAll = (): void => {
+                queueRef.current = []
+                setQueue([])
+                void window.mr.cancelArtBulk()
+              }
+              return (
+                <>
+                  <div className="cov-sum">
+                    <div>
+                      <b>{n(sumDone)}</b> {t('copertine su')} <b>{n(sumTotal)}</b> {t('giochi')} · {t('{c} sistemi completi su {m}', { c: complete, m: rows.filter((r) => r.i.total > 0).length })}
+                    </div>
+                    <div className="cov-bar total"><i style={{ width: `${sumTotal ? Math.round((sumDone / sumTotal) * 100) : 0}%` }} /></div>
+                    <div className="field-row">
+                      {busy ? (
+                        <button className="chip on" onClick={stopAll}>{t('FERMA TUTTO')}</button>
+                      ) : (
+                        <button className="chip" onClick={runAll}>{t('🖼 CERCA I SISTEMI INCOMPLETI')}</button>
+                      )}
+                      {queue.length > 1 && <span className="persys-st">{t('in coda: {n} sistemi', { n: queue.length - 1 })}</span>}
+                      {covMsg && <span className="persys-st">{covMsg}</span>}
+                    </div>
                   </div>
-                )
-              })}
-            </div>
+                  <div className="cov-grid">
+                    {rows.map(({ x, i }) => {
+                      const b = bulk[x.id]
+                      const text =
+                        i.state === 'running'
+                          ? t('Cerco… {d}/{n}', { d: n(b?.done ?? 0), n: n(b?.total ?? i.total) })
+                          : i.state === 'complete'
+                            ? t('✔ {d} copertine · {m} non disponibili online', { d: n(i.done), m: n(i.missing) })
+                            : i.state === 'partial'
+                              ? t('{d} trovate · {m} non disponibili · restano {r}', { d: n(i.done), m: n(i.missing), r: n(i.total - i.handled) })
+                              : i.state === 'none'
+                                ? t('da cercare ({n} giochi)', { n: n(i.total) })
+                                : t('nessun gioco in questa cartella')
+                      const pct = i.state === 'running' && b?.total ? Math.round((b.done / b.total) * 100) : i.pct
+                      return (
+                        <div key={x.id} className={`cov ${i.state}`} style={{ ['--tile' as string]: x.color }}>
+                          <div className="cov-head">
+                            <span className="cov-name">{x.name}</span>
+                            <span className="cov-pct">{i.state === 'empty' ? '—' : `${pct}%`}</span>
+                          </div>
+                          <div className="cov-bar"><i style={{ width: `${pct}%` }} /></div>
+                          <div className="cov-foot">
+                            <span className="cov-text">{text}</span>
+                            {i.at && i.state === 'complete' && <span className="cov-date">{new Date(i.at).toLocaleDateString(getLang() === 'it' ? 'it' : 'en')}</span>}
+                            <button
+                              className={`chip ${i.state === 'running' ? 'on' : ''}`}
+                              disabled={i.state === 'empty'}
+                              onClick={() => {
+                                if (i.state === 'running') stopAll()
+                                else void window.mr.startArtBulk(x.id).then((r) => r && !r.ok && setCovMsg(r.error ?? ''))
+                              }}
+                            >
+                              {i.state === 'running' ? t('FERMA') : i.state === 'complete' ? t('🔄 RICONTROLLA') : t('🖼 CERCA')}
+                            </button>
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </>
+              )
+            })()}
             <h3 className="sub-h">{t('Spazio occupato dalle immagini')}</h3>
             <p className="hint">
               {cache
@@ -529,6 +617,15 @@ export default function SettingsScreen({ onClose, onSaved, onPc, onRomCheck, onG
               {t('Riempi le strisce laterali con un bordo grafico')}
             </label>
             {field('Cartella dei bordi (.cfg)', 'Cartella con i bordi scaricati (si cerca anche nelle sottocartelle): per ogni sistema il programma sceglie da solo il file giusto', 'overlayDir', 'dir')}
+            {s.overlayDir && (
+              <p className="persys-st">
+                {t('Bordi abbinati da soli: {n} sistemi su {m}', {
+                  n: all.filter((x) => x.phase === 1 && x.core && ovFound[x.id]).length,
+                  m: all.filter((x) => x.phase === 1 && x.core).length
+                })}
+                {!s.overlayEnabled ? ` — ${t('ricorda di attivare «Riempi le strisce laterali con un bordo grafico» e di premere SALVA')}` : ''}
+              </p>
+            )}
             {field('Bordo comune a tutti gli altri sistemi (facoltativo)', 'Usato dai sistemi per cui non si trova un bordo', 'overlayPath', 'cfg')}
             <h3 className="sub-h">{t('Bordo per ogni sistema')}</h3>
             <div className="persys">

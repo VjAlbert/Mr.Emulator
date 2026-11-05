@@ -46,6 +46,7 @@ const DEFAULTS: Settings = {
   resumeConsoles: true,
   resumeArcade: {},
   cacheDir: '',
+  consoleImagesPath: '',
   cacheMaxGb: 0,
   sharpness: 'off',
   resumeBySystem: {},

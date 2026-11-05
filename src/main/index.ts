@@ -20,7 +20,7 @@ import { buildReport, mameProfileFor, profileFor, sharpnessInfo } from './optimi
 import { toConfigText } from './profiles'
 import { setHighPerformanceGpu } from './gpuPref'
 import { buildInputConfig, buildInputMap, buildMameCtrlr, presetControls } from './inputs'
-import { ART_SCHEME, artRoot, setArtRoot, arcadeTitles, clearArtMisses, clearLocalArt, coverCount, getArt, resolveArtUrl, setMameTitleProvider, setMediaProvider, setSoftTitleProvider } from './artwork'
+import { ART_SCHEME, artRoot, setArtRoot, arcadeTitles, clearArtMisses, clearLocalArt, coverCount, coverMisses, readCoverRuns, saveCoverRun, getArt, resolveArtUrl, setMameTitleProvider, setMediaProvider, setSoftTitleProvider } from './artwork'
 import { MediaSource } from './media'
 import { cacheStats, clearImages, clearLocalCopies, mergeDir, moveCache, optimizeCache, pruneCache } from './cache'
 import { runVerify, type VerifyBad } from './verify'
@@ -645,6 +645,8 @@ app.whenReady().then(async () => {
       }
     }
     void Promise.all(Array.from({ length: 6 }, worker)).finally(() => {
+      // ricerca arrivata in fondo: si ricorda quante ne ha trovate (anche quelle prese dai pacchetti sul posto)
+      if (!job.cancel) saveCoverRun(systemId, { found: st.found, total: st.total, at: Date.now() })
       st.running = false
       bulk = null
       emit(true)
@@ -721,14 +723,17 @@ app.whenReady().then(async () => {
   }
   void runUpdateCheck()
   // foto delle console messe dall'utente: <dati del programma>\consoles, oppure dentro la cartella della cache se è stata spostata
-  const consolesDir = (): string => consoleImagesDir(app.getPath('userData'), loadSettings().cacheDir ? artRoot() : '')
+  const consolesDir = (): string => {
+    const s = loadSettings()
+    return s.consoleImagesPath || consoleImagesDir(app.getPath('userData'), s.cacheDir ? artRoot() : '')
+  }
   ipcMain.handle('consoles:image', (_e, id: string) => {
     const sys = SYSTEMS.find((x) => x.id === id)
     return sys ? readConsoleImage(findConsoleImage(consolesDir(), sys)) : null
   })
   ipcMain.handle('consoles:list', () => listConsoleImages(consolesDir(), SYSTEMS))
   ipcMain.handle('consoles:open', async () => {
-    await shell.openPath(ensureConsoleImagesDir(app.getPath('userData'), loadSettings().cacheDir ? artRoot() : ''))
+    await shell.openPath(loadSettings().consoleImagesPath || ensureConsoleImagesDir(app.getPath('userData'), loadSettings().cacheDir ? artRoot() : ''))
   })
   ipcMain.handle('stats:all', () => loadStats(join(app.getPath('userData'), 'stats.json')))
   ipcMain.handle('update:get', async () => {
@@ -748,7 +753,10 @@ app.whenReady().then(async () => {
   ipcMain.handle('tools:site', async (_e, kind: ToolKind) => {
     if (kind in OFFICIAL) await shell.openExternal(OFFICIAL[kind])
   })
-  ipcMain.handle('art:counts', () => Object.fromEntries(SYSTEMS.filter((x) => x.thumbs).map((x) => [x.id, { have: coverCount(x.id), total: library.count(x.id) }])))
+  ipcMain.handle('art:counts', () => {
+    const runs = readCoverRuns()
+    return Object.fromEntries(SYSTEMS.filter((x) => x.thumbs).map((x) => [x.id, { have: coverCount(x.id), total: library.count(x.id), missing: coverMisses(x.id), last: runs[x.id] ?? null }]))
+  })
   ipcMain.handle('sharpness:info', async () => sharpnessInfo(loadSettings(), await detectHardware(true)))
   // cache delle immagini: dove sta, quanto pesa, compressione, pulizia e spostamento
   const cacheDirOf = (dir: string): string => (dir ? join(dir, 'MrEmulator-artwork') : '')

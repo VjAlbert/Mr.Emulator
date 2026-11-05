@@ -1,3 +1,14 @@
+## Mr. Emulator 0.2.12
+
+**Download:** `Mr-Emulator-Setup-<version>.exe` below. Windows may warn that the app is unsigned: **More info → Run anyway**.
+
+### New and fixed
+- 🖼️ **Covers, redesigned** (Settings → Covers): summary of covers found out of your games, a card per system with a progress bar, how many are not available online, how many are left, date of the last full search, **"Find covers for incomplete systems"** (one system after the other) and "Check again".
+- 📁 **Choose the console photos folder** (Settings → Look): read the photos from any folder you like.
+- 🛠️ **Fixed**: after choosing the borders folder (Screen), automatic matching was never shown; it now shows how many systems were matched.
+- 🎨 **Comic style**: the red/yellow/green status flags in Diagnostics and in the first-run guide are readable now.
+- 🧪 Test runner: `node` is no longer started through the shell (the path `C:\Program Files\nodejs` was split at the space); only `npx` uses it.
+
 ## Mr. Emulator 0.2.11
 
 **Download:** `Mr-Emulator-Setup-<version>.exe` below. Windows may warn that the app is unsigned: **More info → Run anyway**.

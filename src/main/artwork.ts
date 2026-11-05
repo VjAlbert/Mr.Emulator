@@ -96,6 +96,38 @@ export function coverCount(systemId: string): number {
   return n
 }
 
+/** Giochi per cui si è già cercato e online non c'è la copertina (non si riprova a ogni apertura) */
+export function coverMisses(systemId: string): number {
+  try {
+    return readdirSync(join(artRoot(), systemId)).filter((f) => f.endsWith('.boxart.v5.miss')).length
+  } catch {
+    return 0
+  }
+}
+
+/** Risultato dell'ultima ricerca completa per sistema (copertine trovate anche tra le immagini dei pacchetti usate sul posto) */
+export interface CoverRun {
+  found: number
+  total: number
+  at: number
+}
+const runsFile = (): string => join(artRoot(), '_covers-status.json')
+export function readCoverRuns(): Record<string, CoverRun> {
+  try {
+    return JSON.parse(readFileSync(runsFile(), 'utf-8')) as Record<string, CoverRun>
+  } catch {
+    return {}
+  }
+}
+export function saveCoverRun(systemId: string, run: CoverRun): void {
+  try {
+    mkdirSync(artRoot(), { recursive: true })
+    writeFileAtomic(runsFile(), JSON.stringify({ ...readCoverRuns(), [systemId]: run }))
+  } catch {
+    // il riepilogo è un extra
+  }
+}
+
 /** Toglie i segni "copertina mancante" (cambiati i DAT, i titoli trovati possono essere diversi) */
 export function clearArtMisses(): void {
   try {

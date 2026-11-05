@@ -67,6 +67,14 @@ export interface PlayStat {
 /** Nitidezza dei pixel (RetroArch): nessuna, morbida (sharp-bilinear) o alta qualità (xBRZ) */
 export type Sharpness = 'off' | 'soft' | 'high'
 
+/** Stato delle copertine di un sistema: presenti sul disco, senza copertina online, giochi in tutto e ultima ricerca completa */
+export interface CoverCount {
+  have: number
+  total: number
+  missing: number
+  last: { found: number; total: number; at: number } | null
+}
+
 export interface CacheStats {
   dir: string
   total: number
@@ -185,6 +193,8 @@ export interface Settings {
   savesDir: string
   /** Console: salva da sola lo stato all'uscita e propone di continuare all'avvio (sostituisce la Memory Card) */
   resumeConsoles: boolean
+  /** Cartella da cui leggere le foto delle console (vuota = quella standard, vicino alla cache) */
+  consoleImagesPath: string
   /** Cartella dove tenere la cache delle immagini (vuota = nei dati del programma); dentro si crea «MrEmulator-artwork» */
   cacheDir: string
   /** Limite della cache in GB (0 = nessun limite): oltre, si tolgono le immagini più vecchie */
@@ -502,7 +512,7 @@ export interface MrApi {
   clearCache(what: 'local' | 'all'): Promise<number>
   moveCache(dir: string): Promise<{ ok: boolean; error?: string }>
   onCacheProgress(cb: (pct: number) => void): () => void
-  getCoverCounts(): Promise<Record<string, { have: number; total: number }>>
+  getCoverCounts(): Promise<Record<string, CoverCount>>
   installCheats(): Promise<{ ok: boolean; files: number; error?: string }>
   installCore(core: string): Promise<{ core: string; ok: boolean; error?: string }>
   /** Chiude il programma (anche con la chiusura bloccata) */

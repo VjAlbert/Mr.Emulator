@@ -909,3 +909,47 @@ b.warnmark { color: #ffd400; margin-right: 8px; font-weight: 400; } .row.active 
 .tt-rays { will-change: transform; }
 .comic-bg, .poster, .stage { will-change: transform, opacity; }
 .select .tile { will-change: transform; }
+
+/* FUMETTO: segnali (OK, attenzione, problema) leggibili sulla carta: fondo chiaro, testo nero, bordo di china */
+:root[data-ui='comic'] .diag-list li { background: #fff; color: var(--ink); border: 3px solid var(--ink); border-left-width: 12px; box-shadow: 3px 3px 0 var(--ink); }
+:root[data-ui='comic'] .diag-ok { background: #dff7e6 !important; border-left-color: #12a150 !important; }
+:root[data-ui='comic'] .diag-warn { background: #fff0a8 !important; border-left-color: #d49a00 !important; }
+:root[data-ui='comic'] .diag-bad { background: #ffd3da !important; border-left-color: #d90429 !important; }
+:root[data-ui='comic'] .diag-t { color: var(--ink); font-weight: 800; }
+:root[data-ui='comic'] .diag-d { color: #3b362b; }
+:root[data-ui='comic'] .diag-f { color: #7a0018; font-weight: 700; }
+:root[data-ui='comic'] .fr-ok { color: #0a6b34; font-weight: 700; }
+:root[data-ui='comic'] .fr-warn { color: #8a1c00; font-weight: 700; }
+:root[data-ui='comic'] .fr-b { background: #ffd3da; color: var(--ink); border: 3px solid var(--ink); border-left: 12px solid #d90429; box-shadow: 3px 3px 0 var(--ink); }
+:root[data-ui='comic'] .fr-b.ok { background: #dff7e6; border-left-color: #12a150; }
+:root[data-ui='comic'] .fr-b-n, :root[data-ui='comic'] .fr-b-f { color: var(--ink); }
+:root[data-ui='comic'] .fr-b-note { color: #3b362b; }
+:root[data-ui='comic'] .fr-core { background: #fff; color: var(--ink); border: 3px solid var(--ink); border-left-width: 10px; box-shadow: 2px 2px 0 var(--ink); }
+:root[data-ui='comic'] .fr-core.ok { opacity: 1; background: #dff7e6; border-left-color: #12a150; }
+:root[data-ui='comic'] .fr-core-s { color: #3b362b; }
+:root[data-ui='comic'] .scan.warn, :root[data-ui='comic'] .ce-note.warn { color: #8a1c00; font-weight: 700; }
+:root[data-ui='comic'] .firstrun h2, :root[data-ui='comic'] .firstrun p { color: var(--ink); }
+
+/* copertine: riepilogo e schede per sistema con barra di avanzamento */
+.cov-sum { display: grid; gap: 10px; padding: 14px 18px; background: var(--card2); border-left: 6px solid var(--accent); max-width: 1100px; }
+.cov-sum b { font-family: var(--font); letter-spacing: 1px; font-size: 1.25em; }
+.cov-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(clamp(300px, 27vw, 480px), 1fr)); gap: 10px 14px; }
+.cov { display: grid; gap: 6px; padding: 10px 14px 12px; background: var(--card2); border-left: 6px solid var(--tile, var(--accent)); }
+.cov.empty { opacity: .5; }
+.cov-head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+.cov-name { font-weight: 700; }
+.cov-pct { font-family: var(--font); letter-spacing: 2px; color: var(--muted); }
+.cov-bar { height: 12px; background: rgba(255,255,255,.1); border: 2px solid #000; overflow: hidden; }
+.cov-bar.total { height: 18px; }
+.cov-bar i { display: block; height: 100%; background: repeating-linear-gradient(135deg, var(--tile, var(--accent)) 0 10px, color-mix(in srgb, var(--tile, var(--accent)) 65%, #fff) 10px 20px); transition: width .3s; }
+.cov.complete .cov-bar i { background: #17c964; }
+.cov.running .cov-bar i { animation: covrun 1s linear infinite; background-size: 28px 28px; }
+@keyframes covrun { to { background-position: 28px 0; } }
+.cov-foot { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.cov-text { font-size: .85em; color: var(--muted); flex: 1 1 auto; min-width: 0; }
+.cov-date { font-size: .75em; color: var(--muted); }
+.cov-foot .chip { padding: 5px 14px; font-size: .85em; }
+:root[data-ui='comic'] .cov-sum, :root[data-ui='comic'] .cov { background: #fff; color: var(--ink); border: 3px solid var(--ink); border-left: 10px solid var(--tile, var(--accent)); box-shadow: 4px 4px 0 var(--ink); }
+:root[data-ui='comic'] .cov-text, :root[data-ui='comic'] .cov-date, :root[data-ui='comic'] .cov-pct { color: #3b362b; }
+:root[data-ui='comic'] .cov-bar { background: #fff; border-color: var(--ink); }
+:root[data-ui='comic'] .cov.complete .cov-bar i { background: #12a150; }
