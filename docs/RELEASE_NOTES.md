@@ -1,3 +1,11 @@
+## Mr. Emulator 0.2.13
+
+**Download:** `Mr-Emulator-Setup-<version>.exe` below. Windows may warn that the app is unsigned: **More info → Run anyway**.
+
+### New and fixed
+- 📖 **Wiki** in English and Italian (`docs/wiki`): getting started, every feature, systems and BIOS, controls, screen quality, saves/trophies/cheats, covers and cache, auto-tuning, an honest comparison with other launchers, troubleshooting, privacy and internals.
+- 🛠️ **Fixed**: the on-screen search keyboard kept Italian labels (SPAZIO, CANCELLA, AZZERA) in English.
+
 ## Mr. Emulator 0.2.12
 
 **Download:** `Mr-Emulator-Setup-<version>.exe` below. Windows may warn that the app is unsigned: **More info → Run anyway**.

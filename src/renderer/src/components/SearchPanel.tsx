@@ -470,7 +470,7 @@ export default function SearchPanel(p: Props): React.JSX.Element {
                   }}
                   onClick={() => keyEnabled(ACTION_ROW, ci) && runAction(a.id)}
                 >
-                  {a.label}
+                  {t(a.label)}
                 </button>
               ))}
             </div>
@@ -558,7 +558,7 @@ export default function SearchPanel(p: Props): React.JSX.Element {
               })}
             {!showTiles && query && hits.total > items.length && (
               <button className="sp-more" onClick={() => p.onApply(query)}>
-                {t('… e altri')} {(hits.total - items.length).toLocaleString('it')}{t(': MOSTRA TUTTI NELLA LISTA')}
+                {t('… e altri')} {(hits.total - items.length).toLocaleString(getLang() === 'it' ? 'it' : 'en')}{t(': MOSTRA TUTTI NELLA LISTA')}
               </button>
             )}
           </div>

@@ -16,7 +16,7 @@
 ![License](https://img.shields.io/badge/license-MIT-green?style=flat-square)
 ![Cost](https://img.shields.io/badge/cost-%E2%82%AC0%20forever-red?style=flat-square)
 
-**English** · [Italiano](README.it.md)
+**English** · [Italiano](README.it.md) · 📖 **[Wiki](docs/wiki/Home.md)**
 
 <img src="docs/img/title.png" width="720" alt="Mr. Emulator title screen">
 
@@ -138,7 +138,7 @@ npm test           # automated tests
 npm run dist       # Windows installer (run on Windows) → release\
 ```
 
-The installer is also built on GitHub (free Windows runner): **Actions → Installer for Windows → Run workflow**. Tick **"Publish a GitHub Release"** to publish it in *Releases* (this is what powers the download button), or push a tag such as `v0.2.12`.
+The installer is also built on GitHub (free Windows runner): **Actions → Installer for Windows → Run workflow**. Tick **"Publish a GitHub Release"** to publish it in *Releases* (this is what powers the download button), or push a tag such as `v0.2.13`.
 
 Roadmap: [`docs/ROADMAP.md`](docs/ROADMAP.md).
 
