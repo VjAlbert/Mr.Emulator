@@ -2,7 +2,7 @@
 
 # 🗺️ Roadmap & releases
 
-The authoritative documents are in the repository: the [roadmap](https://github.com/VjAlbert/Mr.Emulator/blob/main/docs/ROADMAP.md) (in Italian) and the [release notes](https://github.com/VjAlbert/Mr.Emulator/blob/main/docs/RELEASE_NOTES.md). Downloads are on the [Releases](https://github.com/VjAlbert/Mr.Emulator/releases) page. This page is a readable summary.
+The authoritative documents are in the repository: the [roadmap](https://github.com/VjAlbert/Mr.Emulator/blob/main/docs/ROADMAP.md) (also [in Italian](https://github.com/VjAlbert/Mr.Emulator/blob/main/docs/ROADMAP.it.md)), the open [issues](https://github.com/VjAlbert/Mr.Emulator/issues) and the [release notes](https://github.com/VjAlbert/Mr.Emulator/blob/main/docs/RELEASE_NOTES.md). Downloads are on the [Releases](https://github.com/VjAlbert/Mr.Emulator/releases) page. This page is a readable summary.
 
 ## Guiding principles
 

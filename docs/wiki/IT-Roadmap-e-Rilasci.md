@@ -2,7 +2,7 @@
 
 # 🗺️ Roadmap e rilasci
 
-I documenti di riferimento stanno nel repository: la [roadmap](https://github.com/VjAlbert/Mr.Emulator/blob/main/docs/ROADMAP.md) e le [note di rilascio](https://github.com/VjAlbert/Mr.Emulator/blob/main/docs/RELEASE_NOTES.md). I download sono nella pagina [Releases](https://github.com/VjAlbert/Mr.Emulator/releases). Questa pagina ne è un riassunto leggibile.
+I documenti di riferimento stanno nel repository: la [roadmap](https://github.com/VjAlbert/Mr.Emulator/blob/main/docs/ROADMAP.it.md) (anche [in inglese](https://github.com/VjAlbert/Mr.Emulator/blob/main/docs/ROADMAP.md)), le [segnalazioni aperte](https://github.com/VjAlbert/Mr.Emulator/issues) e le [note di rilascio](https://github.com/VjAlbert/Mr.Emulator/blob/main/docs/RELEASE_NOTES.md). I download sono nella pagina [Releases](https://github.com/VjAlbert/Mr.Emulator/releases). Questa pagina ne è un riassunto leggibile.
 
 ## Principi guida
 

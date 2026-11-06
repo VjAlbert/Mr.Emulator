@@ -30,7 +30,7 @@ Mr. Emulator non emula nulla da solo. Ogni sistema è eseguito da un **core libr
 | | 3DO | `opera` | `3do` | `.iso` `.cue` `.chd` |
 | **Computer e altro** | MSX · ZX Spectrum · ColecoVision · Fairchild Channel F · Bally Astrocade | `fbneo` | `msx` · `spectrum` · `coleco` · `channelf` · `astrocade` | `.zip` `.7z` |
 
-**Non ancora supportati:** Mega CD, Sega Saturn, GameCube/Wii, PlayStation 2, PSP. Vedi la [roadmap](https://github.com/VjAlbert/Mr.Emulator/blob/main/docs/ROADMAP.md).
+**Non ancora supportati:** Mega CD, Sega Saturn, GameCube/Wii, PlayStation 2, PSP. Vedi la [roadmap](https://github.com/VjAlbert/Mr.Emulator/blob/main/docs/ROADMAP.it.md).
 
 ## BIOS che possono servire
 

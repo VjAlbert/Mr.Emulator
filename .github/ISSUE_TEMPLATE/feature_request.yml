@@ -1,0 +1,34 @@
+name: Feature request / Richiesta di funzione
+description: Suggest an idea. English or Italian is fine. / Proponi un'idea. Va bene italiano o inglese.
+title: "[Feature] "
+labels: ["feature"]
+projects: ["VjAlbert/4"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem would it solve? / Che problema risolve?
+    validations:
+      required: true
+  - type: textarea
+    id: idea
+    attributes:
+      label: Your idea / La tua idea
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Console systems
+        - Arcade (FBNeo / MAME)
+        - Controls / arcade panel
+        - Screen, shaders, borders
+        - Interface / style
+        - Covers / library
+        - Installer / release
+        - Documentation / wiki
+        - Other
+  - type: markdown
+    attributes:
+      value: |
+        Note: Mega CD, Saturn, GameCube, Wii, PS2 and PSP are outside the current scope (see the roadmap). / Mega CD, Saturn, GameCube, Wii, PS2 e PSP sono fuori ambito per ora (vedi la roadmap).

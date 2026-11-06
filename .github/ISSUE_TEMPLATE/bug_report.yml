@@ -1,0 +1,69 @@
+name: Bug report / Segnalazione di errore
+description: Something does not work as expected. English or Italian is fine. / Qualcosa non funziona come dovrebbe. Va bene italiano o inglese.
+title: "[Bug] "
+labels: ["bug", "needs-triage"]
+projects: ["VjAlbert/4"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting. Please open **Settings → Diagnostics → Copy the text** and paste it below — it answers most of our questions.
+        Grazie. Apri **Impostazioni → Diagnostica → Copia il testo** e incollalo qui sotto: risponde alla maggior parte delle domande.
+        **Do not attach ROMs, BIOS files or links to them. / Non allegare ROM, BIOS o link per scaricarli.**
+  - type: input
+    id: version
+    attributes:
+      label: Mr. Emulator version / Versione
+      placeholder: "0.2.13"
+    validations:
+      required: true
+  - type: input
+    id: windows
+    attributes:
+      label: Windows version / Versione di Windows
+      placeholder: "Windows 11 23H2"
+  - type: input
+    id: engines
+    attributes:
+      label: RetroArch and MAME versions / Versioni di RetroArch e MAME
+      placeholder: "RetroArch 1.22.2, MAME 0.289"
+  - type: input
+    id: system
+    attributes:
+      label: System and game / Sistema e gioco
+      description: Which system (e.g. Arcade, SNES) and, if relevant, which game.
+      placeholder: "Arcade (FBNeo) — game name"
+  - type: input
+    id: hardware
+    attributes:
+      label: PC hardware / Hardware del PC
+      description: CPU, RAM, graphics card — helps with performance problems.
+      placeholder: "i7-7700HQ, 8 GB, GTX 1050"
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened? / Cosa è successo?
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What did you expect? / Cosa ti aspettavi?
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce / Come riprodurlo
+      placeholder: |
+        1. Open ...
+        2. Press ...
+  - type: textarea
+    id: diagnostics
+    attributes:
+      label: Diagnostics text / Testo della Diagnostica
+      description: Settings → Diagnostics → Copy the text. Paste it here.
+      render: text
+  - type: textarea
+    id: extra
+    attributes:
+      label: Screenshots or anything else / Screenshot o altro
+      description: You can drag images into this box.

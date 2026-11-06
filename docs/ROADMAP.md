@@ -1,104 +1,113 @@
-# Roadmap di Mr. Emulator
+# Mr. Emulator roadmap
 
-Piattaforma di riferimento: **Windows**. Il codice sarà organizzato in modo da non rendere impossibile un eventuale supporto ad altri sistemi operativi in futuro, ma non è un obiettivo del progetto al momento.
+**English** · [Italiano](ROADMAP.it.md)
 
-Hardware minimo di riferimento: portatile con **Intel Core i7 di settima generazione, 16 GB di RAM e scheda video dedicata da 6 GB**. L'interfaccia deve restare fluida anche su questa configurazione e sfruttare al meglio PC più potenti.
+> Open items are tracked as [GitHub Issues](https://github.com/VjAlbert/Mr.Emulator/issues) and on the project board. This page is the big picture. The Italian copy is [`ROADMAP.it.md`](ROADMAP.it.md).
 
-## Fase 0 — Fondamenta
-- [x] Definizione dell'idea e dell'architettura (frontend + RetroArch come motore)
-- [x] Struttura del progetto Electron + TypeScript + React
-- [x] Modulo di astrazione per percorsi e avvio dei processi
+Reference platform: **Windows**. The code keeps paths and process launching behind small modules so that other operating systems are not made impossible, but they are not a goal right now.
 
-## Fase 1 — Arcade e console 8/16 bit
-Sistemi: Arcade (MAME, FBNeo), Neo Geo, Master System, Mega Drive, NES, SNES, Game Boy / Color / Advance.
+Reference *minimum* hardware: a laptop with an **Intel Core i7 (7th gen), 16 GB of RAM and a 6 GB dedicated graphics card**. The interface must stay smooth on it and make the most of stronger PCs. Weaker machines (6–8 GB RAM, small GPU) are served by the *Light* level and must always keep working.
 
-- [x] Scansione della cartella ROM (una sottocartella per sistema)
-- [x] Libreria di giochi con anteprima
-- [x] Copertine e immagini scaricate in automatico (libretro-thumbnails, con cache locale)
-- [x] Copertine per Arcade e Neo Geo (titolo ricavato dal DAT di FBNeo, 7718 giochi)
-- [x] File BIOS (es. neogeo.zip) nascosti dalla lista
-- [x] Carosello 3D di copertine, sfondo a rotazione, tendine ed effetti luce (con modalità "effetti ridotti")
-- [x] Archivi completi: scansione in background, indice salvato su disco, lista virtuale, ricerca e salti di pagina (provato su 54.000 file finti)
-- [x] Download in blocco delle copertine di un intero sistema (Impostazioni → Copertine)
-- [x] Schermata di selezione sistema in stile "character select"
-- [x] Avvio dei giochi tramite RetroArch e ritorno al launcher (da verificare con RetroArch reale)
-- [x] Navigazione con tastiera, mouse e gamepad (da verificare con pad reali ed encoder arcade)
+## Phase 0 — Foundations
+- [x] Idea and architecture (front end + RetroArch as the engine)
+- [x] Electron + TypeScript + React project structure
+- [x] Abstraction layer for paths and process launching
 
-## Fase 2 — Configurazione guidata e sistemi più pesanti
-- [x] Cartelle ROM e BIOS create automaticamente al primo avvio (Documenti\MrEmulator)
-- [x] Procedura guidata al primo avvio (cartelle, RetroArch, core, BIOS, MAME) e schermata iniziale "premi start"
-- [x] Scaricamento dei core di RetroArch dall'archivio ufficiale (RetroArch stesso lo scarica ancora l'utente)
-- [x] Verifica dei BIOS tramite MD5 noti (PlayStation, Dreamcast, FDS; gli altri solo presenza del file), senza scaricarli
-- [x] Lingua italiano/inglese nel programma
-- [x] Autoguida: rilevamento di PC e schermi, profili Leggero/Bilanciato/Massimo per sistema, file di configurazione generato per RetroArch
-- [x] Scheda video potente per i giochi sui portatili con due GPU (Windows)
-- [x] Domanda "com'è andata?" dopo ogni partita: il livello di ogni sistema si adatta
-- [ ] Verifica delle impostazioni con RetroArch e schermi reali (portatile, PC desktop, TV/proiettore)
-- [x] Comandi da tastiera (WASD + J/K/L) e preset pannello arcade I-PAC a 2 giocatori e 6 pulsanti, con uscita da gioco tramite combinazione sul pannello
-- [x] Schermata "Comandi" per provare in tempo reale tastiera, encoder e pad
-- [x] Salvataggi: cartella unica, salvataggio automatico ogni 10 s, "continua / nuova partita" prima di avviare le console (al posto della Memory Card), ripresa per gioco negli arcade, record di MAME, backup e ripristino in ZIP (da provare con RetroArch e MAME reali)
-- [x] Bordo grafico (overlay) per ogni sistema: ricerca automatica in una cartella, scelta a mano o nessuno
-- [x] Uscita dal gioco e menu senza tastiera (joypad: Select + Start e tieni Start; pannello: Moneta + Start e Moneta + Pulsante 1), configurabili
-- [x] Comandi manuali: assegnazione a mano di tasti, pulsanti e assi (tastiera, pad, encoder) per due giocatori, in sequenza guidata, con controllo dei conflitti; valgono per RetroArch, MAME e per il menu (da provare con hardware reale)
-- [ ] Verifica dei comandi con un pannello arcade e un pad reali
-- [x] Sistema "Arcade (MAME)" con MAME autonomo (testato con 0.229): elenco letto da MAME stesso, varianti, comandi, effetti, supporto ai dischi CHD (da verificare con un MAME vero)
-- [x] Filtro per famiglia in Arcade (MAME): Neo Geo, Capcom CPS, Sega, Taito, Namco, Konami e altre, con conteggi e scelta ricordata
-- [x] Cartella ROM dedicata a ogni versione di MAME (es. mame0229), pulsante "usa un altro disco per tutto" e protezione se il disco esterno è scollegato
-- [x] Pannello di ricerca anche senza tastiera: tastiera sullo schermo per joystick/pad/mouse, iniziali A-Z, risultati in tempo reale, ricerca per parole
-- [x] Ricerca evoluta: tastiera intelligente (spegne i tasti inutili), disposizione alfabetica per joystick, anteprima con copertina, schede (a caso, famiglie, anni), preferiti e ultimi giochi
-- [x] Direzione artistica "fumetto da picchiaduro" (carattere Anton incorporato, contorni, retino, raggi), suoni sintetizzati, sequenza INSERT COIN all'avvio e rotazione di copertine a riposo (attract mode)
-- [x] Controllo ROM con il verificatore di MAME: elenco degli ZIP difettosi con i file da sostituire, segno ⚠ nella lista, controllo del singolo gioco, opzione per nascondere i giochi difettosi
-- [x] Immagini locali per MAME/FBNeo (cartelle o ZIP con snap, flyers, titles…) con precedenza sul download
-- [x] Pacchetto Multimedia: monitor video con cornice sul gioco selezionato (videosnaps) e lettore della colonna sonora (soundtrack), con pausa da tastiera e pad (da verificare dentro Electron: codec e riproduzione)
-- [x] Copertine sempre presenti: ricerca in altre regioni e nel repository FBNeo; se manca tutto, copertina fumettistica generata (titolo, sistema, anno, screenshot)
-- [x] Sistemi FBNeo aggiuntivi: Game Gear, PC Engine/TurboGrafx-16, SuperGrafx, SG-1000, FDS, Neo Geo Pocket, ColecoVision, MSX, ZX Spectrum, Channel F, Astrocade (da provare con le ROM reali)
-- [x] Cartella DAT nelle impostazioni (FinalBurn Neo, Kawaks, MAME): nome breve → titolo per le console, con precedenza sulle Software List di MAME (da provare con i DAT reali)
-- [x] Home: disegni originali per categoria di macchina (cabinato, portatile, cartuccia, disco, computer) e scheda "Sistemi in home" nelle impostazioni per nascondere i sistemi
-- [x] Dreamcast, Naomi, Atomiswave (Flycast) e PlayStation (pcsx_rearmed), con controllo dei BIOS (da provare con RetroArch reale)
-- [x] Debug: salvataggi sicuri, registro errori, istanza unica, ripristino della finestra, test automatici (`npm test`) e schermata Diagnostica
-- [x] Schermo: quattro modalità immagine (altezza piena, pixel perfetti, pixel perfetti in altezza, stirata) con anteprima sulle misure reali del tuo schermo, modalità diversa per sistema, rotazione per monitor verticale (MAME), bordo grafico (overlay) di RetroArch (da provare con RetroArch reale)
-- [x] Temi grafici (Picchiaduro, Neon, Fosforo verde, Notte) e scelta manuale dello shader CRT
-- [x] Nintendo 64, Nintendo DS, Atari Jaguar e 3DO (core RetroArch, da provare con le ROM reali)
-- [ ] Mega CD (core dedicato)
-- [ ] GameCube e Wii (da verificare sulle prestazioni)
+## Phase 1 — Arcade and 8/16-bit consoles
+Systems: Arcade (MAME, FBNeo), Neo Geo, Master System, Mega Drive, NES, SNES, Game Boy / Color / Advance.
 
-## Fase 3 — Estensioni
-- [x] Atari Jaguar e 3DO
-- [x] Filtri (famiglia, anno), preferiti e ultimi giochi
-- [x] Shader CRT e overlay
-- [x] Temi grafici alternativi
-- [x] Statistiche di gioco: tempo giocato e partite nell'anteprima, lista "più giocati" nella ricerca
-- [x] Installer per Windows (electron-builder + flusso automatico su GitHub; da provare su Windows)
+- [x] ROM folder scan (one sub-folder per system)
+- [x] Game library with preview
+- [x] Covers and images downloaded automatically (libretro-thumbnails, with a local cache)
+- [x] Arcade and Neo Geo covers (title taken from FBNeo's DAT, 7,718 games)
+- [x] BIOS files (e.g. `neogeo.zip`) hidden from the list
+- [x] 3D cover carousel, rotating backdrop, wipes and light effects (with a "reduced effects" mode)
+- [x] Full archives: background scan, index saved to disk, virtual list, search and page jumps (tested on 54,000 fake files)
+- [x] Bulk cover download for a whole system (Settings → Covers)
+- [x] "Character select" style system screen
+- [x] Launch games through RetroArch and return to the launcher
+- [x] Keyboard, mouse and gamepad navigation
 
-## Da fare (in ordine di valore)
-**In verifica con l'hardware reale**
-- [ ] Salvataggi delle console: prova con RetroArch reale (finestra "continua / nuova partita", copia .prev, memory card)
-- [ ] Verifica con pad Xbox ed encoder I-PAC: uscita, menu, assegnazione manuale
-- [x] Bordi, modalità schermo e shader provati su RetroArch e schermi reali
-- [x] Crash di MAME su alcuni giochi: risolto
-- [x] Salvataggi delle console: la ripresa su PlayStation (Crash Bandicoot) ora funziona
+## Phase 2 — Guided setup and heavier systems
+- [x] ROM and BIOS folders created at first run (`Documents\MrEmulator`)
+- [x] First-run guide (folders, RetroArch, cores, BIOS, MAME) and the "press start" title screen
+- [x] Core download from the official RetroArch archive
+- [x] BIOS check by known MD5 (PlayStation, Dreamcast, FDS; presence only for the others), without downloading them
+- [x] Italian / English interface
+- [x] Auto-tuning: PC and screen detection, Light / Balanced / Max profiles per system, generated RetroArch config
+- [x] Powerful graphics card for games on dual-GPU laptops (Windows)
+- [x] "How did it go?" question after each game: each system's level adapts
+- [x] Keyboard controls (WASD + J/K/L) and I-PAC arcade-panel preset (2 players, 6 buttons) with an exit combo on the panel
+- [x] **Controls** screen to test keyboard, encoders and pads in real time
+- [x] Saves: one folder, autosave every 10 s, **Continue / New game** before console games (replaces the memory card), per-game resume in arcade, MAME high scores, backup and restore as ZIP
+- [x] Graphic border (overlay) per system: automatic search in a folder, manual choice or none
+- [x] Exit and menu without a keyboard (pad: Select + Start, hold Start; panel: Coin + Start, Coin + Button 1), configurable
+- [x] Manual mapping of keys, buttons and axes for two players, with conflict detection; used by RetroArch, MAME and the menu
+- [x] "Arcade (MAME)" system with standalone MAME: list read from MAME itself, variants, controls, effects, CHD disk support
+- [x] Family filter in Arcade (MAME): Neo Geo, Capcom CPS, Sega, Taito, Namco, Konami and more
+- [x] A ROM folder per MAME version (e.g. `mame0229`), "use another drive for everything", protection when an external drive is unplugged
+- [x] Search without a keyboard: on-screen keyboard for joystick/pad/mouse, A–Z initials, live results, word search
+- [x] Advanced search: smart keyboard (greys out useless keys), cover preview, tabs (random, families, years), favorites and recent games
+- [x] "Fighting-game comic" art direction (embedded Anton font, outlines, halftone, rays), synthesized sounds, INSERT COIN sequence and idle cover rotation (attract mode)
+- [x] ROM check with MAME's verifier: broken ZIPs with the files to replace, ⚠ in the list, single-game check, option to hide broken games
+- [x] Local images for MAME/FBNeo (folders or ZIPs with snaps, flyers, titles…) taking precedence over downloads
+- [x] Multimedia pack: framed video of the selected game (videosnaps) and a soundtrack player
+- [x] Covers always present: other regions and the FBNeo repository are searched; if nothing exists, a generated comic-style cover
+- [x] More FBNeo systems: Game Gear, PC Engine/TurboGrafx-16, SuperGrafx, SG-1000, FDS, Neo Geo Pocket, ColecoVision, MSX, ZX Spectrum, Channel F, Astrocade
+- [x] DAT folder in Settings (FinalBurn Neo, Kawaks, MAME): short name → title for consoles, taking precedence over MAME Software Lists
+- [x] Home: original illustrations per machine category and a "Systems on home" tab to hide systems
+- [x] Dreamcast, Naomi, Atomiswave (Flycast) and PlayStation (pcsx_rearmed) with BIOS checks
+- [x] Debugging: safe saving, error log, single instance, window restore, automated tests (`npm test`) and the Diagnostics screen
+- [x] Screen: four image modes with a preview on your real screen, per-system mode, rotation for vertical monitors (MAME), RetroArch overlays
+- [x] Colour themes (Fighter, Neon, Green phosphor, Night) and manual CRT shader choice
+- [x] Nintendo 64, Nintendo DS, Atari Jaguar and 3DO (RetroArch cores)
 
-**Funzioni**
-- [x] Giochi a più dischi (PlayStation, 3DO, Dreamcast): un solo gioco con file .m3u generato (da provare con RetroArch reale)
-- [x] Controllo degli aggiornamenti (avviso quando c'è una nuova release su GitHub)
-- [x] Immagini locali anche per le console (cartella Multimedia, per nome del file)
-- [x] Copertine delle console: ricerca nell'indice ufficiale e download in blocco per sistema
-- [x] Pad completo: L2, R2, L3, R3, croce "hat", grilletti analogici (cloni PS3)
-- [x] Ripresa automatica scelta per singola console
-- [x] Pad dei cloni PS3 (Xsail) provato: funziona
-- [x] Messaggi di errore del motore interno (Diagnostica, avvio giochi) in inglese
-- [x] RetroArch e MAME: ricerca automatica sul PC e rimando ai siti ufficiali, con avviso sulla versione di MAME (niente download automatico: scelta voluta, per fiducia e compatibilità con i set ROM)
-- [x] Trofei (RetroAchievements) e trucchi (cheat): accesso e database scaricabile dal programma (da provare con un account reale)
-- [x] Grafica a fumetto in tutto il programma, schermata dei sistemi a poster e Impostazioni riorganizzate
+## Phase 3 — Extensions
+- [x] Atari Jaguar and 3DO
+- [x] Filters (family, year), favorites and recent games
+- [x] CRT shaders and overlays
+- [x] Alternative themes
+- [x] Play statistics: time and sessions in the preview, "most played" list in search
+- [x] Windows installer (electron-builder + automatic workflow on GitHub; unsigned)
 
-**Rimandate o escluse**
-- Mega CD, Sega Saturn, GameCube, Wii, PlayStation 2, PSP: fuori da questa versione
-- Sostituzione della shell di Windows (avvio senza desktop): rimandata, rischiosa senza un ripristino chiaro
-- Firma digitale dell'installer: ultimo passo, dopo il collaudo (richiede un certificato a pagamento; per ora si spiega l'avviso di Windows)
-- Demul e altri emulatori autonomi: esclusi, si usano i core di RetroArch (Flycast per Dreamcast e Naomi)
-- macOS e Linux: esclusi
+## Phase 4 — Polish (0.2.x)
+- [x] Comic style for the **whole program** plus a second *Stage* style; illustrated consoles and stylised user photos
+- [x] Settings reorganised (Screen and Covers tabs, guide last); settings adapt to the screen resolution
+- [x] Covers redesigned: per-system cards with progress, "not available online" counts, last-search date, "find covers for incomplete systems"
+- [x] Image cache under control: choose its folder, move it, compress it, remove pack copies, set a size limit; no more copies of Multimedia-pack images
+- [x] Per-console resume
+- [x] Trophies (RetroAchievements) and cheats (database download with progress bar, automatic loading per game)
+- [x] Pixel sharpness (soft / xBRZ), offered only when the PC can take it, combinable with the CRT effect
+- [x] Find RetroArch and MAME on the PC and link to their official sites, with a MAME / ROM-set version warning (no automatic download, by design)
+- [x] Engine and diagnostics messages in English; Diagnostics shows the image settings requested at the last game
+- [x] Screen-mode fixes: stretched mode switches the border off; RetroArch no longer remembers the last aspect ratio
+- [x] Bilingual **wiki** published automatically from `docs/wiki`
 
-## Principi del progetto
-- Nessun costo e nessuna API a pagamento: i dati devono funzionare offline o da fonti gratuite.
-- Nessuna ROM né BIOS inclusi o scaricati dal programma.
-- Pensato per chi non è esperto: ogni funzione deve avere un percorso guidato.
+## To do (by value)
+
+**Being verified on real hardware** — each has an issue with a test checklist
+- [ ] Console saves across more games: Continue / New game, `.prev` copy, per-console switch ([#1](https://github.com/VjAlbert/Mr.Emulator/issues/1))
+- [ ] Xbox gamepads and I-PAC encoders: exit, menu, manual mapping ([#2](https://github.com/VjAlbert/Mr.Emulator/issues/2))
+- [ ] Trophies with a real account ([#3](https://github.com/VjAlbert/Mr.Emulator/issues/3))
+- [ ] Cheats on games that have a cheat file ([#4](https://github.com/VjAlbert/Mr.Emulator/issues/4))
+- [ ] Pixel sharpness on more systems and PCs ([#5](https://github.com/VjAlbert/Mr.Emulator/issues/5))
+- [x] Borders, screen modes and shaders tried on real RetroArch and screens
+- [x] PS3-clone gamepad (Xsail) tried: works
+- [x] MAME crashes on some games: fixed
+- [x] PlayStation resume (Crash Bandicoot): works
+
+**Next**
+- [ ] Signed installer — the last step after testing ([#6](https://github.com/VjAlbert/Mr.Emulator/issues/6))
+- [ ] More wiki pages and screenshots ([#7](https://github.com/VjAlbert/Mr.Emulator/issues/7))
+- [ ] Optional higher internal resolution for 3D consoles ([#8](https://github.com/VjAlbert/Mr.Emulator/issues/8))
+
+**Postponed or excluded**
+- Mega CD and Sega Saturn ([#9](https://github.com/VjAlbert/Mr.Emulator/issues/9)); GameCube, Wii, PlayStation 2 and PSP ([#10](https://github.com/VjAlbert/Mr.Emulator/issues/10)): outside the current scope
+- Replacing the Windows shell (booting without the desktop): postponed, risky without a clear way back
+- Demul and other stand-alone emulators: excluded — RetroArch cores are used (Flycast for Dreamcast and Naomi)
+- macOS and Linux: excluded
+
+## Project principles
+- No cost and no paid APIs: data must work offline or from free sources.
+- No ROMs or BIOS files included or downloaded by the program.
+- Made for non-experts: every feature needs a guided path.

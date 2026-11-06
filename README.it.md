@@ -89,4 +89,4 @@ npm run dist    # installer per Windows (su Windows) → release\
 
 **Mr. Emulator non include, non scarica e non distribuisce ROM né BIOS.** Funziona con i file che possiedi e che hai ottenuto legalmente. Questo repository non conterrà mai materiale protetto da copyright.
 
-Licenza: [MIT](LICENSE) · Roadmap: [`docs/ROADMAP.md`](docs/ROADMAP.md)
+Licenza: [MIT](LICENSE) · Roadmap: [`docs/ROADMAP.it.md`](docs/ROADMAP.it.md)

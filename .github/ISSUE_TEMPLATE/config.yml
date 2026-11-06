@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Wiki — FAQ and troubleshooting
+    url: https://github.com/VjAlbert/Mr.Emulator/wiki/Troubleshooting
+    about: Many problems have a known fix (Diagnostics tells you what is missing).
+  - name: Wiki in Italiano — Problemi comuni
+    url: https://github.com/VjAlbert/Mr.Emulator/wiki/IT-Problemi-Comuni
+    about: Soluzioni ai problemi più frequenti.

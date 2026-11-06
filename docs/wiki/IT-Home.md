@@ -50,4 +50,4 @@ Mr. Emulator è un **launcher gratuito per giochi arcade e console classiche su 
 | Vedere cosa è fatto e cosa viene dopo | [Roadmap e rilasci](IT-Roadmap-e-Rilasci) |
 
 ---
-<sub>Mr. Emulator è rilasciato con licenza MIT ed è fatto da **Assistente Malpagato software**. Roadmap: [`docs/ROADMAP.md`](https://github.com/VjAlbert/Mr.Emulator/blob/main/docs/ROADMAP.md) · Note di rilascio: [`docs/RELEASE_NOTES.md`](https://github.com/VjAlbert/Mr.Emulator/blob/main/docs/RELEASE_NOTES.md).</sub>
+<sub>Mr. Emulator è rilasciato con licenza MIT ed è fatto da **Assistente Malpagato software**. Roadmap: [`docs/ROADMAP.it.md`](https://github.com/VjAlbert/Mr.Emulator/blob/main/docs/ROADMAP.it.md) · Note di rilascio: [`docs/RELEASE_NOTES.md`](https://github.com/VjAlbert/Mr.Emulator/blob/main/docs/RELEASE_NOTES.md).</sub>
