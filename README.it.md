@@ -85,6 +85,10 @@ npm test        # test automatici
 npm run dist    # installer per Windows (su Windows) → release\
 ```
 
+## 🔏 Firma digitale
+
+L'installer per Windows **non è ancora firmato**; si sta preparando la domanda al programma gratuito per progetti open source di SignPath Foundation. Vedi la [politica di firma](docs/CODE_SIGNING_POLICY.md) (in inglese) e la [guida](docs/SIGNING.md).
+
 ## ⚖️ ROM e BIOS
 
 **Mr. Emulator non include, non scarica e non distribuisce ROM né BIOS.** Funziona con i file che possiedi e che hai ottenuto legalmente. Questo repository non conterrà mai materiale protetto da copyright.

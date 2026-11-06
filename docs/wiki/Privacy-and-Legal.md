@@ -31,6 +31,10 @@ The program does **not** collect or send usage data and does not need an account
 - **Saves** are in the saves folder you choose; **covers** in the cache folder you choose.
 - Uninstalling does not delete your games, saves or cache.
 
+## Code signing
+
+The installer is not signed yet. When it is, it will be signed through SignPath Foundation's open-source programme, only from the official GitHub workflow. Details: the [code signing policy](https://github.com/VjAlbert/Mr.Emulator/blob/main/docs/CODE_SIGNING_POLICY.md).
+
 ## Licence
 
 Mr. Emulator is released under the [MIT licence](https://github.com/VjAlbert/Mr.Emulator/blob/main/LICENSE). RetroArch, libretro cores and MAME have their own licences — check them on their sites.

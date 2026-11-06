@@ -4,7 +4,10 @@
   "version": "0.2.13",
   "description": "Launcher grafico per giochi arcade e console classiche, in stile picchiaduro.",
   "main": "./out/main/index.js",
-  "author": "VjAlbert",
+  "author": {
+    "name": "Assistente Malpagato software",
+    "url": "https://github.com/VjAlbert/Mr.Emulator"
+  },
   "license": "MIT",
   "private": true,
   "scripts": {
@@ -34,7 +37,7 @@
   "build": {
     "appId": "it.vjalbert.mremulator",
     "productName": "Mr. Emulator",
-    "copyright": "Licenza MIT",
+    "copyright": "Copyright © 2026 Assistente Malpagato software — MIT licence",
     "directories": {
       "output": "release",
       "buildResources": "build"
@@ -71,5 +74,10 @@
       "deleteAppDataOnUninstall": false,
       "artifactName": "Mr-Emulator-Setup-${version}.exe"
     }
+  },
+  "homepage": "https://github.com/VjAlbert/Mr.Emulator",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/VjAlbert/Mr.Emulator.git"
   }
 }

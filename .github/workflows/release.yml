@@ -1,7 +1,9 @@
 name: Installer per Windows
 
 # Si avvia a mano (Actions -> Run workflow) oppure quando si crea un tag come v0.2.0.
-# Costruisce l'installer su una macchina Windows di GitHub (gratuita) e lo allega alla release.
+# 1) costruisce l'installer su una macchina Windows di GitHub (gratuita);
+# 2) lo firma con SignPath, SOLO se la variabile del repository SIGNING_ENABLED vale "true" (vedi docs/SIGNING.md);
+# 3) lo allega alla release (firmato se la firma è attiva, altrimenti così com'è).
 on:
   workflow_dispatch:
     inputs:
@@ -16,8 +18,11 @@ permissions:
   contents: write
 
 jobs:
-  windows:
+  build:
     runs-on: windows-latest
+    outputs:
+      version: ${{ steps.v.outputs.version }}
+      artifact-id: ${{ steps.up.outputs.artifact-id }}
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v5
@@ -28,19 +33,64 @@ jobs:
       - run: npm run typecheck
       - run: npm test
       - run: npm run dist
-      - uses: actions/upload-artifact@v6
-        with:
-          name: Mr-Emulator-Setup
-          path: release/Mr-Emulator-Setup-*.exe
       - name: Read the version
         id: v
         shell: bash
         run: echo "version=$(node -p "require('./package.json').version")" >> "$GITHUB_OUTPUT"
+      - name: Keep the unsigned installer
+        id: up
+        uses: actions/upload-artifact@v6
+        with:
+          name: Mr-Emulator-Setup
+          path: release/Mr-Emulator-Setup-*.exe
+
+  # Firma con SignPath (servizio gratuito per i progetti open source). Spenta finché SIGNING_ENABLED non è "true".
+  sign:
+    needs: build
+    if: vars.SIGNING_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Submit the installer to SignPath and wait for the signed file
+        uses: signpath/github-action-submit-signing-request@v1
+        with:
+          api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
+          organization-id: ${{ vars.SIGNPATH_ORGANIZATION_ID }}
+          project-slug: ${{ vars.SIGNPATH_PROJECT_SLUG }}
+          signing-policy-slug: ${{ vars.SIGNPATH_SIGNING_POLICY_SLUG }}
+          github-artifact-id: ${{ needs.build.outputs.artifact-id }}
+          wait-for-completion: true
+          output-artifact-directory: signed
+      - name: Keep the signed installer
+        uses: actions/upload-artifact@v6
+        with:
+          name: Mr-Emulator-Setup-signed
+          path: signed/*.exe
+
+  publish:
+    needs: [build, sign]
+    # parte anche se la firma è saltata (spenta), ma non se è fallita
+    if: >-
+      always() && needs.build.result == 'success' && (needs.sign.result == 'success' || needs.sign.result == 'skipped')
+      && (startsWith(github.ref, 'refs/tags/v') || inputs.publish)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Get the signed installer
+        if: needs.sign.result == 'success'
+        uses: actions/download-artifact@v5
+        with:
+          name: Mr-Emulator-Setup-signed
+          path: dist
+      - name: Get the unsigned installer
+        if: needs.sign.result != 'success'
+        uses: actions/download-artifact@v5
+        with:
+          name: Mr-Emulator-Setup
+          path: dist
       - name: Publish the release with the installer
-        if: startsWith(github.ref, 'refs/tags/v') || inputs.publish
         uses: softprops/action-gh-release@v3
         with:
-          tag_name: ${{ startsWith(github.ref, 'refs/tags/v') && github.ref_name || format('v{0}', steps.v.outputs.version) }}
-          name: Mr. Emulator ${{ steps.v.outputs.version }}
-          files: release/Mr-Emulator-Setup-*.exe
+          tag_name: ${{ startsWith(github.ref, 'refs/tags/v') && github.ref_name || format('v{0}', needs.build.outputs.version) }}
+          name: Mr. Emulator ${{ needs.build.outputs.version }}
+          files: dist/Mr-Emulator-Setup-*.exe
           body_path: docs/RELEASE_NOTES.md

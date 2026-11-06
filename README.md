@@ -142,6 +142,10 @@ The installer is also built on GitHub (free Windows runner): **Actions → Insta
 
 Roadmap: [`docs/ROADMAP.md`](docs/ROADMAP.md).
 
+## 🔏 Code signing
+
+The Windows installer is **not signed yet**; an application to SignPath Foundation's free open-source programme is being prepared. See the [code signing policy](docs/CODE_SIGNING_POLICY.md) and the [setup guide](docs/SIGNING.md).
+
 ## ⚖️ ROMs and BIOS
 
 **Mr. Emulator does not include, download or distribute ROMs or BIOS files.** It works with files you own and obtained legally, for example backups of your own games and consoles. This repository will never contain copyrighted material.

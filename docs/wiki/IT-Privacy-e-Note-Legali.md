@@ -31,6 +31,10 @@ I pulsanti «Sito ufficiale» aprono solo il browser.
 - I **salvataggi** stanno nella cartella che scegli; le **copertine** nella cartella della cache che scegli.
 - Disinstallare non cancella i tuoi giochi, salvataggi o cache.
 
+## Firma digitale
+
+L'installer non è ancora firmato. Quando lo sarà, verrà firmato tramite il programma open source di SignPath Foundation, solo dal flusso GitHub ufficiale. Dettagli: la [politica di firma](https://github.com/VjAlbert/Mr.Emulator/blob/main/docs/CODE_SIGNING_POLICY.md) (in inglese).
+
 ## Licenza
 
 Mr. Emulator è rilasciato con [licenza MIT](https://github.com/VjAlbert/Mr.Emulator/blob/main/LICENSE). RetroArch, i core libretro e MAME hanno le loro licenze — controllale sui loro siti.
