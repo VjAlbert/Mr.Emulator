@@ -1,4 +1,4 @@
-[◀ Home](Home.md) · **Privacy & legal**
+[◀ Home](Home) · **Privacy & legal**
 
 # 🔒 Privacy & legal
 
@@ -33,6 +33,6 @@ The program does **not** collect or send usage data and does not need an account
 
 ## Licence
 
-Mr. Emulator is released under the [MIT licence](../../LICENSE). RetroArch, libretro cores and MAME have their own licences — check them on their sites.
+Mr. Emulator is released under the [MIT licence](https://github.com/VjAlbert/Mr.Emulator/blob/main/LICENSE). RetroArch, libretro cores and MAME have their own licences — check them on their sites.
 
-[◀ Troubleshooting](Troubleshooting.md) · [Next: Under the hood ▶](Under-the-Hood.md)
+[◀ Troubleshooting](Troubleshooting) · [Next: Under the hood ▶](Under-the-Hood)

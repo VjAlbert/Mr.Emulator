@@ -1,0 +1,1 @@
+<sub>Mr. Emulator · by **Assistente Malpagato software** · [Download](https://github.com/VjAlbert/Mr.Emulator/releases/latest) · [Issues](https://github.com/VjAlbert/Mr.Emulator/issues) · MIT licence · No ROMs, BIOS or emulators included.</sub>

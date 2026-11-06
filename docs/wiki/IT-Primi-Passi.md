@@ -1,8 +1,8 @@
-[◀ Home](Home.md) · **Primi passi**
+[◀ Home](IT-Home) · **Primi passi**
 
 # 🚀 Primi passi
 
-<img src="../img/it-firstrun.webp" alt="Guida al primo avvio" width="720">
+<img src="https://raw.githubusercontent.com/VjAlbert/Mr.Emulator/main/docs/wiki/img/it-firstrun.webp" alt="Guida al primo avvio" width="720">
 
 ## 1. Installa
 
@@ -31,7 +31,7 @@ Puoi saltare la guida e rifarla quando vuoi dal fondo delle **Impostazioni**.
 3. Scegli un gioco. A destra vedi la copertina, il titolo e — se c'è un salvataggio — l'interruttore **Continua / Nuova partita**.
 4. **Invio** (o pulsante 1) per avviare. Si esce con **Esc**, oppure **Select + Start** sul gamepad.
 
-<img src="../img/it-title.webp" alt="Schermata iniziale" width="49%"> <img src="../img/it-home.webp" alt="Scelta del sistema" width="49%">
+<img src="https://raw.githubusercontent.com/VjAlbert/Mr.Emulator/main/docs/wiki/img/it-title.webp" alt="Schermata iniziale" width="49%"> <img src="https://raw.githubusercontent.com/VjAlbert/Mr.Emulator/main/docs/wiki/img/it-home.webp" alt="Scelta del sistema" width="49%">
 
 ## 4. Rendilo tuo
 
@@ -42,6 +42,6 @@ Puoi saltare la guida e rifarla quando vuoi dal fondo delle **Impostazioni**.
 
 ## Qualcosa non va?
 
-Apri **Impostazioni → Diagnostica**: controlla cartelle, core, BIOS e l'ultimo registro di RetroArch, e ti dice cosa fare. Vedi [Problemi comuni](Troubleshooting.md).
+Apri **Impostazioni → Diagnostica**: controlla cartelle, core, BIOS e l'ultimo registro di RetroArch, e ti dice cosa fare. Vedi [Problemi comuni](IT-Problemi-Comuni).
 
-[Avanti: Tour delle funzioni ▶](Features.md)
+[Avanti: Tour delle funzioni ▶](IT-Funzioni)

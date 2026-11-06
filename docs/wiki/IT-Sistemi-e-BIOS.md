@@ -1,4 +1,4 @@
-[◀ Home](Home.md) · **Sistemi e BIOS**
+[◀ Home](IT-Home) · **Sistemi e BIOS**
 
 # 🎮 Sistemi e BIOS
 
@@ -30,7 +30,7 @@ Mr. Emulator non emula nulla da solo. Ogni sistema è eseguito da un **core libr
 | | 3DO | `opera` | `3do` | `.iso` `.cue` `.chd` |
 | **Computer e altro** | MSX · ZX Spectrum · ColecoVision · Fairchild Channel F · Bally Astrocade | `fbneo` | `msx` · `spectrum` · `coleco` · `channelf` · `astrocade` | `.zip` `.7z` |
 
-**Non ancora supportati:** Mega CD, Sega Saturn, GameCube/Wii, PlayStation 2, PSP. Vedi la [roadmap](../../ROADMAP.md).
+**Non ancora supportati:** Mega CD, Sega Saturn, GameCube/Wii, PlayStation 2, PSP. Vedi la [roadmap](https://github.com/VjAlbert/Mr.Emulator/blob/main/docs/ROADMAP.md).
 
 ## BIOS che possono servire
 
@@ -49,4 +49,4 @@ Solo pochi sistemi richiedono un BIOS. La guida al primo avvio mostra l'elenco e
 
 Ogni sistema ha una cartella sotto quella dei giochi, con il nome della tabella. Mr. Emulator le scansiona in background e ricorda il risultato, quindi aprire un sistema è istantaneo. I giochi possono stare su qualsiasi disco; se un disco esterno è scollegato il programma lo dice invece di mostrare un elenco vuoto.
 
-[◀ Tour delle funzioni](Features.md) · [Avanti: Comandi ▶](Controls.md)
+[◀ Tour delle funzioni](IT-Funzioni) · [Avanti: Comandi ▶](IT-Comandi)

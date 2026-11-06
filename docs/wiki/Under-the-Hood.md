@@ -1,4 +1,4 @@
-[◀ Home](Home.md) · **Under the hood**
+[◀ Home](Home) · **Under the hood**
 
 # 🛠️ Under the hood
 
@@ -53,4 +53,4 @@ Interface text is written in Italian inside `t('…')` calls and translated thro
 3. Keep user-visible strings in `t()`/`mt()` with English entries.
 4. Run `npm run typecheck && npm test` before opening a pull request.
 
-[◀ Privacy & legal](Privacy-and-Legal.md) · [Home](Home.md)
+[◀ Privacy & legal](Privacy-and-Legal) · [Next: Settings reference ▶](Settings-Reference)

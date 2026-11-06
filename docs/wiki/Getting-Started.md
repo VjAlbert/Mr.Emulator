@@ -1,8 +1,8 @@
-[◀ Home](Home.md) · **Getting started**
+[◀ Home](Home) · **Getting started**
 
 # 🚀 Getting started
 
-<img src="img/en-firstrun.webp" alt="First-run guide" width="720">
+<img src="https://raw.githubusercontent.com/VjAlbert/Mr.Emulator/main/docs/wiki/img/en-firstrun.webp" alt="First-run guide" width="720">
 
 ## 1. Install
 
@@ -31,7 +31,7 @@ You can skip the guide and run it again any time from the bottom of **Settings**
 3. Pick a game. The right side shows the cover, the title and — if there is a save — the **Continue / New game** switch.
 4. **Enter** (or button 1) to launch. Exit with **Esc**, or **Select + Start** on a gamepad.
 
-<img src="img/en-title.webp" alt="Title screen" width="49%"> <img src="img/en-home.webp" alt="System select" width="49%">
+<img src="https://raw.githubusercontent.com/VjAlbert/Mr.Emulator/main/docs/wiki/img/en-title.webp" alt="Title screen" width="49%"> <img src="https://raw.githubusercontent.com/VjAlbert/Mr.Emulator/main/docs/wiki/img/en-home.webp" alt="System select" width="49%">
 
 ## 4. Make it yours
 
@@ -42,6 +42,6 @@ You can skip the guide and run it again any time from the bottom of **Settings**
 
 ## Something not working?
 
-Open **Settings → Diagnostics**. It checks folders, cores, BIOS files and RetroArch's last log, and tells you what to do. See [Troubleshooting](Troubleshooting.md).
+Open **Settings → Diagnostics**. It checks folders, cores, BIOS files and RetroArch's last log, and tells you what to do. See [Troubleshooting](Troubleshooting).
 
-[Next: Features tour ▶](Features.md)
+[Next: Features tour ▶](Features)

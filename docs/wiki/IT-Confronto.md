@@ -1,4 +1,4 @@
-[◀ Home](Home.md) · **Confronto**
+[◀ Home](IT-Home) · **Confronto**
 
 # ⚖️ Confronto con altri programmi
 
@@ -33,7 +33,7 @@ Mr. Emulator è un **launcher solo per Windows, gratuito e a zero configurazione
 - **Comandi pensati per il cabinato.** Combinazioni di uscita e menu che funzionano senza tastiera, preset I-PAC, assegnazione manuale per due giocatori, stranezze dei gamepad (cloni PS3, hat, grilletti analogici).
 - **Un aspetto coerente e originale.** Lo stile a fumetto copre *ogni* schermata, non solo la home, e c'è un secondo stile «palcoscenico».
 - **Diagnostica onesta.** Una schermata che controlla cartelle, core, BIOS, mancata corrispondenza tra MAME e set di ROM, bordi e shader, e l'ultimo registro dell'emulatore — con un testo da incollare in una segnalazione.
-- **Niente account, niente API a pagamento, niente telemetria.** Copertine e core arrivano da fonti pubbliche gratuite; l'unica richiesta ricorrente è un controllo giornaliero facoltativo degli aggiornamenti. Vedi [Privacy e note legali](Privacy-and-Legal.md).
+- **Niente account, niente API a pagamento, niente telemetria.** Copertine e core arrivano da fonti pubbliche gratuite; l'unica richiesta ricorrente è un controllo giornaliero facoltativo degli aggiornamenti. Vedi [Privacy e note legali](IT-Privacy-e-Note-Legali).
 - **Piccolo e mirato.** Un solo installer per Windows, poche schermate, due lingue.
 
 ## Dove gli altri sono meglio (sii onesto con te stesso)
@@ -60,4 +60,4 @@ Mr. Emulator è un **launcher solo per Windows, gratuito e a zero configurazione
 
 Non si escludono a vicenda: Mr. Emulator usa RetroArch e MAME, e puoi continuare a usare altri frontend in parallelo.
 
-[◀ Autoguida](Auto-Tuning.md) · [Avanti: Problemi comuni ▶](Troubleshooting.md)
+[◀ Autoguida](IT-Autoguida) · [Avanti: Problemi comuni ▶](IT-Problemi-Comuni)

@@ -1,8 +1,8 @@
-[◀ Home](Home.md) · **Covers & image cache**
+[◀ Home](Home) · **Covers & image cache**
 
 # 🖼️ Covers & image cache
 
-<img src="img/en-covers.webp" alt="Covers settings" width="720">
+<img src="https://raw.githubusercontent.com/VjAlbert/Mr.Emulator/main/docs/wiki/img/en-covers.webp" alt="Covers settings" width="720">
 
 ## Where covers come from
 
@@ -42,4 +42,4 @@ Every system shows its console. Put a PNG/JPG/WEBP named after the system (`snes
 
 Photos should be **yours or public domain**, ideally on a white or transparent background, ~800 px wide.
 
-[◀ Saves, trophies & cheats](Saves-Trophies-Cheats.md) · [Next: Auto-tuning ▶](Auto-Tuning.md)
+[◀ Saves, trophies & cheats](Saves-Trophies-Cheats) · [Next: Auto-tuning ▶](Auto-Tuning)

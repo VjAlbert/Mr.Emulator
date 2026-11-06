@@ -1,8 +1,8 @@
-[◀ Home](Home.md) · **Screen & image quality**
+[◀ Home](Home) · **Screen & image quality**
 
 # 🖥️ Screen & image quality
 
-<img src="img/en-screen.webp" alt="Screen settings" width="720">
+<img src="https://raw.githubusercontent.com/VjAlbert/Mr.Emulator/main/docs/wiki/img/en-screen.webp" alt="Screen settings" width="720">
 
 Everything here lives in **Your PC** (general mode) and **Settings → Screen**.
 
@@ -59,4 +59,4 @@ If your monitor is mounted rotated, choose **clockwise** or **counter-clockwise*
 
 For every game the program writes a small config file: RetroArch receives it with `--appendconfig` (aspect, integer scaling, overlay, shader…), MAME gets a generated `mame.ini`. It always writes the aspect and scaling values, even when they are "normal", and tells RetroArch **not to save its own config on exit** — otherwise RetroArch would remember the last mode (for example *stretched*) and apply it to the next game.
 
-[◀ Controls](Controls.md) · [Next: Saves, trophies & cheats ▶](Saves-Trophies-Cheats.md)
+[◀ Controls](Controls) · [Next: Saves, trophies & cheats ▶](Saves-Trophies-Cheats)

@@ -1,8 +1,8 @@
-[◀ Home](Home.md) · **Salvataggi, trofei e trucchi**
+[◀ Home](IT-Home) · **Salvataggi, trofei e trucchi**
 
 # 💾 Salvataggi, trofei e trucchi
 
-<img src="../img/it-saves.webp" alt="Impostazioni dei salvataggi" width="49%"> <img src="../img/it-cheats.webp" alt="Trofei e trucchi" width="49%">
+<img src="https://raw.githubusercontent.com/VjAlbert/Mr.Emulator/main/docs/wiki/img/it-saves.webp" alt="Impostazioni dei salvataggi" width="49%"> <img src="https://raw.githubusercontent.com/VjAlbert/Mr.Emulator/main/docs/wiki/img/it-cheats.webp" alt="Trofei e trucchi" width="49%">
 
 ## Salvataggi — «Continua» al posto delle memory card
 
@@ -32,7 +32,7 @@ C'è **una sola cartella dei salvataggi**, per impostazione accanto alla cartell
 
 - La **modalità hardcore** è facoltativa: i trofei valgono di più, ma per le regole del sito **stati di salvataggio e trucchi sono disattivati** — quindi il «continua da dove eri» non funziona in hardcore.
 - Il gioco deve essere una versione riconosciuta dal sito; altrimenti RetroArch scrive *«Unknown game»* nel registro.
-- La password resta **su questo PC** (vedi [Privacy e note legali](Privacy-and-Legal.md)).
+- La password resta **su questo PC** (vedi [Privacy e note legali](IT-Privacy-e-Note-Legali)).
 
 ## Trucchi
 
@@ -42,4 +42,4 @@ Un clic scarica il **database dei trucchi** di RetroArch in una cartella `cheats
 - Non fa nulla con la modalità hardcore attiva.
 - MAME ha i suoi trucchi nel menu interno.
 
-[◀ Schermo e immagine](Screen-and-Image.md) · [Avanti: Copertine e cache ▶](Covers-and-Cache.md)
+[◀ Schermo e immagine](IT-Schermo-e-Immagine) · [Avanti: Copertine e cache ▶](IT-Copertine-e-Cache)

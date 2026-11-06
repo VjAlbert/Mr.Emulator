@@ -1,8 +1,8 @@
-[◀ Home](Home.md) · **Auto-tuning**
+[◀ Home](Home) · **Auto-tuning**
 
 # ⚡ Auto-tuning
 
-<img src="img/levels.svg" alt="Light, Balanced and Maximum levels" width="100%">
+<img src="https://raw.githubusercontent.com/VjAlbert/Mr.Emulator/main/docs/wiki/img/levels.svg" alt="Light, Balanced and Maximum levels" width="100%">
 
 Mr. Emulator is meant to run on everything from an old laptop with 6–8 GB of RAM and a small graphics card to a strong desktop. So it never uses one fixed configuration: it **detects your hardware and picks the settings per system**.
 
@@ -37,4 +37,4 @@ After a real game (at least 45 seconds) the program may ask **"how did it go?"**
 
 **Your PC** shows the detected hardware, the level for each system and a one-line summary such as *"Balanced · CRT Easymode · less input lag · full height"*. **Diagnostics** shows the exact settings requested at the last game.
 
-[◀ Covers & image cache](Covers-and-Cache.md) · [Next: Comparison ▶](Comparison.md)
+[◀ Covers & image cache](Covers-and-Cache) · [Next: Comparison ▶](Comparison)

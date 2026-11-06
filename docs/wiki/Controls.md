@@ -1,8 +1,8 @@
-[◀ Home](Home.md) · **Controls**
+[◀ Home](Home) · **Controls**
 
 # 🕹️ Controls
 
-<img src="img/en-controls.webp" alt="Controls screen" width="720">
+<img src="https://raw.githubusercontent.com/VjAlbert/Mr.Emulator/main/docs/wiki/img/en-controls.webp" alt="Controls screen" width="720">
 
 Mr. Emulator is navigated entirely with **keyboard, mouse, gamepad or arcade panel**, and it writes matching input settings for RetroArch **and** MAME, so what you configure once works everywhere.
 
@@ -53,4 +53,4 @@ The gamepad combinations can be changed — or disabled — in **Controls → Ex
 - Turn on **Cabinet mode** (Settings) to start with Windows, borderless full screen, hidden cursor and a protected exit.
 - Keep the *standard* exit combo on the panel, so a guest can always leave a game without a keyboard.
 
-[◀ Systems & BIOS](Systems.md) · [Next: Screen & image quality ▶](Screen-and-Image.md)
+[◀ Systems & BIOS](Systems) · [Next: Screen & image quality ▶](Screen-and-Image)

@@ -1,8 +1,8 @@
-[◀ Home](Home.md) · **Troubleshooting**
+[◀ Home](Home) · **Troubleshooting**
 
 # 🩺 Troubleshooting
 
-<img src="img/en-diag.webp" alt="Diagnostics screen" width="720">
+<img src="https://raw.githubusercontent.com/VjAlbert/Mr.Emulator/main/docs/wiki/img/en-diag.webp" alt="Diagnostics screen" width="720">
 
 **Start with Settings → Diagnostics.** It marks every check as ✔ OK, ⚠ attention or ✖ problem, and tells you how to fix it. Press **Copy the text** to share the full report (it also includes the last RetroArch/MAME logs and the image settings requested at the last game).
 
@@ -10,10 +10,10 @@
 
 | Symptom | Likely cause | Fix |
 |---|---|---|
-| A system shows **0 games** | Wrong folder or extensions | Check the folder name in [Systems & BIOS](Systems.md); put files directly in it. |
+| A system shows **0 games** | Wrong folder or extensions | Check the folder name in [Systems & BIOS](Systems); put files directly in it. |
 | **RetroArch not found** | Path not set | Settings → General → *Search this PC* / Browse to `retroarch.exe`. |
 | **Missing core** | Core not downloaded | First-run guide or Diagnostics → install the core, or RetroArch → Load Core → Download a Core. |
-| **Missing BIOS** | File not in `bios` | See the table in [Systems & BIOS](Systems.md). Diagnostics says which file and where. |
+| **Missing BIOS** | File not in `bios` | See the table in [Systems & BIOS](Systems). Diagnostics says which file and where. |
 | **MAME game will not start** | ROM set and MAME version differ, or a ZIP is incomplete | Use the MAME version of your set. Use **ROM check**; the failure notice names the missing/bad files. Click the notice to copy details. |
 | Game always looks **full height** whatever mode I choose | Older versions: RetroArch remembered the last aspect; or a graphic border covers the sides | Update (fixed in 0.2.6/0.2.4). In *Full screen (stretched)* borders are switched off automatically. |
 | **Border not found** | Names do not match | Settings → Screen: see "Borders matched automatically: N of M"; pick the border by hand for the others. Remember to turn the option on and press **Save**. |
@@ -32,4 +32,4 @@
 
 Open an [issue](https://github.com/VjAlbert/Mr.Emulator/issues) on GitHub.
 
-[◀ Comparison](Comparison.md) · [Next: Privacy & legal ▶](Privacy-and-Legal.md)
+[◀ Comparison](Comparison) · [Next: Privacy & legal ▶](Privacy-and-Legal)

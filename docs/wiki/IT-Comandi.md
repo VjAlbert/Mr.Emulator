@@ -1,8 +1,8 @@
-[◀ Home](Home.md) · **Comandi**
+[◀ Home](IT-Home) · **Comandi**
 
 # 🕹️ Comandi
 
-<img src="../img/it-controls.webp" alt="Schermata dei comandi" width="720">
+<img src="https://raw.githubusercontent.com/VjAlbert/Mr.Emulator/main/docs/wiki/img/it-controls.webp" alt="Schermata dei comandi" width="720">
 
 Mr. Emulator si usa interamente con **tastiera, mouse, gamepad o pannello arcade**, e scrive le impostazioni dei comandi per RetroArch **e** per MAME: quello che configuri una volta vale ovunque.
 
@@ -53,4 +53,4 @@ Le combinazioni del gamepad si possono cambiare — o disattivare — in **Coman
 - Attiva la **Modalità cabinato** (Impostazioni): avvio con Windows, schermo intero senza bordi, cursore nascosto e uscita protetta.
 - Tieni la combinazione di uscita *standard* sul pannello, così un ospite può sempre lasciare un gioco senza tastiera.
 
-[◀ Sistemi e BIOS](Systems.md) · [Avanti: Schermo e immagine ▶](Screen-and-Image.md)
+[◀ Sistemi e BIOS](IT-Sistemi-e-BIOS) · [Avanti: Schermo e immagine ▶](IT-Schermo-e-Immagine)

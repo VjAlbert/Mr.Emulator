@@ -1,4 +1,4 @@
-[◀ Home](Home.md) · **Comparison**
+[◀ Home](Home) · **Comparison**
 
 # ⚖️ Comparison with other programs
 
@@ -33,7 +33,7 @@ Mr. Emulator is a **Windows-only, free, zero-configuration launcher** for arcade
 - **Cabinet-first controls.** Exit and game-menu combos that work with no keyboard, I-PAC presets, manual mapping for two players, gamepad quirks (PS3 clones, hats, analog triggers).
 - **A coherent, original look.** The comic-book style covers *every* screen, not just the home page, and there is a second "stage" style.
 - **Honest diagnostics.** A screen that checks folders, cores, BIOS, MAME/ROM-set version mismatch, borders and shaders, and the last emulator log — with a text you can paste into a bug report.
-- **No accounts, no paid APIs, no telemetry.** Covers and cores come from free public sources; the only recurring request is an optional daily update check. See [Privacy & legal](Privacy-and-Legal.md).
+- **No accounts, no paid APIs, no telemetry.** Covers and cores come from free public sources; the only recurring request is an optional daily update check. See [Privacy & legal](Privacy-and-Legal).
 - **Small and focused.** One Windows installer, a handful of screens, two languages.
 
 ## Where others are better (be honest with yourself)
@@ -60,4 +60,4 @@ Mr. Emulator is a **Windows-only, free, zero-configuration launcher** for arcade
 
 They are not mutually exclusive: Mr. Emulator uses RetroArch and MAME, and you can keep using other frontends side by side.
 
-[◀ Auto-tuning](Auto-Tuning.md) · [Next: Troubleshooting ▶](Troubleshooting.md)
+[◀ Auto-tuning](Auto-Tuning) · [Next: Troubleshooting ▶](Troubleshooting)

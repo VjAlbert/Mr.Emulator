@@ -1,8 +1,8 @@
-[◀ Home](Home.md) · **Saves, trophies & cheats**
+[◀ Home](Home) · **Saves, trophies & cheats**
 
 # 💾 Saves, trophies & cheats
 
-<img src="img/en-saves.webp" alt="Saves settings" width="49%"> <img src="img/en-cheats.webp" alt="Trophies and cheats" width="49%">
+<img src="https://raw.githubusercontent.com/VjAlbert/Mr.Emulator/main/docs/wiki/img/en-saves.webp" alt="Saves settings" width="49%"> <img src="https://raw.githubusercontent.com/VjAlbert/Mr.Emulator/main/docs/wiki/img/en-cheats.webp" alt="Trophies and cheats" width="49%">
 
 ## Saves — "Continue" instead of memory cards
 
@@ -32,7 +32,7 @@ There is **one saves folder**, next to your ROM folder by default (for example `
 
 - **Hardcore mode** is optional: trophies are worth more, but **save states and cheats are disabled** by the site's rules — so the "continue where you left off" feature does not work in hardcore.
 - The game must be a version the site recognises; otherwise RetroArch logs *"Unknown game"*.
-- Your password stays **on this PC** (see [Privacy & legal](Privacy-and-Legal.md)).
+- Your password stays **on this PC** (see [Privacy & legal](Privacy-and-Legal)).
 
 ## Cheats
 
@@ -42,4 +42,4 @@ One click downloads RetroArch's **cheat database** into a `cheats` folder next t
 - It does nothing with hardcore mode on.
 - MAME has its own cheats in its internal menu.
 
-[◀ Screen & image quality](Screen-and-Image.md) · [Next: Covers & image cache ▶](Covers-and-Cache.md)
+[◀ Screen & image quality](Screen-and-Image) · [Next: Covers & image cache ▶](Covers-and-Cache)

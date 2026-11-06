@@ -1,4 +1,4 @@
-[◀ Home](Home.md) · **Privacy e note legali**
+[◀ Home](IT-Home) · **Privacy e note legali**
 
 # 🔒 Privacy e note legali
 
@@ -33,6 +33,6 @@ I pulsanti «Sito ufficiale» aprono solo il browser.
 
 ## Licenza
 
-Mr. Emulator è rilasciato con [licenza MIT](../../../LICENSE). RetroArch, i core libretro e MAME hanno le loro licenze — controllale sui loro siti.
+Mr. Emulator è rilasciato con [licenza MIT](https://github.com/VjAlbert/Mr.Emulator/blob/main/LICENSE). RetroArch, i core libretro e MAME hanno le loro licenze — controllale sui loro siti.
 
-[◀ Problemi comuni](Troubleshooting.md) · [Avanti: Sotto il cofano ▶](Under-the-Hood.md)
+[◀ Problemi comuni](IT-Problemi-Comuni) · [Avanti: Sotto il cofano ▶](IT-Sotto-il-Cofano)

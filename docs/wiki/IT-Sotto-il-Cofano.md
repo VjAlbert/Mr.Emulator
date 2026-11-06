@@ -1,4 +1,4 @@
-[◀ Home](Home.md) · **Sotto il cofano**
+[◀ Home](IT-Home) · **Sotto il cofano**
 
 # 🛠️ Sotto il cofano
 
@@ -53,4 +53,4 @@ I testi dell'interfaccia sono scritti in italiano dentro chiamate `t('…')` e t
 3. Tieni le frasi visibili all'utente in `t()`/`mt()` con le voci inglesi.
 4. Esegui `npm run typecheck && npm test` prima di aprire una pull request.
 
-[◀ Privacy e note legali](Privacy-and-Legal.md) · [Home](Home.md)
+[◀ Privacy e note legali](IT-Privacy-e-Note-Legali) · [Avanti: Guida alle impostazioni ▶](IT-Impostazioni)

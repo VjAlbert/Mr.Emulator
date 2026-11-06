@@ -1,8 +1,8 @@
-[◀ Home](Home.md) · **Schermo e immagine**
+[◀ Home](IT-Home) · **Schermo e immagine**
 
 # 🖥️ Schermo e qualità dell'immagine
 
-<img src="../img/it-screen.webp" alt="Impostazioni dello schermo" width="720">
+<img src="https://raw.githubusercontent.com/VjAlbert/Mr.Emulator/main/docs/wiki/img/it-screen.webp" alt="Impostazioni dello schermo" width="720">
 
 Tutto sta in **Il tuo PC** (modalità generale) e in **Impostazioni → Schermo**.
 
@@ -59,4 +59,4 @@ Se il monitor è montato ruotato, scegli **senso orario** o **antiorario** in **
 
 Per ogni gioco il programma scrive un piccolo file di configurazione: RetroArch lo riceve con `--appendconfig` (proporzione, scala intera, overlay, shader…), MAME riceve un `mame.ini` generato. Scrive sempre i valori di proporzione e scala, anche quando sono «normali», e dice a RetroArch di **non salvare la propria configurazione all'uscita** — altrimenti RetroArch ricorderebbe l'ultima modalità (per esempio *stirata*) e la applicherebbe al gioco dopo.
 
-[◀ Comandi](Controls.md) · [Avanti: Salvataggi, trofei e trucchi ▶](Saves-Trophies-Cheats.md)
+[◀ Comandi](IT-Comandi) · [Avanti: Salvataggi, trofei e trucchi ▶](IT-Salvataggi-Trofei-Trucchi)

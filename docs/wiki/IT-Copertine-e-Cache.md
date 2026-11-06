@@ -1,8 +1,8 @@
-[◀ Home](Home.md) · **Copertine e cache**
+[◀ Home](IT-Home) · **Copertine e cache**
 
 # 🖼️ Copertine e cache delle immagini
 
-<img src="../img/it-covers.webp" alt="Impostazioni delle copertine" width="720">
+<img src="https://raw.githubusercontent.com/VjAlbert/Mr.Emulator/main/docs/wiki/img/it-covers.webp" alt="Impostazioni delle copertine" width="720">
 
 ## Da dove arrivano
 
@@ -41,4 +41,4 @@ Ogni sistema mostra la sua console. Metti un PNG/JPG/WEBP con il nome del sistem
 
 Le foto devono essere **tue o di pubblico dominio**, meglio su sfondo bianco o trasparente, larghe circa 800 px.
 
-[◀ Salvataggi, trofei e trucchi](Saves-Trophies-Cheats.md) · [Avanti: Autoguida ▶](Auto-Tuning.md)
+[◀ Salvataggi, trofei e trucchi](IT-Salvataggi-Trofei-Trucchi) · [Avanti: Autoguida ▶](IT-Autoguida)

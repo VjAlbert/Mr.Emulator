@@ -1,8 +1,8 @@
-[◀ Home](Home.md) · **Autoguida**
+[◀ Home](IT-Home) · **Autoguida**
 
 # ⚡ Autoguida
 
-<img src="../img/levels-it.svg" alt="Livelli Leggero, Bilanciato e Massimo" width="100%">
+<img src="https://raw.githubusercontent.com/VjAlbert/Mr.Emulator/main/docs/wiki/img/levels-it.svg" alt="Livelli Leggero, Bilanciato e Massimo" width="100%">
 
 Mr. Emulator deve funzionare dal vecchio portatile con 6–8 GB di RAM e una piccola scheda video fino a un desktop potente. Per questo non usa mai una configurazione fissa: **riconosce l'hardware e sceglie le impostazioni per ogni sistema**.
 
@@ -37,4 +37,4 @@ Dopo una partita vera (almeno 45 secondi) il programma può chiedere **«com'è 
 
 **Il tuo PC** mostra l'hardware riconosciuto, il livello di ogni sistema e un riepilogo in una riga come *«Bilanciato · CRT Easymode · meno ritardo comandi · altezza piena»*. **Diagnostica** mostra le impostazioni esatte richieste all'ultimo gioco.
 
-[◀ Copertine e cache](Covers-and-Cache.md) · [Avanti: Confronto ▶](Comparison.md)
+[◀ Copertine e cache](IT-Copertine-e-Cache) · [Avanti: Confronto ▶](IT-Confronto)

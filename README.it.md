@@ -10,7 +10,7 @@
 
 [![Scarica per Windows](https://img.shields.io/badge/%E2%AC%87_SCARICA_PER_WINDOWS-ff2d55?style=for-the-badge&logo=windows&logoColor=white&labelColor=1b1b2a)](https://github.com/VjAlbert/Mr.Emulator/releases/latest)
 
-[English](README.md) · **Italiano** · 📖 **[Wiki](docs/wiki/it/Home.md)**
+[English](README.md) · **Italiano** · 📖 **[Wiki](https://github.com/VjAlbert/Mr.Emulator/wiki/IT-Home)**
 
 <img src="docs/img/title.png" width="720" alt="Schermata iniziale">
 
